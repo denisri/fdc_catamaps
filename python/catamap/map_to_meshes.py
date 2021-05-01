@@ -7,10 +7,10 @@ from __future__ import absolute_import
 #import anatomist.headless as ana
 #a = ana.HeadlessAnatomist()
 
-import svg_to_mesh
+from . import svg_to_mesh
 from six.moves import range
 from six.moves import zip
-from svg_to_mesh import aims, fake_aims
+from .svg_to_mesh import aims, fake_aims
 import numpy as np
 from scipy.spatial import Delaunay
 import copy
@@ -104,7 +104,7 @@ Comandlins options (may be used together):
 my_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, my_dir)
 try:
-    from altitude import bdalti
+    from .altitude import bdalti
 except ImportError:
     print('could not import bdalti module.')
 finally:
@@ -4187,7 +4187,8 @@ def convert_to_jpg(png_file, remove=True):
         os.unlink(png_file)
 
 
-if __name__ == '__main__':
+def main():
+
     import sys
     map_to_meshes = sys.modules['__main__']
 
@@ -4217,7 +4218,7 @@ if __name__ == '__main__':
         del sys.argv[i]
         del sys.argv[i]
     if '-h' in sys.argv or '--help' in sys.argv:
-        print('python -m map_to_meshes [--2d] [--3d] [--igc] [--split] '
+        print('python -m catamap [--2d] [--3d] [--igc] [--split] '
               '[--join] [input_file.svg] [output_3d_dir]')
         sys.exit(1)
 
@@ -4384,3 +4385,6 @@ if __name__ == '__main__':
         map2d_join = svg2d.build_2d_map(
             None, filters=['join_layers="%s"' % svg_filename])
         map2d_join.write(svg_filename.replace('.svg', '_joined.svg'))
+
+if __name__ == '__main__':
+    main()
