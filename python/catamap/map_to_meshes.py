@@ -4189,9 +4189,6 @@ def convert_to_jpg(png_file, remove=True):
 
 def main():
 
-    import sys
-    map_to_meshes = sys.modules['__main__']
-
     do_2d = False
     do_3d = False
     do_igc = False
@@ -4237,9 +4234,9 @@ def main():
                 raise ValueError('unrecognized arguments')
 
     if do_3d:
-        svg_mesh = map_to_meshes.CataSvgToMesh()
+        svg_mesh = CataSvgToMesh()
     else:
-        svg_mesh = map_to_meshes.CataMapTo2DMap()
+        svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True
 
     if do_3d or do_2d or do_igc or do_igc_private or do_split or do_recolor:
@@ -4259,7 +4256,7 @@ def main():
 
     if do_2d or do_igc or do_igc_private or do_recolor or do_split or do_join:
         # -- 2D map
-        svg2d = map_to_meshes.CataMapTo2DMap()
+        svg2d = CataMapTo2DMap()
     if do_2d:
         # xml_et = svg2d.read_xml(svg_filename)
         col_filter = []
