@@ -66,9 +66,9 @@ Usage
 * get or make the source SVG file with codes inside, for instance ``plan_14_fdc_2021_04_29.svg``
 
 * go to the directory containing it
-* run the module ``map_to_meshes`` as a program::
+* run the module ``catamap`` as a program::
 
-    python -m map_to_meshes --2d plan_14_fdc_2021_04_29.svg
+    python -m catamap --2d plan_14_fdc_2021_04_29.svg
 
 It should work using either python2 or python3.
 The 2D maps options will produce files with suffixes in the current directory:
@@ -76,7 +76,7 @@ modified .svg files, .pdf and .jpg files.
 
 The 3D maps options will produce meshes in a subdirectory.
 
-Comandlins options (may be used together):
+Comandline options (may be used together):
 
 -h, --help:
     get short help and quit
