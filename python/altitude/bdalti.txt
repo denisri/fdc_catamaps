@@ -1,0 +1,17 @@
+BD alti:
+https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti
+
+# download:
+ftp://BD_ALTI_ext:docoazeecoosh1Ai@ftp3.ign.fr/BDALTIV2_2-0_75M_ASC_LAMB93-IGN69_FRANCE_2020-04-28.7z.001
+
+logiciel (windows): IGNMap http://ignmap.ign.fr/
+
+
+# à comparer à:
+https://www.geoportail.gouv.fr/carte
+
+7z -x BDALTIV2_2-0_75M_ASC_LAMB93-IGN69_FRANCE_2020-04-28.7z.001
+
+# Convert ascii maps:
+read_bdalti.py
+
