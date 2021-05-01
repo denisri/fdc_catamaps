@@ -1,7 +1,10 @@
 # fdc_catamaps
-Process SVG Inkscape maps to produce 2D/3D catacombs maps (Fond-du-crew maps)
+Process SVG Inkscape maps to produce 2D/3D catacombs maps (Fond-du-crew maps).
 
-Catacombs maps using SVG source map with codes inside it.
+Contains a set of python modules / program to produce catacombs maps using SVG source map with codes inside it.
+
+A web site sources is also provided in `catamap_web/`
+
 
 The program allows to produce:
 
@@ -9,11 +12,17 @@ The program allows to produce:
 
 * 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
 
-Requirements:
+Requirements
+------------
 
 * Having inkscape installed on the system and available in the PATH.
   A recent version of inkscape (1.0 at least) is recommended to avoid units and
   scaling problems.
+* ImageMagick "convert" tool to convert PNG to JPEG. This dependency may be
+  replaced with the PIL module (or imageio?) later.
+
+Python modules:
+
 * svg_to_mesh submodule and its requirements (part of this project)
 * xml ElementTree
 * six

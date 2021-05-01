@@ -36,11 +36,17 @@ The program allows to produce:
 
 * 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
 
-Requirements:
+Requirements
+------------
 
 * Having inkscape installed on the system and available in the PATH.
   A recent version of inkscape (1.0 at least) is recommended to avoid units and
   scaling problems.
+* ImageMagick "convert" tool to convert PNG to JPEG. This dependency may be
+  replaced with the PIL module (or imageio?) later.
+
+Python modules:
+
 * svg_to_mesh submodule and its requirements (part of this project)
 * xml ElementTree
 * six
@@ -4297,7 +4303,7 @@ def main():
 
         # build bitmap and pdf versions
         # public
-        export_png(svg_filename.replace('.svg', '_imprimable.svg'), 180,
+        export_png(svg_filename.replace('.svg', '_imprimable.svg'), 360,
                    'rect15021')
         export_pdf(svg_filename.replace('.svg', '_imprimable_flat.svg'))
         os.unlink(svg_filename.replace('.svg', '_imprimable_flat.svg'))
@@ -4306,7 +4312,7 @@ def main():
 
         # private
         export_png(svg_filename.replace('.svg', '_imprimable_private.svg'),
-                   180, 'rect15021-0')
+                   360, 'rect15021-0')
         export_pdf(svg_filename.replace('.svg',
                                         '_imprimable_private_flat.svg'))
         os.unlink(svg_filename.replace('.svg', '_imprimable_private_flat.svg'))
