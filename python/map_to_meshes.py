@@ -70,12 +70,33 @@ Usage
 
     python -m map_to_meshes --2d plan_14_fdc_2021_04_29.svg
 
-It should work using either python2 or python3. Comandlins options (may be used together):
+It should work using either python2 or python3.
+The 2D maps options will produce files with suffixes in the current directory:
+modified .svg files, .pdf and .jpg files.
 
+The 3D maps options will produce meshes in a subdirectory.
+
+Comandlins options (may be used together):
+
+-h, --help:
+    get short help and quit
 --2d:
     produce 2D maps
+--igc:
+    produce 2D maps with IGC maps underneath. Zooms, 2nd level shifts, and
+    symbols replacements are not applied.
+--igc_private:
+    same as --igc but produce a private map (private layers are not removed)
+--color:
+    recolor the maps using a color model. Available models are (currently):
+    igc, bator, black (igc is used automatically in the --igc options)
 --3d:
     produce 3D meshes in a subdirectory (default: ``meshes_obj``)
+--split:
+    split the SVG file into 4 smaller ones, each containing a subset of the
+    layers
+--join:
+    reverse the --split operation: concatenate layers from several files
 
 '''
 
