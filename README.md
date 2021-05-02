@@ -24,6 +24,10 @@ Requirements
 
 Python modules:
 
+These can be installed using the command:
+```
+    python -m pip install six numpy scipy Pillow
+```
 * svg_to_mesh submodule and its requirements (part of this project)
 * xml ElementTree
 * six
