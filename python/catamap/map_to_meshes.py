@@ -26,6 +26,10 @@ import sys
 import subprocess
 import distutils.spawn
 import imp
+try:
+    import PIL.Image
+except ImportError:
+    PIL = None
 
 '''
 Catacombs maps using SVG source map with codes inside it.
@@ -42,8 +46,20 @@ Requirements
 * Having inkscape installed on the system and available in the PATH.
   A recent version of inkscape (1.0 at least) is recommended to avoid units and
   scaling problems.
-* ImageMagick "convert" tool to convert PNG to JPEG. This dependency may be
-  replaced with the PIL module (or imageio?) later.
+* Either the Pillow (PIL) python podule (see later) or ImageMagick "convert"
+  tool to convert PNG to JPEG. If Pillow is present, then convert will not be
+  used.
+
+  Warning: https://github.com/ImageMagick/ImageMagick/issues/396
+  ImageMagick cache (disk limit) size is too small.
+  Edit /etc/ImageMagick-6/policy.xml and change disk resource limit::
+
+      <policy domain="resource" name="memory" value="12GiB"/>
+      <policy domain="resource" name="map" value="20GiiB"/>
+      <policy domain="resource" name="width" value="50KP"/>
+      <policy domain="resource" name="height" value="50KP"/>
+      <policy domain="resource" name="area" value="20GiB"/>
+      <policy domain="resource" name="disk" value="80GiB"/>
 
 Python modules:
 
@@ -52,6 +68,8 @@ Python modules:
 * six
 * numpy
 * scipy
+* Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
+  "convert" tool will be used (see above)
 
 The 3D part has additional requirements:
 
@@ -4175,20 +4193,36 @@ def export_png(in_file, resolution=180, rect_id=None, out_file=None,
              cmd += ['--export-id', rect_id]
         call(cmd + [in_file])
 
-def convert_to_jpg(png_file, remove=True):
-    # warning: https://github.com/ImageMagick/ImageMagick/issues/396
-    # ImageMagick cache (disk limit) size may be too small.
-    # edit /etc/ImageMagick-6/policy.xml and change disk resource limit.
-    #  <policy domain="resource" name="memory" value="12GiB"/>
-    #  <policy domain="resource" name="map" value="20GiiB"/>
-    #  <policy domain="resource" name="width" value="50KP"/>
-    #  <policy domain="resource" name="height" value="50KP"/>
-    #  <policy domain="resource" name="area" value="20GiB"/>
-    #  <policy domain="resource" name="disk" value="80GiB"/>
-    subprocess.check_call(
-        ['convert', '-quality', '98', '-background', 'white', '-flatten',
-         '-alpha', 'on',
-          png_file, png_file.replace('.png', '.jpg')])
+def convert_to_jpg(png_file, remove=True, max_pixels=None):
+    outfile = png_file.replace('.png', '.jpg')
+    if PIL:
+        # use Pillow PIL module
+        if not max_pixels:
+            max_pixels = 30000 * 30000  # large enough
+        PIL.Image.MAX_IMAGE_PIXELS = max_pixels
+        try:
+            with PIL.Image.open(png_file) as im:
+                # convert to RGB with alpha and white background
+                front = np.array(im)  # copy because the image in read only
+                for i in range(3):
+                    alpha = front[:, :, 3] / 255.
+                    front[:, :, i] = (
+                        255 * (1. - alpha)
+                        + front[:, :, i] * alpha).astype(np.uint8)
+                front[:,:,3] = 255
+
+                im = PIL.Image.fromarray(front, 'RGBA')
+                im = im.convert(mode='RGB')
+
+                im.save(outfile, quality=95)
+        except OSError:
+            print("cannot convert", infile)
+    else:
+        # use ImageMagick convert tool
+        subprocess.check_call(
+            ['convert', '-quality', '98', '-background', 'white', '-flatten',
+            '-alpha', 'on',
+              png_file, outfile])
     if remove:
         os.unlink(png_file)
 
