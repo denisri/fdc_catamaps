@@ -26,10 +26,16 @@ import sys
 import subprocess
 import distutils.spawn
 import imp
+from argparse import ArgumentParser
 try:
     import PIL.Image
 except ImportError:
     PIL = None
+# import bdalti module
+try:
+    from .altitude import bdalti
+except ImportError:
+    bdalti = None
 
 '''
 Catacombs maps using SVG source map with codes inside it.
@@ -102,41 +108,12 @@ It should work using either python2 or python3.
 The 2D maps options will produce files with suffixes in the current directory:
 modified .svg files, .pdf and .jpg files.
 
-The 3D maps options will produce meshes in a subdirectory.
+The 3D maps option will produce meshes in a subdirectory.
 
-Comandline options (may be used together):
-
--h, --help:
-    get short help and quit
---2d:
-    produce 2D maps
---igc:
-    produce 2D maps with IGC maps underneath. Zooms, 2nd level shifts, and
-    symbols replacements are not applied.
---igc_private:
-    same as --igc but produce a private map (private layers are not removed)
---color:
-    recolor the maps using a color model. Available models are (currently):
-    igc, bator, black (igc is used automatically in the --igc options)
---3d:
-    produce 3D meshes in a subdirectory (default: ``meshes_obj``)
---split:
-    split the SVG file into 4 smaller ones, each containing a subset of the
-    layers
---join:
-    reverse the --split operation: concatenate layers from several files
+Use the commandline with the '-h' option to get all parameters help.
 
 '''
 
-# import bdalti module
-my_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, my_dir)
-try:
-    from .altitude import bdalti
-except ImportError:
-    print('could not import bdalti module.')
-finally:
-    del sys.path[0]
 
 
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
@@ -4240,34 +4217,68 @@ def main():
     do_split = False
     do_join = False
     do_recolor = False
-    if '--2d' in sys.argv:
-        do_2d = True
-    if '--3d' in sys.argv:
-        do_3d = True
-    if '--igc' in sys.argv:
-        do_igc = True
-    if '--igc_private' in sys.argv:
-        do_igc_private = True
-    if '--split' in sys.argv:
-        do_split = True
-    if '--join' in sys.argv:
-        do_join = True
-    if '--color' in sys.argv:
-        do_recolor = True
-        i = sys.argv.index('--color')
-        colorset = sys.argv[i + 1]
-        del sys.argv[i]
-        del sys.argv[i]
-    if '-h' in sys.argv or '--help' in sys.argv:
-        print('python -m catamap [--2d] [--3d] [--igc] [--split] '
-              '[--join] [input_file.svg] [output_3d_dir]')
-        sys.exit(1)
-
-    #from anatomist import headless as ana
-    #a = ana.HeadlessAnatomist()
-
-    svg_filename = 'plan_14_fdc_2019_06_16.svg'
     out_dirname = 'meshes_obj'
+
+    parser = ArgumentParser(prog='catamap',
+      description='''Catacombs maps using SVG source map with codes inside it.
+
+The program allows to produce:
+
+* 2D "readable" maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
+
+* 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
+''')
+    parser.add_argument(
+        '--2d', action='store_true', dest='do_2d',
+        help='Build 2D maps (public, private, poster)')
+    parser.add_argument(
+        '--3d', action='store_true', dest='do_3d',
+        help='Build 3D map meshes in the "%s/" directory' % out_dirname)
+    parser.add_argument(
+        '--igc', action='store_true',
+        help='Build 2D maps with IGC maps underneath in a semi-transparent '
+        'background. Zooms, 2nd level shifts, and symbols replacements are '
+        'not applied in order to respect the scales.')
+    parser.add_argument(
+        '--igc_private', action='store_true',
+        help='Build 2D maps with IGC maps underneath in a semi-transparent '
+        'background, including private indications')
+    parser.add_argument(
+        '--color',
+        help='recolor the maps using a color model. Available models are '
+        '(currently): igc, bator, black (igc is used automatically in the '
+        '--igc options)')
+    parser.add_argument(
+        '--split', action='store_true',
+        help='split the SVG file into 4 smaller ones, each containing a '
+        'subset of the layers')
+    parser.add_argument(
+        '--join', action='store_true',
+        help='reverse the --split operation: concatenate layers from several '
+        'files')
+    parser.add_argument(
+        'input_file',
+        help='input SVG Inkscape file')
+    parser.add_argument(
+        'output_3d_dir', nargs='?', default=out_dirname,
+        help='output 3D meshes directory (default: %(default)s)')
+
+    options = parser.parse_args()
+
+    do_2d = options.do_2d
+    do_3d = options.do_3d
+    do_igc = options.igc
+    do_igc_private = options.igc_private
+    do_split = options.split
+    do_join = options.join
+    if options.color:
+        do_recolor = True
+        colorset = options.color
+
+    print(options)
+
+    svg_filename = options.input_file
+    out_dirname = options.output_3d_dir
 
     files = [x for x in sys.argv[1:] if not x.startswith('-')]
     if len(files) >= 1:
