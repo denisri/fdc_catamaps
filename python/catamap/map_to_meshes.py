@@ -4218,6 +4218,16 @@ def main():
     do_join = False
     do_recolor = False
     out_dirname = 'meshes_obj'
+    maps_dpi = {
+        'default': '180',
+        'public': '360',
+        'private': '360',
+        'private_wip': '180',
+        'poster': '360',
+        'igc': '180',
+        'igc_private': '300',
+    }
+    all_maps = 'public,private,wip,poster,igc,igc_private'
 
     parser = ArgumentParser(prog='catamap',
       description='''Catacombs maps using SVG source map with codes inside it.
@@ -4230,19 +4240,17 @@ The program allows to produce:
 ''')
     parser.add_argument(
         '--2d', action='store_true', dest='do_2d',
-        help='Build 2D maps (public, private, poster)')
+        help='Build 2D maps (several maps). the maps list is given via the '
+        '--maps option. If the latter is not specified, do all.')
+    parser.add_argument(
+        '-m', '--maps', dest='do_2d_maps',
+        help='specify which 2d maps should be built, ex: '
+        '"public,private,igc". Values are in ("public", "private", "wip", '
+        '"poster", "igc", "igc_private"). Default: all if --2d is used. If '
+        'this option is specified, --2d is implied (thus is not needed)')
     parser.add_argument(
         '--3d', action='store_true', dest='do_3d',
         help='Build 3D map meshes in the "%s/" directory' % out_dirname)
-    parser.add_argument(
-        '--igc', action='store_true',
-        help='Build 2D maps with IGC maps underneath in a semi-transparent '
-        'background. Zooms, 2nd level shifts, and symbols replacements are '
-        'not applied in order to respect the scales.')
-    parser.add_argument(
-        '--igc_private', action='store_true',
-        help='Build 2D maps with IGC maps underneath in a semi-transparent '
-        'background, including private indications')
     parser.add_argument(
         '--color',
         help='recolor the maps using a color model. Available models are '
@@ -4253,9 +4261,22 @@ The program allows to produce:
         help='split the SVG file into 4 smaller ones, each containing a '
         'subset of the layers')
     parser.add_argument(
+        '--dpi', # nargs='+',
+        help='output JPEG images resolution. May be global (for all outputs): '
+        '"360", or scoped to a single map: "igc:360". Several --dpi options '
+        'may specify resolutions for several output maps: '
+        '"--dpi 200,igc:360,private:280"')
+    parser.add_argument(
         '--join', action='store_true',
         help='reverse the --split operation: concatenate layers from several '
         'files')
+    parser.add_argument(
+        '--output_filename',
+        help='base filename for output 2D maps. The filename will be suffixed '
+        'according to maps types (_imprimable, _imprimable_private, etc) '
+        '(default: same as input file). Be careful that some maps are using '
+        'files linked in the same input directory, and will not work if the '
+        'output is in a different directory.')
     parser.add_argument(
         'input_file',
         help='input SVG Inkscape file')
@@ -4266,27 +4287,45 @@ The program allows to produce:
     options = parser.parse_args()
 
     do_2d = options.do_2d
+    do_2d_maps = options.do_2d_maps
+    if do_2d_maps:
+        do_2d = True
+    elif do_2d:
+        do_2d_maps = all_maps
+
     do_3d = options.do_3d
-    do_igc = options.igc
-    do_igc_private = options.igc_private
     do_split = options.split
     do_join = options.join
+    out_filename = options.output_filename
     if options.color:
         do_recolor = True
         colorset = options.color
+    dpi = options.dpi.split(',')
+    if dpi:
+        maps_dpi2 = {}
+        for item in dpi:
+            dpi_spec = item.split(':')
+            scope = 'default'
+            resol = dpi_spec[-1]
+            if len(dpi_spec) >= 2:
+                scope = dpi_spec[0]
+            maps_dpi2[scope] = resol
+        if 'default' in maps_dpi2:
+            # "default" overrides all builtin settings
+            maps_dpi = maps_dpi2
+        else:
+            # otherwise we just update
+            maps_dpi.update(maps_dpi2)
+        # print('resolutions:', maps_dpi)
 
-    print(options)
+    # print(options)
 
     svg_filename = options.input_file
     out_dirname = options.output_3d_dir
-
-    files = [x for x in sys.argv[1:] if not x.startswith('-')]
-    if len(files) >= 1:
-        svg_filename = files[0]
-        if len(files) >= 2:
-            out_dirname = files[1]
-            if len(files) > 2:
-                raise ValueError('unrecognized arguments')
+    if not out_filename:
+        out_filename = options.input_file
+    if not out_filename.endswith('.svg'):
+        out_filename += '.svg'
 
     if do_3d:
         svg_mesh = CataSvgToMesh()
@@ -4294,7 +4333,7 @@ The program allows to produce:
         svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True
 
-    if do_3d or do_2d or do_igc or do_igc_private or do_split or do_recolor:
+    if do_3d or do_2d or do_split or do_recolor:
         print('reading SVG...')
         xml_et = svg_mesh.read_xml(svg_filename)
     if do_3d:
@@ -4306,137 +4345,156 @@ The program allows to produce:
         summary = svg_mesh.save_mesh_dict(
             meshes, out_dirname, ('.obj', 'WAVEFRONT'), ('.obj', 'WAVEFRONT'),
             'map_objects.json',
-            svg_filename.replace('.svg', '_imprimable_private.jpg'))
+            out_filename.replace('.svg', '_imprimable_private.jpg'))
 
 
-    if do_2d or do_igc or do_igc_private or do_recolor or do_split or do_join:
+    if do_2d or do_split or do_join:
         # -- 2D map
         svg2d = CataMapTo2DMap()
     if do_2d:
-        # xml_et = svg2d.read_xml(svg_filename)
+        do_2d_maps = set(do_2d_maps.split('.'))
+        print('build 2D maps:', do_2d_maps)
+
         col_filter = []
         if do_recolor:
             col_filter = ['recolor="%s"' % colorset]
-        map2d = svg2d.build_2d_map(
-            xml_et, filters=['remove_wip', 'printable_map'] + col_filter)
-        svg2d.clip_page(map2d, 'rect15021-0')
-        map2d.write(svg_filename.replace(
-            '.svg', '_imprimable_private_flat.svg'))
-        svg2d.add_shadows(map2d)
-        map2d.write(svg_filename.replace('.svg', '_imprimable_private.svg'))
-        # re-clip private map for poster (without south)
-        map2d_poster = svg2d.build_2d_map(
-            xml_et, filters=['remove_wip', 'poster_map'] + col_filter)
-        svg2d.clip_page(map2d_poster, 'rect15021')
-        map2d_poster.write(svg_filename.replace(
-            '.svg', '_poster_private_flat.svg'))
-        svg2d.add_shadows(map2d_poster)
-        map2d_poster.write(svg_filename.replace('.svg',
-                                                '_poster_private.svg'))
-        # WIP
-        map2d_wip = svg2d.build_2d_map(
-            xml_et, filters=['printable_map'] + col_filter)
-        svg2d.clip_page(map2d_wip, 'rect15021-0')
-        map2d_wip.write(svg_filename.replace(
-            '.svg', '_imprimable_private_wip_flat.svg'))
-        svg2d.add_shadows(map2d_wip)
-        map2d_wip.write(svg_filename.replace('.svg',
-                                             '_imprimable_private_wip.svg'))
-        map2d_pub = svg2d.build_2d_map(
-            xml_et, filters=['remove_private', 'remove_gtech', 'printable_map_public'] + col_filter)
-        svg2d.clip_page(map2d_pub, 'rect15021')
-        map2d_pub.write(svg_filename.replace(
-            '.svg', '_imprimable_flat.svg'))
-        svg2d.add_shadows(map2d_pub)
-        map2d_pub.write(svg_filename.replace('.svg', '_imprimable.svg'))
 
-        # build bitmap and pdf versions
-        # public
-        export_png(svg_filename.replace('.svg', '_imprimable.svg'), 360,
-                   'rect15021')
-        export_pdf(svg_filename.replace('.svg', '_imprimable_flat.svg'))
-        os.unlink(svg_filename.replace('.svg', '_imprimable_flat.svg'))
+        if 'private' in do_2d_maps:
+            map2d = svg2d.build_2d_map(
+                xml_et, filters=['remove_wip', 'printable_map'] + col_filter)
+            svg2d.clip_page(map2d, 'rect15021-0')
+            map2d.write(out_filename.replace(
+                '.svg', '_imprimable_private_flat.svg'))
+            svg2d.add_shadows(map2d)
+            map2d.write(out_filename.replace('.svg',
+                                             '_imprimable_private.svg'))
 
-        convert_to_jpg(svg_filename.replace('.svg', '_imprimable.png'))
+            # build bitmap and pdf versions
+            # private
+            export_png(out_filename.replace('.svg', '_imprimable_private.svg'),
+                      maps_dpi.get('private', maps_dpi['default']),
+                      'rect15021-0')
+            export_pdf(out_filename.replace('.svg',
+                                            '_imprimable_private_flat.svg'))
+            os.unlink(out_filename.replace('.svg',
+                                           '_imprimable_private_flat.svg'))
+            convert_to_jpg(out_filename.replace('.svg',
+                                                '_imprimable_private.png'))
 
-        # private
-        export_png(svg_filename.replace('.svg', '_imprimable_private.svg'),
-                   360, 'rect15021-0')
-        export_pdf(svg_filename.replace('.svg',
-                                        '_imprimable_private_flat.svg'))
-        os.unlink(svg_filename.replace('.svg', '_imprimable_private_flat.svg'))
-        convert_to_jpg(svg_filename.replace('.svg', '_imprimable_private.png'))
+        if 'poster' in do_2d_maps:
+            # re-clip private map for poster (without south)
+            map2d_poster = svg2d.build_2d_map(
+                xml_et, filters=['remove_wip', 'poster_map'] + col_filter)
+            svg2d.clip_page(map2d_poster, 'rect15021')
+            map2d_poster.write(out_filename.replace(
+                '.svg', '_poster_private_flat.svg'))
+            svg2d.add_shadows(map2d_poster)
+            map2d_poster.write(out_filename.replace('.svg',
+                                                    '_poster_private.svg'))
 
-        # private poster
-        export_png(svg_filename.replace('.svg', '_poster_private.svg'),
-                   360, 'rect15021')
-        #export_pdf(svg_filename.replace('.svg',
-                                        #'_poster_private_flat.svg'))
-        os.unlink(svg_filename.replace('.svg', '_poster_private_flat.svg'))
-        # convert segfaults on this with the image at 360 dpi
-        convert_to_jpg(svg_filename.replace('.svg', '_poster_private.png'))
+            # build bitmap and pdf versions
+            # private poster
+            export_png(out_filename.replace('.svg', '_poster_private.svg'),
+                      maps_dpi.get('poster', maps_dpi['default']),
+                      'rect15021')
+            #export_pdf(out_filename.replace('.svg',
+                                            #'_poster_private_flat.svg'))
+            os.unlink(out_filename.replace('.svg', '_poster_private_flat.svg'))
+            # convert segfaults on this with the image at 360 dpi
+            convert_to_jpg(out_filename.replace('.svg', '_poster_private.png'))
 
-        # private - WIP
-        export_png(svg_filename.replace('.svg', '_imprimable_private_wip.svg'),
-                   180, 'rect15021-0')
-        export_pdf(svg_filename.replace('.svg',
-                                        '_imprimable_private_wip_flat.svg'))
-        os.unlink(svg_filename.replace('.svg',
-                                       '_imprimable_private_wip_flat.svg'))
-        convert_to_jpg(svg_filename.replace('.svg',
-                                            '_imprimable_private_wip.png'))
+        if 'wip' in do_2d_maps:
+            # WIP
+            map2d_wip = svg2d.build_2d_map(
+                xml_et, filters=['printable_map'] + col_filter)
+            svg2d.clip_page(map2d_wip, 'rect15021-0')
+            map2d_wip.write(out_filename.replace(
+                '.svg', '_imprimable_private_wip_flat.svg'))
+            svg2d.add_shadows(map2d_wip)
+            map2d_wip.write(out_filename.replace('.svg',
+                                                '_imprimable_private_wip.svg'))
 
-    if do_igc:
-        map2d_igc = svg2d.build_2d_map(
-            xml_et, filters=['igc'])
-        svg2d.clip_page(map2d_igc, 'rect15021')
-        #svg2d.clip_page(map2d_igc, 'rect15021-0')
-        svg2d.add_shadows(map2d_igc)
-        map2d_igc.write(svg_filename.replace('.svg', '_igc.svg'))
-        # build bitmap and pdf versions
-        #export_png(svg_filename.replace('.svg', '_igc.svg'), 180,
-                   #'rect15021-0', ignore_errors=True)
-        export_png(svg_filename.replace('.svg', '_igc.svg'), 180,
-                   'rect15021', ignore_errors=True)
-        convert_to_jpg(svg_filename.replace('.svg', '_igc.png'))
-        #export_pdf(svg_filename.replace('.svg', '_igc.svg'))
+            # build bitmap and pdf versions
+            # private - WIP
+            export_png(out_filename.replace('.svg',
+                                            '_imprimable_private_wip.svg'),
+                       maps_dpi.get('public', maps_dpi['private_wip']),
+                       'rect15021-0')
+            export_pdf(out_filename.replace(
+                '.svg', '_imprimable_private_wip_flat.svg'))
+            os.unlink(out_filename.replace('.svg',
+                                          '_imprimable_private_wip_flat.svg'))
+            convert_to_jpg(out_filename.replace('.svg',
+                                                '_imprimable_private_wip.png'))
 
-    if do_igc_private:
-        map2d_igcp = svg2d.build_2d_map(
-            xml_et, filters=['igc_private'])
-        for layer in map2d_igcp.getroot():
-            if layer.get(
-                    '{http://www.inkscape.org/namespaces/inkscape}label') \
-                        == 'planches fond':
-                print('planches style:', layer.get('style'))
-                break
-        #svg2d.clip_page(map2d_igcp, 'rect15021')
-        svg2d.clip_page(map2d_igcp, 'rect15021-0')
-        svg2d.add_shadows(map2d_igcp)
-        map2d_igcp.write(svg_filename.replace('.svg', '_igc_private.svg'))
-        # build bitmap and pdf versions
-        export_png(svg_filename.replace('.svg', '_igc_private.svg'), 300,
-                   'rect15021-0', ignore_errors=True)
-        #export_png(svg_filename.replace('.svg', '_igc_private.svg'), 300,
-                   #'rect15021', ignore_errors=True)
-        #export_png(svg_filename.replace('.svg', '_igc_private.svg'),
-                   #300, 'bord_sud', ignore_errors=True,
-                   #out_file=svg_filename.replace(
-                      #'.svg', '_igc_sud_private.png'))
-        convert_to_jpg(svg_filename.replace('.svg', '_igc_private.png'))
-        #convert_to_jpg(svg_filename.replace('.svg', '_igc_sud_private.png'))
-        #export_pdf(svg_filename.replace('.svg', '_igc.svg'))
+        if 'public' in do_2d_maps:
+            map2d_pub = svg2d.build_2d_map(
+                xml_et, filters=['remove_private', 'remove_gtech',
+                                 'printable_map_public'] + col_filter)
+            svg2d.clip_page(map2d_pub, 'rect15021')
+            map2d_pub.write(out_filename.replace(
+                '.svg', '_imprimable_flat.svg'))
+            svg2d.add_shadows(map2d_pub)
+            map2d_pub.write(out_filename.replace('.svg', '_imprimable.svg'))
+
+            # build bitmap and pdf versions
+            # public
+            export_png(out_filename.replace('.svg', '_imprimable.svg'),
+                      maps_dpi.get('public', maps_dpi['default']),
+                      'rect15021')
+            export_pdf(out_filename.replace('.svg', '_imprimable_flat.svg'))
+            os.unlink(out_filename.replace('.svg', '_imprimable_flat.svg'))
+
+            convert_to_jpg(out_filename.replace('.svg', '_imprimable.png'))
+
+        if 'igc' in do_2d_maps:
+            map2d_igc = svg2d.build_2d_map(
+                xml_et, filters=['igc'])
+            svg2d.clip_page(map2d_igc, 'rect15021')
+            #svg2d.clip_page(map2d_igc, 'rect15021-0')
+            svg2d.add_shadows(map2d_igc)
+            map2d_igc.write(out_filename.replace('.svg', '_igc.svg'))
+            # build bitmap and pdf versions
+            #export_png(out_filename.replace('.svg', '_igc.svg'), 180,
+                      #'rect15021-0', ignore_errors=True)
+            export_png(out_filename.replace('.svg', '_igc.svg'),
+                      maps_dpi.get('igc', maps_dpi['default']),
+                      'rect15021', ignore_errors=True)
+            convert_to_jpg(out_filename.replace('.svg', '_igc.png'))
+            #export_pdf(out_filename.replace('.svg', '_igc.svg'))
+
+        if 'igc_private' in do_2d_maps:
+            map2d_igcp = svg2d.build_2d_map(
+                xml_et, filters=['igc_private'])
+            #svg2d.clip_page(map2d_igcp, 'rect15021')
+            svg2d.clip_page(map2d_igcp, 'rect15021-0')
+            svg2d.add_shadows(map2d_igcp)
+            map2d_igcp.write(out_filename.replace('.svg', '_igc_private.svg'))
+            # build bitmap and pdf versions
+            export_png(out_filename.replace('.svg', '_igc_private.svg'),
+                      maps_dpi.get('igc_private', maps_dpi['default']),
+                      'rect15021-0', ignore_errors=True)
+            #export_png(out_filename.replace('.svg', '_igc_private.svg'), 300,
+                      #'rect15021', ignore_errors=True)
+            #export_png(out_filename.replace('.svg', '_igc_private.svg'),
+                      #300, 'bord_sud', ignore_errors=True,
+                      #out_file=out_filename.replace(
+                          #'.svg', '_igc_sud_private.png'))
+            convert_to_jpg(out_filename.replace('.svg', '_igc_private.png'))
+            #convert_to_jpg(out_filename.replace('.svg',
+                           #'_igc_sud_private.png'))
+            #export_pdf(out_filename.replace('.svg', '_igc.svg'))
 
     if do_split:
         map2d_split = svg2d.build_2d_map(
             xml_et, filters=['split_layers="default"'])
         for i, m in enumerate(map2d_split.result[-1]):
-            m.write(svg_filename.replace('.svg', '_%d.svg' % i))
+            m.write(out_filename.replace('.svg', '_%d.svg' % i))
 
     if do_join:
         map2d_join = svg2d.build_2d_map(
-            None, filters=['join_layers="%s"' % svg_filename])
-        map2d_join.write(svg_filename.replace('.svg', '_joined.svg'))
+            None, filters=['join_layers="%s"' % out_filename])
+        map2d_join.write(out_filename.replace('.svg', '_joined.svg'))
 
 if __name__ == '__main__':
     main()

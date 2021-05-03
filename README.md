@@ -66,8 +66,8 @@ modified .svg files, .pdf and .jpg files.
 The 3D maps options will produce meshes in a subdirectory.
 
 ```
-usage: catamap [-h] [--2d] [--3d] [--igc] [--igc_private] [--color COLOR]
-               [--split] [--join]
+usage: catamap [-h] [--2d] [-m DO_2D_MAPS] [--3d] [--color COLOR] [--split]
+               [--dpi DPI] [--join] [--output_filename OUTPUT_FILENAME]
                input_file [output_3d_dir]
 
 Catacombs maps using SVG source map with codes inside it. The program allows
@@ -77,25 +77,39 @@ etc. * 3D maps to be used in a 3D visualization program, a webGL server, or
 the CataZoom app.
 
 positional arguments:
-  input_file     input SVG Inkscape file
-  output_3d_dir  output 3D meshes directory (default: meshes_obj)
+  input_file            input SVG Inkscape file
+  output_3d_dir         output 3D meshes directory (default: meshes_obj)
 
-optional arguments:<br>
-  -h, --help     show this help message and exit<br>
-  --2d           Build 2D maps (public, private, poster)<br>
-  --3d           Build 3D map meshes in the "meshes_obj/" directory<br>
-  --igc          Build 2D maps with IGC maps underneath in a semi-transparent
-                 background. Zooms, 2nd level shifts, and symbols replacements
-                 are not applied in order to respect the scales.<br>
-  --igc_private  Build 2D maps with IGC maps underneath in a semi-transparent
-                 background, including private indications<br>
-  --color COLOR  recolor the maps using a color model. Available models are
-                 (currently): igc, bator, black (igc is used automatically in
-                 the --igc options)<br>
-  --split        split the SVG file into 4 smaller ones, each containing a
-                 subset of the layers<br>
-  --join         reverse the --split operation: concatenate layers from
-                 several files<br>
+optional arguments:
+  -h, --help            show this help message and exit
+  --2d                  Build 2D maps (several maps). the maps list is given
+                        via the --maps option. If the latter is not specified,
+                        do all.
+  -m DO_2D_MAPS, --maps DO_2D_MAPS
+                        specify which 2d maps should be built, ex:
+                        "public,private,igc". Values are in ("public",
+                        "private", "wip", "poster", "igc", "igc_private").
+                        Default: all if --2d is used. If this option is
+                        specified, --2d is implied (thus is not needed)
+  --3d                  Build 3D map meshes in the "meshes_obj/" directory
+  --color COLOR         recolor the maps using a color model. Available models
+                        are (currently): igc, bator, black (igc is used
+                        automatically in the --igc options)
+  --split               split the SVG file into 4 smaller ones, each
+                        containing a subset of the layers
+  --dpi DPI             output JPEG images resolution. May be global (for all
+                        outputs): "360", or scoped to a single map: "igc:360".
+                        Several --dpi options may specify resolutions for
+                        several output maps: "--dpi 200,igc:360,private:280"
+  --join                reverse the --split operation: concatenate layers from
+                        several files
+  --output_filename OUTPUT_FILENAME
+                        base filename for output 2D maps. The filename will be
+                        suffixed according to maps types (_imprimable,
+                        _imprimable_private, etc) (default: same as input
+                        file). Be careful that some maps are using files
+                        linked in the same input directory, and will not work
+                        if the output is in a different directory.
 ```
 
 Notes
