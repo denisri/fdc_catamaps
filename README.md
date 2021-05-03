@@ -65,6 +65,7 @@ modified .svg files, .pdf and .jpg files.
 
 The 3D maps options will produce meshes in a subdirectory.
 
+```
 usage: catamap [-h] [--2d] [--3d] [--igc] [--igc_private] [--color COLOR]
                [--split] [--join]
                input_file [output_3d_dir]
@@ -95,6 +96,7 @@ optional arguments:<br>
                  subset of the layers<br>
   --join         reverse the --split operation: concatenate layers from
                  several files<br>
+```
 
 Notes
 -----
