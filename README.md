@@ -65,7 +65,7 @@ modified .svg files, .pdf and .jpg files.
 
 The 3D maps options will produce meshes in a subdirectory.
 
-usage: catamap \[-h\] \[--2d\] [--3d] [--igc] [--igc_private] [--color COLOR]
+usage: catamap [-h] [--2d] [--3d] [--igc] [--igc_private] [--color COLOR]
                [--split] [--join]
                input_file [output_3d_dir]
 
@@ -79,22 +79,22 @@ positional arguments:
   input_file     input SVG Inkscape file
   output_3d_dir  output 3D meshes directory (default: meshes_obj)
 
-optional arguments:
-  -h, --help     show this help message and exit
-  --2d           Build 2D maps (public, private, poster)
-  --3d           Build 3D map meshes in the "meshes_obj/" directory
+optional arguments:<br>
+  -h, --help     show this help message and exit<br>
+  --2d           Build 2D maps (public, private, poster)<br>
+  --3d           Build 3D map meshes in the "meshes_obj/" directory<br>
   --igc          Build 2D maps with IGC maps underneath in a semi-transparent
                  background. Zooms, 2nd level shifts, and symbols replacements
-                 are not applied in order to respect the scales.
+                 are not applied in order to respect the scales.<br>
   --igc_private  Build 2D maps with IGC maps underneath in a semi-transparent
-                 background, including private indications
+                 background, including private indications<br>
   --color COLOR  recolor the maps using a color model. Available models are
                  (currently): igc, bator, black (igc is used automatically in
-                 the --igc options)
+                 the --igc options)<br>
   --split        split the SVG file into 4 smaller ones, each containing a
-                 subset of the layers
+                 subset of the layers<br>
   --join         reverse the --split operation: concatenate layers from
-                 several files
+                 several files<br>
 
 Notes
 -----
