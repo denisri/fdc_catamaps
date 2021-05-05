@@ -115,12 +115,331 @@ Use the commandline with the '-h' option to get all parameters help.
 '''
 
 
+class ItemProperties(object):
+
+    prop_types = None  # will be initialized when used in get_typed_prop()
+
+    def __init__(self):
+        self.reset_properties()
+
+    def reset_properties(self):
+        self.name = None
+        self.label = None
+        self.eid = None
+        self.main_group = None
+        self.level = None
+        self.upper_level = None
+        self.private = False
+        self.inaccessible = False
+        self.corridor = False
+        self.block_item = False
+        self.symbol = False
+        self.arrow = False
+
+    def __str__(self):
+        d = '{'
+        for k in ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
+                  'private', 'inaccessible', 'corridor', 'block_item',
+                  'symbol', 'arrow'):
+            d += "'%s': %s, " % (k, repr(getattr(self, k)))
+        return d + '}'
+
+    @staticmethod
+    def get_typed_prop(prop, value):
+        if ItemProperties.prop_types is None:
+            ItemProperties.prop_types = {
+                'private': ItemProperties.is_true,
+                'inaccessible': ItemProperties.is_true,
+                'corridor': ItemProperties.is_true,
+                'block_item': ItemProperties.is_true,
+                'symbol': ItemProperties.is_true,
+                'arrow': ItemProperties.is_true,
+            }
+        type_f = ItemProperties.prop_types.get(prop, str)
+        if type_f is ItemProperties.is_true and value == prop:
+            # speclal case which we should handle a better way...
+            return True
+        return type_f(value)
+
+    @staticmethod
+    def is_true(value):
+        return value in ('1', 'True', 'true', 'TRUE', 1, True)
+
+    def fill_properties(self, element, layer, set_defaults=True):
+        self.reset_properties()
+
+        if layer is not None:
+            self.fill_properties(layer, None, False
+                                )
+        if element is not None:
+            eid, props = self.get_id(element, get_props=True)
+            if eid and props:
+                # properties as layer name suffixes
+                for prop, value in props.items():
+                    value = ItemProperties.get_typed_prop(prop, value)
+                    setattr(self, prop, value)
+            if eid:
+                self.eid = eid
+                if not self.name:
+                    self.name = self.eid
+
+            label, props = self.get_label(element, get_props=True)
+            if label and props:
+                # properties as layer name suffixes
+                for prop, value in props.items():
+                    value = ItemProperties.get_typed_prop(prop, value)
+                    setattr(self, prop, value)
+            if label:
+                self.label = label
+                self.name = label
+
+            # properties tags
+            for prop in ('level', 'upper_level', 'private', 'inaccessible', ):
+                value = element.get(prop)
+                if value is not None:
+                    setattr(self, prop,
+                            ItemProperties.get_typed_prop(prop, value))
+
+            self.corridor = self.is_corridor(element)
+
+            if set_defaults:
+                for prop in ('level', 'upper_level', ):
+                    if getattr(self, prop) is None:
+                        setattr(self, prop,
+                                getattr(DefaultItemProperties, prop))
+
+                # build main group (mesh object etc)
+                priv_str = 'private' if self.private else 'public'
+                access_str = ('inaccessible' if self.inaccessible
+                              else 'accessible')
+                if self.label:
+                    if self.level is None:
+                        print('level None in', self)
+                    self.main_group = '_'.join([self.label, self.level,
+                                                priv_str, access_str])
+                elif self.eid:
+                    self.main_group = '_'.join([self.eid, self.level,
+                                                priv_str, access_str])
+
+    @staticmethod
+    def remove_word(label, word):
+        ''' remove word suffix to label (which may end with several
+        variants, _word_0 etc)
+        '''
+        if label == word:
+            return ''
+        if label.endswith(' %s' % word) or label.endswith('_%s' % word):
+            return label[:-len(word) - 1]
+        for pattern in (' %s ', ' %s_', '_%s ', '_%s_'):
+            p = pattern % word
+            if p in label:
+                index = label.find(p)
+                sep = p[-1]
+                return label.replace(p, sep)
+        return label
+
+    @staticmethod
+    def remove_label_suffix(label, get_props):
+        props = {}
+        if label is None:
+            if get_props:
+                return None, None
+            return
+        for suffix, prop in DefaultItemProperties.layer_suffixes.items():
+            new_label = ItemProperties.remove_word(label, suffix)
+            if new_label != label and get_props:
+                props[prop] = DefaultItemProperties.layers_aliases.get(
+                    suffix, suffix)
+            label = new_label
+        if get_props:
+            return label, props
+        return label
+
+    @staticmethod
+    def get_label(element, get_props=False):
+        label = element.get('label')
+        if label is None:
+            label = element.get(
+                '{http://www.inkscape.org/namespaces/inkscape}label')
+        return ItemProperties.remove_label_suffix(label, get_props)
+
+    @staticmethod
+    def get_id(element, get_props=False):
+        label = element.get('id')
+        if label is None:
+            label = element.get(
+                '{http://www.inkscape.org/namespaces/inkscape}id')
+        return ItemProperties.remove_label_suffix(label, get_props)
+
+    @staticmethod
+    def is_corridor(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'corridor', DefaultItemProperties.corridor_labels)
+
+    @staticmethod
+    def is_listed_element_type(element, tag, layers_list):
+        value = element.get(tag)
+        if value is not None:
+            return ItemProperties.is_true(value)
+        label = ItemProperties.get_label(element)
+        return label in layers_list
+
+
+class DefaultItemProperties(object):
+    ''' Defaults and constant values '''
+
+    level = 'sup'
+    upper_level = 'ground'
+
+    # layers containing these words are assigned corresponding properties
+    # automatically
+
+    layer_suffixes = {
+        'inf': 'level',
+        'tech': 'level',
+        'gtech': 'level',
+        'GTech': 'level',
+        'surf': 'level',
+        'metro': 'level',
+        'private': 'private',
+        'inaccessibles': 'inaccessible',
+        'inaccessible': 'inaccessible',
+        'anciennes': 'inaccessible',
+    }
+    layers_aliases = {
+        'GTech': 'tech',
+        'gtech': 'tech',
+        'inaccessibles': 'inaccessible',
+        'anciennes': 'inaccessible',
+    }
+
+    # levels list
+    levels = [
+        'sup',
+        'inf',
+        'esc',
+        'tech',
+        'surf',
+        'pe',  # ?
+        'metro',
+    ]
+
+    # labels lists assigned with specific properties
+
+    corridor_labels = {
+        'galeries',
+        'galeries big sud',
+        'piliers a bras',
+        'inaccessible',
+        'galeries agrandissements',
+        'oss off',
+        'anciennes galeries big',
+        'aqueduc',
+        'remblai epais',
+        'remblai leger',
+        'ebauches',
+        'metro',
+        'esc',
+        'escaliers',
+        'escaliers anciennes galeries big',
+        'galeries techniques',
+        'galeries techniques despe',
+    }
+
+    block_labels = {
+        'calcaire 2010', 'calcaire ciel ouvert',
+        'calcaire masse2', 'calcaire masse', 'calcaire med',
+        'calcaire sup', 'calcaire vdg',
+        'piliers a bras',
+        'piliers',
+        'maconneries',
+        u'maçonneries',
+        u'maçonneries anciennes galeries big',
+        'hagues',
+        'hagues effondrees',
+        'cuves',
+        'mur',
+        'mur_ouvert',
+        'bassin',
+        'bassin_recouvert',
+        'rose',
+        'repetiteur',
+        'eau',
+        'ebauches',
+        'grille',
+        'porte',
+        'porte_ouverte',
+        'passage', 'grille-porte',
+    }
+
+    street_labels = {'plaques rues', }
+
+    symbol_labels = {
+        'symboles',
+        'marches',
+        'stair_symbol',
+    }
+
+    arrow_labels = {
+        u'salles v1 flèches', 'salles v1 fleches',
+        u'salles vdg flèches',
+        u'rues v1 flèches', 'rues v1 fleches',
+        u'rues flèches dessus',
+        u'curiosités flèches', 'curiosites fleches',
+        u'historiques flèches',
+        u'plaques de puits flèches',
+        u'curiosités flèches dessus',
+        u'inscriptions flèches',
+        u'inscriptions conso flèches',
+        u'plaques de puits GTech flèches',
+    }
+
+    depth_map_names = (
+        'profondeurs galeries',
+        'profondeurs galeries_inf',
+        'profondeurs esc',
+        'profondeurs gtech',
+        'profondeurs surf',
+        'profondeurs pe',
+        'profondeurs metro',
+    )
+
+    wells_labels = {
+        u'échelle vers',
+        u'\xe9chelle vers', 'PSh', 'PSh vers',
+        'PE', 'PE anciennes galeries big',
+        'PS', 'PS anciennes galeries big',
+        'PSh', 'PSh anciennes galeries big',
+        'P ossements',
+        'P ossements anciennes galeries big',
+        'echelle', u'échelle', u'échelle anciennes galeries big',
+        u'\xe9chelle anciennes galeries big'
+        u'\xe9chelle'
+        'sans', 'PS sans',
+        'PSh sans',
+        'PS_sq',
+    }
+
+    hidden_layers = {
+        'indications_big_2010', 'a_verifier', 'bord', 'bord_sud',
+        u'légende_alt', u'découpage', 'raccords plan 2D',
+        'raccords gtech 2D',
+        'masque vdg', u'masque cimetière', 'masque plage',
+        'agrandissement vdg', u'agrandissement cimetière',
+        'agrandissement plage', 'agrandissements fond',
+        'couleur_fond', 'couleur_fond sud',
+        'planches', 'planches fond', 'calcaire sup',
+        'calcaire limites', 'calcaire masse', 'calcaire masse2'
+    }
+
+    sound_layers = {'sons', }
+
+
 
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
-    # TODO
-    # read/use text size, color, centering, [orientation]
-    ## wells from lower level to surface
-    # basins, water wells
+    '''
+    Process XML tree to build 3D meshes
+    '''
 
     limestone = ('calcaire 2010', 'calcaire ciel ouvert',
                  'calcaire masse2', 'calcaire masse', 'calcaire med',
@@ -302,6 +621,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def __init__(self, concat_mesh='list_bygroup', skull_mesh=None,
                  headless=True):
         super(CataSvgToMesh, self).__init__(concat_mesh)
+        self.current_layer = None
         self.arrows = []
         self.depth_maps = []
         self.nrenders = 0
@@ -331,43 +651,48 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 from anatomist.direct import api as ana
                 a = ana.Anatomist()
             except:
-                raise RuntimeError('anatomist is ont available. It is needed '
+                raise RuntimeError('anatomist is not available. It is needed '
                                    'for CataSvgToMesh to work.')
 
     def filter_element(self, xml_element, style=None):
 
-        def remove_word(label, word):
-            if label == word:
-                return ''
-            if label.endswith(' %s' % word) or label.endswith('_%s' % word):
-                return label[:-len(word) - 1]
-            for pattern in (' %s ', ' %s_', '_%s ', '_%s_'):
-                p = pattern % word
-                if p in label:
-                    index = label.find(p)
-                    sep = p[-1]
-                    return label.replace(p, sep)
-            return label
+        clean_return = []
+        if self.current_layer is None and xml_element.tag.endswith('}g'):
+            self.current_layer = xml_element
+            print('new layer', xml_element.get('id'),
+                  xml_element.get(
+                      '{http://www.inkscape.org/namespaces/inkscape}label'),
+                  xml_element.tag)
+            clean_return = [self.exit_layer]
 
         if len(self.depth_maps) != 0:
+            # while reading depth indications layer, process things differently
             if xml_element.tag.endswith('g'):
-                return (self.read_depth_group, self.clear_depth_group, False)
+                return (self.read_depth_group,
+                        [self.clear_depth_group] + clean_return, False)
             elif xml_element.tag.endswith('path'):
-                return (self.read_depth_arrow, None, False)
+                return (self.read_depth_arrow, clean_return, False)
             elif xml_element.tag.endswith('text'):
-                return (self.read_depth_text, None, True)
+                return (self.read_depth_text, clean_return, True)
             elif xml_element.tag.endswith('rect'):
-                return (self.read_depth_rect, None, True)
+                return (self.read_depth_rect, clean_return, True)
             else:
                 print('unknown depth child:', xml_element)
-                return (self.noop, None, True)
+                return (self.noop, clean_return, True)
 
+        item_props = ItemProperties()
+        item_props.fill_properties(xml_element, self.current_layer)
+        self.item_props = item_props
+        # print(item_props.main_group)
+
+        # get element label, level
         label = xml_element.get(
             '{http://www.inkscape.org/namespaces/inkscape}label')
         if label is None:
             label = xml_element.get('label')
         # alt (new) level information
         level = xml_element.get('level')
+
         if 'sons' in (label, self.main_group):
             print('label:', label, ', level:', level, ', main_group:',
                   self.main_group)
@@ -386,7 +711,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # are normally hidden in the svg file)
             if label.startswith('profondeurs'):
                 self.main_group = label
-                return (self.start_depth_rect, self.clean_depth, False)
+                return (self.start_depth_rect,
+                        [self.clean_depth] + clean_return, False)
             if label in self.sound_layers:
                 print('SOUND:', xml_element.tag, xml_element)
                 self.read_sounds(xml_element)
@@ -397,12 +723,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 hidden = True
             if hidden or label == 'couleur_fond':
                 # hidden layers are not rendered
-                return (self.noop, None, True)
+                return (self.noop, clean_return, True)
             # find out some keywords separated by ' ' or '_'
             label_w = '_'.join(label.split()).split('_')
             if 'inf' in label_w:
                 self.level = 'inf'
-                label = remove_word(label, 'inf')
+                label = ItemProperties.remove_word(label, 'inf')
             if self.main_group and ' private' in self.main_group \
                     and not 'private' in label_w:
                 self.main_group = label + ' private'
@@ -410,20 +736,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.main_group = label
 
             if label in self.arrow_groups:
-                return (self.read_arrows, self.clean_arrows, False)
+                return (self.read_arrows,
+                        [self.clean_arrows] + clean_return, False)
             elif label == 'colim':
-                return (self.read_spiral_stair, None, True)
+                return (self.read_spiral_stair, clean_return, True)
             elif label in self.wells_ids:
-                return (self.read_wells, None, True)
+                return (self.read_wells, clean_return, True)
             elif label == 'etiage':
-                return (self.read_water_scale, None, True)
+                return (self.read_water_scale, clean_return, True)
             elif label in ('fontis', 'fontis_inf', 'fontis private',
                            'fontis private_inf'):
-                return (self.read_fontis, None, True)
+                return (self.read_fontis, clean_return, True)
             elif label in ('stair_symbol', ):
-                return (self.read_stair_symbol, None, True)
+                return (self.read_stair_symbol, clean_return, True)
             elif label == 'arche':
-                return (self.read_arch, None, True)
+                return (self.read_arch, clean_return, True)
             elif label == 'escaliers':
                 self.main_group = 'esc'
             elif label == 'escaliers private':
@@ -433,16 +760,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             elif label in (u'maçonneries private', ):
                 self.main_group = 'maconneries private'
             elif label.startswith('lys'):
-                return (self.read_lily, None, True)
+                return (self.read_lily, clean_return, True)
             elif label.startswith('grande_plaque'):
-                return (self.read_large_sign, None, True)
+                return (self.read_large_sign, clean_return, True)
         if hidden:
             # hidden layers are not rendered
-            return (self.noop, None, True)
+            return (self.noop, clean_return, True)
         eid = xml_element.get('id')
         #print('id:', eid)
         if eid is None:
-            return None
+            return (None, clean_return, False)
 
         # find out some keywords separated by ' ' or '_' or '-'
         if '-' in eid:
@@ -451,7 +778,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         if 'inf' in eid_w:
             #print('** EID:', eid, 'repace main_group:', self.main_group)
-            eid = remove_word(eid, 'inf')
+            eid = ItemProperties.remove_word(eid, 'inf')
             self.main_group = eid + '_inf'
             self.level = 'inf'
         elif self.main_group is None:
@@ -469,24 +796,24 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         if eid == 'PE' or eid.startswith('PE-'):
             self.main_group = 'PE' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid == 'PS' or eid.startswith('PS-'):
             self.main_group = 'PS' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid == 'PSh' or eid.startswith('PSh-'):
             self.main_group = 'PSh' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid == 'sans' or eid.startswith('sans-'):
             self.main_group = 'sans' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid == 'P ossements' or eid.startswith('P ossements-'):
             self.main_group = 'p ossements' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid in (u'échelle', u'\xc3\xa9chelle') \
                 or eid.startswith('échelle-') \
                 or eid.startswith(u'\xc3\xa9chelle-'):
             self.main_group = 'echelle' + level_suffix
-            return (self.read_wells, None, True)
+            return (self.read_wells, clean_return, True)
         elif eid == 'esc' or eid.startswith('esc-'):
             self.main_group = 'esc' + level_suffix
         elif eid == 'Cuves' or eid.startswith('Cuves-'):
@@ -509,14 +836,18 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         elif eid == 'ossuaire' or eid.startswith('ossuaire-'):
             self.main_group = 'ossuaire' + level_suffix
             if self.skull_mesh is None:
-                return None
+                return (None, clean_return, False)
             else:
-                return (self.read_bones, None, True)
-        return None
+                return (self.read_bones, clean_return, True)
+        return (None, clean_return, False)
 
 
     def noop(self, xml_path, trans, style=None):
         return None
+
+
+    def exit_layer(self):
+        self.current_layer = None
 
 
     def read_path(self, xml_path, trans, style=None):
@@ -2865,6 +3196,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
 class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
+    '''
+    Process XML tree to build modified 2D maps
+    '''
 
     proto_scale = np.array([[0.5, 0,   0],
                             [0,   0.5, 0],
@@ -4321,8 +4655,8 @@ The program allows to produce:
     if options.color:
         do_recolor = True
         colorset = options.color
-    dpi = options.dpi.split(',')
-    if dpi:
+    if options.dpi:
+        dpi = options.dpi.split(',')
         maps_dpi2 = {}
         for item in dpi:
             dpi_spec = item.split(':')
