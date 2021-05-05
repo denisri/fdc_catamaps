@@ -56,8 +56,10 @@ if fake_aims:
           'be present.')
 
     class aims(object):
+        ''' Fake aims-lite module '''
 
         class vector(object):
+            ''' Fixed size vector '''
             def __init__(self, dtype, shape):
               self._vec = np.zeros(shape, dtype=dtype)
               self._dim = 1
@@ -77,6 +79,7 @@ if fake_aims:
 
 
         class AimsTimeSurface(object):
+            ''' Mesh structure '''
             def __init__(self, dim=3):
                 self._vertex = aims.vector(dtype=np.float32, shape=(0, 3))
                 self._polygon = aims.vector(dtype=np.uint32, shape=(0, dim))
@@ -93,11 +96,13 @@ if fake_aims:
 
 
         class AimsTimeSurface_2(AimsTimeSurface):
+            ''' Segments mesh (2 points per polygon) '''
             def __init__(self):
                 super(aims.AimsTimeSurface_2, self).__init__(2)
 
 
         class AimsTimeSurface_3(AimsTimeSurface):
+            ''' Triangles mesh (3 points per polygon) '''
             def __init__(self):
                 super(aims.AimsTimeSurface_3, self).__init__(3)
 
@@ -112,11 +117,11 @@ class SvgToMesh(object):
         ----------
         concat_mesh: str
             concatenation method between multiple paths in SVG file.
-            'merge' (default): merge all paths in a single mesh
+            'merge': merge all paths in a single mesh
             'time': use mesh timestep to store each path
             'list': return a list of meshes
-            'bygroup': return a dict of meshes, one for each main group,
-                paths are concatenated inside each group
+            'bygroup' (default): return a dict of meshes, one for each main
+                group, paths are concatenated inside each group
         '''
         self.concat_mesh = concat_mesh
         self.mesh = None
@@ -798,6 +803,8 @@ class SvgToMesh(object):
 
     def read_paths(self, xml_et):
         '''
+        Parse XML tree and extract meshes, text and other objects
+
         Parameters
         ----------
         xml_et: XML tree
@@ -816,8 +823,11 @@ class SvgToMesh(object):
             child, trans, main_group = todo.pop(0)
             if child is None:
                 # this is a hacked special code to call cleaner
-                cleaner = trans
-                cleaner()
+                cleaners = trans
+                if not isinstance(cleaners, (tuple, list)):
+                    cleaners = [cleaners]
+                for cleaner in cleaners:
+                    cleaner()
                 continue
             # allow to trick main_group
             self.main_group = main_group
@@ -846,7 +856,7 @@ class SvgToMesh(object):
                 reader, cleaner, skip_children = reader_cleaner
             if reader is not None:
                 reader(child, trans, style)
-            if cleaner is not None:
+            if cleaner not in (None, [], ()):
                 # insert a special code to do something at the end of this tree
                 todo.insert(0, (None, cleaner, None))
             if reader is None and style and style.get('display') == 'none' \
