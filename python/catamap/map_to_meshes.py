@@ -217,9 +217,9 @@ class ItemProperties(object):
                         print('level None in', self)
                     self.main_group = '_'.join([self.label, self.level,
                                                 priv_str, access_str])
-                elif self.eid:
-                    self.main_group = '_'.join([self.eid, self.level,
-                                                priv_str, access_str])
+                #elif self.eid:
+                    #self.main_group = '_'.join([self.eid, self.level,
+                                                #priv_str, access_str])
 
     @staticmethod
     def remove_word(label, word):
@@ -639,6 +639,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             + list(self.corridors_sup) \
             + list(self.corridors_inf) + list(self.corridors_gtech)
         self.sounds = []
+        self.group_properties = {}
 
         if headless:
             try:
@@ -683,7 +684,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         item_props = ItemProperties()
         item_props.fill_properties(xml_element, self.current_layer)
         self.item_props = item_props
-        # print(item_props.main_group)
+        # keep this properties for the whole group (hope there are no
+        # inconistencies)
+        if item_props.main_group:
+            self.group_properties[item_props.main_group] = item_props
+            # print(item_props.main_group)
 
         # get element label, level
         label = xml_element.get(
@@ -891,7 +896,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.lily_mesh = self.make_lily_model(xml)
         if self.large_sign_mesh is None:
             self.large_sign_mesh = self.make_large_sign_model(xml)
-        return super(CataSvgToMesh, self).read_paths(xml)
+        res = super(CataSvgToMesh, self).read_paths(xml)
+
+        #print('======= read_path done =======')
+        #print('groups properties:', len(self.group_properties))
+        #for k, v in self.group_properties.items():
+            #print(k, ':', v)
+
+        return res
 
 
     def text_description(self, xml_item, trans=None, style=None, text=''):
