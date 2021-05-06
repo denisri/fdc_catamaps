@@ -908,10 +908,12 @@ class SvgToMesh(object):
                 # skip clipPaths
                 continue
             elif child.tag.endswith('}text') or child.tag == 'text':
+                tgroup = self.main_group
+                if not tgroup.endswith('_text'):
+                    tgroup += '_text'
                 current_text \
                     = self.mesh_dict.setdefault(
-                        self.main_group + '_text', {'object_type': 'List',
-                                                    'objects': []})
+                        tgroup, {'object_type': 'List', 'objects': []})
                 text = child.text
                 if text is not None:
                     text = six.ensure_str(text)
@@ -924,8 +926,11 @@ class SvgToMesh(object):
                     = [-size[0]/2., size[1]/2., 0]
             elif child.tag.endswith('}tspan') or child.tag == 'tspan':
                 text = child.text
+                tgroup = self.main_group
+                if not tgroup.endswith('_text'):
+                    tgroup += '_text'
                 current_text_o \
-                    = self.mesh_dict[self.main_group + '_text']['objects'][-1]
+                    = self.mesh_dict[tgroup]['objects'][-1]
                 try:
                     current_text_d \
                         = current_text_o['objects'][-1]['properties']
