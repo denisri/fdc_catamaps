@@ -135,12 +135,13 @@ class ItemProperties(object):
         self.block_item = False
         self.symbol = False
         self.arrow = False
+        self.hidden = False
 
     def __str__(self):
         d = '{'
         for k in ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block_item',
-                  'symbol', 'arrow'):
+                  'symbol', 'arrow', 'hidden'):
             d += "'%s': %s, " % (k, repr(getattr(self, k)))
         return d + '}'
 
@@ -154,6 +155,7 @@ class ItemProperties(object):
                 'block_item': ItemProperties.is_true,
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
+                'hidden': ItemProperties.is_true,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -165,12 +167,11 @@ class ItemProperties(object):
     def is_true(value):
         return value in ('1', 'True', 'true', 'TRUE', 1, True)
 
-    def fill_properties(self, element, layer, set_defaults=True):
+    def fill_properties(self, element, layer, set_defaults=True, style=None):
         self.reset_properties()
 
         if layer is not None:
-            self.fill_properties(layer, None, False
-                                )
+            self.fill_properties(layer, None, False, style)
         if element is not None:
             eid, props = self.get_id(element, get_props=True)
             if eid and props:
@@ -201,6 +202,10 @@ class ItemProperties(object):
                             ItemProperties.get_typed_prop(prop, value))
 
             self.corridor = self.is_corridor(element)
+            self.hidden = self.is_hidden(element)
+            # ifstyle is not None and style.get('display') == 'none':
+            #     self.hidden = True
+
 
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
@@ -227,7 +232,7 @@ class ItemProperties(object):
         variants, _word_0 etc)
         '''
         if label == word:
-            return ''
+            return label
         if label.endswith(' %s' % word) or label.endswith('_%s' % word):
             return label[:-len(word) - 1]
         for pattern in (' %s ', ' %s_', '_%s ', '_%s_'):
@@ -247,7 +252,7 @@ class ItemProperties(object):
             return
         for suffix, prop in DefaultItemProperties.layer_suffixes.items():
             new_label = ItemProperties.remove_word(label, suffix)
-            if new_label != label and get_props:
+            if new_label != label and get_props or new_label == suffix:
                 props[prop] = DefaultItemProperties.layers_aliases.get(
                     suffix, suffix)
             label = new_label
@@ -275,6 +280,11 @@ class ItemProperties(object):
     def is_corridor(element):
         return ItemProperties.is_listed_element_type(
             element, 'corridor', DefaultItemProperties.corridor_labels)
+
+    @staticmethod
+    def is_hidden(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'hidden', DefaultItemProperties.hidden_labels)
 
     @staticmethod
     def is_listed_element_type(element, tag, layers_list):
@@ -420,19 +430,23 @@ class DefaultItemProperties(object):
         'PS_sq',
     }
 
-    hidden_layers = {
+    sound_labels = {'sons', }
+
+    hidden_labels = {
         'indications_big_2010', 'a_verifier', 'bord', 'bord_sud',
         u'légende_alt', u'découpage', 'raccords plan 2D',
-        'raccords gtech 2D',
+        'raccords 2D',
         'masque vdg', u'masque cimetière', 'masque plage',
         'agrandissement vdg', u'agrandissement cimetière',
         'agrandissement plage', 'agrandissements fond',
         'couleur_fond', 'couleur_fond sud',
         'planches', 'planches fond', 'calcaire sup',
-        'calcaire limites', 'calcaire masse', 'calcaire masse2'
+        'calcaire limites', 'calcaire masse', 'calcaire masse2',
+        'lambert93'
     }
+    hidden_labels.update(sound_labels)
+    hidden_labels.update(depth_map_names)
 
-    sound_layers = {'sons', }
 
 
 
@@ -633,11 +647,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.lily_mesh = None
         self.large_sign_mesh = None
         self.level = ''
-        self.explicitly_show = ['parcelles', 'chatieres v3',
-                                'chatieres v3_inf', 'chatieres private',
-                                u'injecté', 'bas'] \
-            + list(self.corridors_sup) \
-            + list(self.corridors_inf) + list(self.corridors_gtech)
         self.sounds = []
         self.group_properties = {}
 
@@ -662,8 +671,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.current_layer = xml_element
             print('new layer', xml_element.get('id'),
                   xml_element.get(
-                      '{http://www.inkscape.org/namespaces/inkscape}label'),
-                  xml_element.tag)
+                      '{http://www.inkscape.org/namespaces/inkscape}label'))
             clean_return = [self.exit_layer]
 
         if len(self.depth_maps) != 0:
@@ -682,7 +690,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return (self.noop, clean_return, True)
 
         item_props = ItemProperties()
-        item_props.fill_properties(xml_element, self.current_layer)
+        item_props.fill_properties(xml_element, self.current_layer,
+                                   style=style)
         self.item_props = item_props
         # keep this properties for the whole group (hope there are no
         # inconistencies)
@@ -690,55 +699,39 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.group_properties[item_props.main_group] = item_props
             # print(item_props.main_group)
 
-        # get element label, level
+        hidden = self.item_props.hidden
+        self.level = self.item_props.level
+        self.main_group = self.item_props.main_group
+
+        # get element label
         label = xml_element.get(
             '{http://www.inkscape.org/namespaces/inkscape}label')
         if label is None:
             label = xml_element.get('label')
-        # alt (new) level information
-        level = xml_element.get('level')
 
-        if 'sons' in (label, self.main_group):
-            print('label:', label, ', level:', level, ', main_group:',
-                  self.main_group)
-        self.level = ''
-        if level is not None:
-            self.level = level
-        hidden = False
-        if self.main_group in self.hidden_layers \
-                or (style is not None and style.get('display') == 'none' \
-                    and xml_element.get(
-                        '{http://www.inkscape.org/namespaces/inkscape}label') \
-                        not in self.explicitly_show):
-            hidden = True
+
         if label is not None:
             # depths are taken into account even when hidden (because they
             # are normally hidden in the svg file)
             if label.startswith('profondeurs'):
-                self.main_group = label
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
             if label in self.sound_layers:
                 print('SOUND:', xml_element.tag, xml_element)
                 self.read_sounds(xml_element)
-                hidden = True
             elif label == 'lambert93':
                 print('LAMBERT93')
                 self.read_lambert93(xml_element)
-                hidden = True
-            if hidden or label == 'couleur_fond':
-                # hidden layers are not rendered
-                return (self.noop, clean_return, True)
+
+        if hidden:
+            # hidden layers are not rendered
+            return (self.noop, clean_return, True)
+
+        if label is not None:
             # find out some keywords separated by ' ' or '_'
             label_w = '_'.join(label.split()).split('_')
             if 'inf' in label_w:
-                self.level = 'inf'
                 label = ItemProperties.remove_word(label, 'inf')
-            if self.main_group and ' private' in self.main_group \
-                    and not 'private' in label_w:
-                self.main_group = label + ' private'
-            elif label:
-                self.main_group = label
 
             if label in self.arrow_groups:
                 return (self.read_arrows,
@@ -756,21 +749,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return (self.read_stair_symbol, clean_return, True)
             elif label == 'arche':
                 return (self.read_arch, clean_return, True)
-            elif label == 'escaliers':
-                self.main_group = 'esc'
-            elif label == 'escaliers private':
-                self.main_group = 'esc private'
-            elif label in (u'maçonneries', ):
-                self.main_group = 'maconneries'
-            elif label in (u'maçonneries private', ):
-                self.main_group = 'maconneries private'
             elif label.startswith('lys'):
                 return (self.read_lily, clean_return, True)
             elif label.startswith('grande_plaque'):
                 return (self.read_large_sign, clean_return, True)
-        if hidden:
-            # hidden layers are not rendered
-            return (self.noop, clean_return, True)
+
         eid = xml_element.get('id')
         #print('id:', eid)
         if eid is None:
@@ -784,62 +767,30 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if 'inf' in eid_w:
             #print('** EID:', eid, 'repace main_group:', self.main_group)
             eid = ItemProperties.remove_word(eid, 'inf')
-            self.main_group = eid + '_inf'
-            self.level = 'inf'
-        elif self.main_group is None:
-            self.main_group = eid
 
         level_suffix = ''
         if self.level:
             level_suffix = '_' + self.level
-        if level_suffix and not self.main_group.endswith(level_suffix):
-            self.main_group += '_' + self.level
 
         #if self.level:
             #print('main_group:', self.main_group)
             #print('label:', label, ', level:', self.level)
 
         if eid == 'PE' or eid.startswith('PE-'):
-            self.main_group = 'PE' + level_suffix
             return (self.read_wells, clean_return, True)
         elif eid == 'PS' or eid.startswith('PS-'):
-            self.main_group = 'PS' + level_suffix
             return (self.read_wells, clean_return, True)
         elif eid == 'PSh' or eid.startswith('PSh-'):
-            self.main_group = 'PSh' + level_suffix
             return (self.read_wells, clean_return, True)
         elif eid == 'sans' or eid.startswith('sans-'):
-            self.main_group = 'sans' + level_suffix
             return (self.read_wells, clean_return, True)
         elif eid == 'P ossements' or eid.startswith('P ossements-'):
-            self.main_group = 'p ossements' + level_suffix
             return (self.read_wells, clean_return, True)
         elif eid in (u'échelle', u'\xc3\xa9chelle') \
                 or eid.startswith('échelle-') \
                 or eid.startswith(u'\xc3\xa9chelle-'):
-            self.main_group = 'echelle' + level_suffix
             return (self.read_wells, clean_return, True)
-        elif eid == 'esc' or eid.startswith('esc-'):
-            self.main_group = 'esc' + level_suffix
-        elif eid == 'Cuves' or eid.startswith('Cuves-'):
-            self.main_group = 'cuves' + level_suffix
-        elif eid.startswith(u'piliers \xc3\xa0 bras'):
-            if self.main_group and self.main_group.endswith(' private'):
-                self.main_group = 'piliers a bras private' + level_suffix
-            else:
-                self.main_group = 'piliers a bras' + level_suffix
-        elif eid.startswith(u'maçonneries private'):
-            self.main_group = 'maconneries private' + level_suffix
-        elif eid.startswith(u'maçonneries'):
-            self.main_group = 'maconneries' + level_suffix
-        elif eid == 'Oss Off' or eid.startswith('Oss Off-'):
-            self.main_group = 'oss off' + level_suffix
-        #elif eid == 'ex- galeries' or eid.startswith('ex- galeries-'):
-            #self.main_group = 'ex- galeries'
-        elif eid == 'Parcelle' or eid.startswith('Parcelle-'):
-            self.main_group = 'parcelles' + level_suffix
         elif eid == 'ossuaire' or eid.startswith('ossuaire-'):
-            self.main_group = 'ossuaire' + level_suffix
             if self.skull_mesh is None:
                 return (None, clean_return, False)
             else:
@@ -852,6 +803,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def exit_layer(self):
+        # print('leave layer',
+        #       self.current_layer.get(
+        #           '{http://www.inkscape.org/namespaces/inkscape}label'))
+        # print('with properties:', self.item_props)
         self.current_layer = None
 
 
