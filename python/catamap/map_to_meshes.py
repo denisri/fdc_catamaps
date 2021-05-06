@@ -117,33 +117,37 @@ Use the commandline with the '-h' option to get all parameters help.
 
 class ItemProperties(object):
 
+    properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
+                  'private', 'inaccessible', 'corridor', 'block_item',
+                  'symbol', 'arrow', 'text', 'hidden')
+
     prop_types = None  # will be initialized when used in get_typed_prop()
 
     def __init__(self):
         self.reset_properties()
 
     def reset_properties(self):
-        self.name = None
-        self.label = None
-        self.eid = None
-        self.main_group = None
-        self.level = None
-        self.upper_level = None
+        for prop in self.properties:
+            setattr(self, prop, None)
         self.private = False
         self.inaccessible = False
         self.corridor = False
         self.block_item = False
         self.symbol = False
         self.arrow = False
+        self.text = False
         self.hidden = False
 
     def __str__(self):
-        d = '{'
-        for k in ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
-                  'private', 'inaccessible', 'corridor', 'block_item',
-                  'symbol', 'arrow', 'hidden'):
-            d += "'%s': %s, " % (k, repr(getattr(self, k)))
-        return d + '}'
+        d = ['{']
+        for k in self.properties:
+            d.append("'%s': %s, " % (k, repr(getattr(self, k))))
+        d.append('}')
+        return ''.join(d)
+
+    def copy_from(self, other):
+        for prop in self.properties:
+            setattr(self, prop, getattr(other, prop))
 
     @staticmethod
     def get_typed_prop(prop, value):
@@ -155,6 +159,7 @@ class ItemProperties(object):
                 'block_item': ItemProperties.is_true,
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
+                'text': ItemProperties.is_true,
                 'hidden': ItemProperties.is_true,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
@@ -167,11 +172,13 @@ class ItemProperties(object):
     def is_true(value):
         return value in ('1', 'True', 'true', 'TRUE', 1, True)
 
-    def fill_properties(self, element, layer, set_defaults=True, style=None):
-        self.reset_properties()
+    def fill_properties(self, element, parents=[], set_defaults=True,
+                        style=None):
+        if parents:
+            self.copy_from(parents[-1])
+        else:
+            self.reset_properties()
 
-        if layer is not None:
-            self.fill_properties(layer, None, False, style)
         if element is not None:
             eid, props = self.get_id(element, get_props=True)
             if eid and props:
@@ -203,9 +210,11 @@ class ItemProperties(object):
 
             self.corridor = self.is_corridor(element)
             self.hidden = self.is_hidden(element)
-            # ifstyle is not None and style.get('display') == 'none':
+            # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
+            if element.tag == 'text' or element.tag.endswith('text'):
+                self.text =  True
 
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
@@ -220,8 +229,11 @@ class ItemProperties(object):
                 if self.label:
                     if self.level is None:
                         print('level None in', self)
-                    self.main_group = '_'.join([self.label, self.level,
-                                                priv_str, access_str])
+                    tags = [self.label, self.level, priv_str, access_str]
+                    if self.text:
+                        tags.append('text')
+                    self.main_group = '_'.join(tags)
+
                 #elif self.eid:
                     #self.main_group = '_'.join([self.eid, self.level,
                                                 #priv_str, access_str])
@@ -311,6 +323,7 @@ class DefaultItemProperties(object):
         'GTech': 'level',
         'surf': 'level',
         'metro': 'level',
+        'seine': 'level',
         'private': 'private',
         'inaccessibles': 'inaccessible',
         'inaccessible': 'inaccessible',
@@ -375,7 +388,6 @@ class DefaultItemProperties(object):
         'rose',
         'repetiteur',
         'eau',
-        'ebauches',
         'grille',
         'porte',
         'porte_ouverte',
@@ -635,9 +647,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def __init__(self, concat_mesh='list_bygroup', skull_mesh=None,
                  headless=True):
         super(CataSvgToMesh, self).__init__(concat_mesh)
-        self.current_layer = None
+        self.props_stack = []
         self.arrows = []
         self.depth_maps = []
+        self.depth_meshes = {}
         self.nrenders = 0
         self.z_scale = 0.5
         self.skull_mesh = skull_mesh
@@ -667,12 +680,22 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def filter_element(self, xml_element, style=None):
 
         clean_return = []
-        if self.current_layer is None and xml_element.tag.endswith('}g'):
-            self.current_layer = xml_element
-            print('new layer', xml_element.get('id'),
-                  xml_element.get(
-                      '{http://www.inkscape.org/namespaces/inkscape}label'))
-            clean_return = [self.exit_layer]
+        is_group = False
+        if len(xml_element) != 0:
+            is_group = True
+            clean_return.append(self.exit_group)
+
+            if len(self.props_stack) == 1:
+                print(
+                    'new layer', xml_element.get('id'),
+                    xml_element.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}label'))
+
+        item_props = ItemProperties()
+        item_props.fill_properties(xml_element, self.props_stack, style=style)
+        if is_group:
+            # maintain the stack of parent properties to allow inheritance
+            self.props_stack.append(item_props)
 
         if len(self.depth_maps) != 0:
             # while reading depth indications layer, process things differently
@@ -689,9 +712,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 print('unknown depth child:', xml_element)
                 return (self.noop, clean_return, True)
 
-        item_props = ItemProperties()
-        item_props.fill_properties(xml_element, self.current_layer,
-                                   style=style)
         self.item_props = item_props
         # keep this properties for the whole group (hope there are no
         # inconistencies)
@@ -802,12 +822,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return None
 
 
-    def exit_layer(self):
-        # print('leave layer',
-        #       self.current_layer.get(
-        #           '{http://www.inkscape.org/namespaces/inkscape}label'))
+    def exit_group(self):
+        # print('leave group',
+        #       self.props_stack[-1].main_group)
         # print('with properties:', self.item_props)
-        self.current_layer = None
+        self.props_stack.pop(-1)
 
 
     def read_path(self, xml_path, trans, style=None):
@@ -1412,12 +1431,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return arch
 
     def start_depth_rect(self, child_xml, trans, style=None):
-        depth_mesh = self.mesh_dict.setdefault(self.main_group,
-                                               aims.AimsTimeSurface_3())
-        depth_mesh.header()['material'] = {'face_culling': 0,
-                                           'diffuse': [0., 0.6, 0., 1.]}
+        level = self.item_props.level
+        mesh_def = self.depth_meshes.get(level)
+        if mesh_def is not None:
+            print('Warning: several depth meshes for level',
+                  level, ':', mesh_def[1])
+            depth_mesh = mesh_def[0]
+        else:
+            depth_mesh = self.mesh_dict.setdefault(self.main_group,
+                                                  aims.AimsTimeSurface_3())
+            depth_mesh.header()['material'] = {'face_culling': 0,
+                                              'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
-
+        self.depth_meshes[level] = (depth_mesh, self.item_props)
 
     def clean_depth(self):
         self.depth_maps.pop()
@@ -1782,6 +1808,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.depth_meshes = []
         self.depth_wins = []
         for ctype, depth_map in enumerate(self.depth_map_names):
+
             print('building depth map', ctype, depth_map)
             depth_mesh = meshes.get(depth_map)
             if depth_mesh is not None:
