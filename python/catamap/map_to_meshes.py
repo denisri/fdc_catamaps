@@ -119,7 +119,9 @@ class ItemProperties(object):
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block_item',
-                  'symbol', 'arrow', 'text', 'hidden')
+                  'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
+                  'depth_map',
+                  'heigth', 'height_shift')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -136,7 +138,12 @@ class ItemProperties(object):
         self.symbol = False
         self.arrow = False
         self.text = False
+        self.well = False
+        self.catflap = False
         self.hidden = False
+        self.depth_map = False
+        self.height = 2.
+        self.height_shift = 0.
 
     def __str__(self):
         d = ['{']
@@ -160,7 +167,12 @@ class ItemProperties(object):
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
                 'text': ItemProperties.is_true,
+                'well': ItemProperties.is_true,
+                'catflap': ItemProperties.is_true,
                 'hidden': ItemProperties.is_true,
+                'depth_map': ItemProperties.is_true,
+                'height': ItemProperties.float_value,
+                'height_shift': ItemProperties.float_value,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -171,6 +183,12 @@ class ItemProperties(object):
     @staticmethod
     def is_true(value):
         return value in ('1', 'True', 'true', 'TRUE', 1, True)
+
+    @staticmethod
+    def float_value(value):
+        if value in (None, 'None'):
+            return 0.
+        return float(value)
 
     def fill_properties(self, element, parents=[], set_defaults=True,
                         style=None):
@@ -209,12 +227,19 @@ class ItemProperties(object):
                             ItemProperties.get_typed_prop(prop, value))
 
             self.corridor = self.is_corridor(element)
+            self.block = self.is_block(element)
+            self.well = self.is_well(element)
+            self.catflap = self.is_catflap(element)
             self.hidden = self.is_hidden(element)
+            self.depth_map = self.is_depth_map(element)
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
             if element.tag == 'text' or element.tag.endswith('text'):
                 self.text =  True
+
+            self.height = self.get_height(element)
+            self.height_shift = self.get_height_shift(element)
 
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
@@ -294,9 +319,29 @@ class ItemProperties(object):
             element, 'corridor', DefaultItemProperties.corridor_labels)
 
     @staticmethod
+    def is_block(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'block', DefaultItemProperties.block_labels)
+
+    @staticmethod
     def is_hidden(element):
         return ItemProperties.is_listed_element_type(
             element, 'hidden', DefaultItemProperties.hidden_labels)
+
+    @staticmethod
+    def is_well(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'well', DefaultItemProperties.wells_labels)
+
+    @staticmethod
+    def is_catflap(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'catflap', DefaultItemProperties.catflap_labels)
+
+    @staticmethod
+    def is_depth_map(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'depth_map', DefaultItemProperties.depth_map_labels)
 
     @staticmethod
     def is_listed_element_type(element, tag, layers_list):
@@ -306,12 +351,37 @@ class ItemProperties(object):
         label = ItemProperties.get_label(element)
         return label in layers_list
 
+    def get_height(self, element):
+        height = 2.
+        for etype, h in DefaultItemProperties.types_heights.items():
+            is_type = getattr(self, etype, None)
+            if is_type:
+                height = h
+        h = DefaultItemProperties.heights.get(self.name)
+        if h is not None:
+            height = h
+
+        return height
+
+    def get_height_shift(self, element):
+        height_shift = 0.
+        for etype, shift in DefaultItemProperties.types_height_shifts.items():
+            is_type = getattr(self, etype, None)
+            if is_type:
+                height_shift = shift
+        shift = DefaultItemProperties.height_shifts.get(self.name)
+        if shift is not None:
+            height_shift = shift
+
+        return height_shift
+
 
 class DefaultItemProperties(object):
     ''' Defaults and constant values '''
 
+    ground_level = 'surf'
     level = 'sup'
-    upper_level = 'ground'
+    upper_level = ground_level
 
     # layers containing these words are assigned corresponding properties
     # automatically
@@ -416,14 +486,21 @@ class DefaultItemProperties(object):
         u'plaques de puits GTech flèches',
     }
 
-    depth_map_names = (
-        'profondeurs galeries',
-        'profondeurs galeries_inf',
+    depth_map_labels = {
         'profondeurs esc',
-        'profondeurs gtech',
-        'profondeurs surf',
-        'profondeurs pe',
-        'profondeurs metro',
+        'profondeurs galeries',
+        'profondeurs',
+    }
+
+    depth_map_names = (
+        'profondeurs esc_esc_public_accessible',
+        'profondeurs galeries_inf_public_accessible',
+        'profondeurs galeries_sup_public_accessible',
+        'profondeurs_metro_public_accessible',
+        # 'profondeurs_seine_public_accessible',
+        'profondeurs_tech_public_accessible',
+        # 'profondeurs surf',
+        # 'profondeurs pe',
     )
 
     wells_labels = {
@@ -440,6 +517,13 @@ class DefaultItemProperties(object):
         'sans', 'PS sans',
         'PSh sans',
         'PS_sq',
+    }
+
+    catflap_labels = {
+        'chatieres v3',
+        'chatieres private',
+        'bas',
+        u'injecté',
     }
 
     sound_labels = {'sons', }
@@ -459,7 +543,79 @@ class DefaultItemProperties(object):
     hidden_labels.update(sound_labels)
     hidden_labels.update(depth_map_names)
 
+    types_height_shifts = {
+        'corridor': 0.,
+        'steet_sign': 1.5,
+        'symbol': 2.5,
+    }
 
+    height_shifts = {
+        'aqueduc': 10.,
+        'fontis': 2.5,
+        'lys': 5.,
+        'grande_plaque': 5.,
+        'chatieres v3': 0.5,
+        'chatieres private': 0.5,
+        'chatieres v3_inf': 0.5,
+        'chatieres private_inf': 0.5,
+        u'injecté': 0.5,
+        'bas': 0.5,
+        'ossuaire': 5.,
+        'stair_symbol': 5.,
+        'etiage': 2.5,
+        'etiage_water_tri': 2.5,
+        'etiage_wall_tri': 2.5,
+        'etiage_line': 2.5,
+        'rose': 2.5,
+        'rose private': 2.5,
+        'remblai leger': 0.8,
+        'remblai epais': 1.5,
+        'remblai leger_inf': 0.8,
+        'remblai epais_inf': 1.5,
+        'remblai leger inaccessibles': 0.8,
+        'remblai epais inaccessibles': 1.5,
+        'remblai leger inaccessibles_inf': 0.8,
+        'remblai epais inaccessibles_inf': 1.5,
+        'calcaire 2010': 0.,  # this one as walls
+        'calcaire vdg': 0.,  # this one as walls
+        'PE': -9.,
+        'PE anciennes galeries big': -9.,
+    }
+    #indiv_shifts.update({m: -2.
+                          #for m in self.limestone + self.limestone_filar
+                            #+ self.limestone_inf})
+
+    types_heights = {
+        'corridor': 2.,
+        'stair': 1.,
+        'block_item': 1.,
+        'symbol': 0.3,
+    }
+
+    heights = {
+        'esc': 1.,
+        'cuves': 1.5,
+        'plaques rues': 0.5,
+        u'plaques rues volées': 0.5,
+        'repetiteur': 1.,
+        'bassin': 0.3,
+        'bassin_recouvert': 0.3,
+        'eau': 0.2,
+        'rose': 0.2,
+        'remblai leger': 1.2,
+        'remblai epais': 0.5,
+        'remblai leger_inf': 1.2,
+        'remblai epais_inf': 0.5,
+        'hagues effondrees': 1.2,
+        'sans': 1.5,
+        'PS sans': 1.5,
+        'echelle': 1.5,
+        u'échelle': 1.5,
+        u'échelle anciennes galeries big': 1.5,
+        'PSh sans': 1.5,
+        'PE': -10.,
+        'PE anciennes galeries big': -10.,
+    }
 
 
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
@@ -606,15 +762,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     esc_arrow_groups = (u'curiosités flèches_esc', )
     arrow_groups = upper_arrow_groups + inf_arrow_groups + tech_arrow_groups \
         + surf_arrow_groups + esc_arrow_groups
-    depth_map_names = (
-        'profondeurs galeries',
-        'profondeurs galeries_inf',
-        'profondeurs esc',
-        'profondeurs gtech',
-        'profondeurs surf',
-        'profondeurs pe',
-        'profondeurs metro',
-    )
+
     wells_ids = (u'échelle vers gtech', u'échelle vers gtech private',
                  u'\xe9chelle vers gtech', 'PSh gtech', 'PSh vers gtech',
                  'PE', 'PE inaccessibles', 'PE anciennes galeries big',
@@ -650,7 +798,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.props_stack = []
         self.arrows = []
         self.depth_maps = []
-        self.depth_meshes = {}
+        self.depth_meshes_def = {}
         self.nrenders = 0
         self.z_scale = 0.5
         self.skull_mesh = skull_mesh
@@ -660,7 +808,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.lily_mesh = None
         self.large_sign_mesh = None
         self.level = ''
-        self.sounds = []
+        self.sounds = {}
         self.group_properties = {}
 
         if headless:
@@ -687,7 +835,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
             if len(self.props_stack) == 1:
                 print(
-                    'new layer', xml_element.get('id'),
+                    'parse layer', xml_element.get('id'),
                     xml_element.get(
                         '{http://www.inkscape.org/namespaces/inkscape}label'))
 
@@ -832,15 +980,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def read_path(self, xml_path, trans, style=None):
         if self.main_group is None:
             print('path with no group:', xml_path, list(xml_path.items()))
-        if self.level != '':
-            # FIXME this is not good, not clean...
-            if not self.main_group.endswith('_' + self.level):
-                self.main_group += '_' + self.level
         mesh = super(CataSvgToMesh, self).read_path(xml_path, trans, style)
         if len(self.arrows) != 0 and self.arrows[-1]:
             #print('arrow')
-            if self.level == '' and self.main_group.endswith('_inf'):
-                self.main_group = self.main_group[:-4]
             vert = mesh.vertex()
             nv = len(vert)
             for i in six.moves.xrange(nv):
@@ -949,19 +1091,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     z = bmin[2] * self.z_scale
                     height = 20. * self.z_scale
                 #print('well group:', self.main_group, center)
-                level = child.get('level')
-                if level is None:
-                    well_type = self.main_group + '_wells'
-                else:
-                    well_type = '%s_%s_wells' % (self.main_group, level)
-                wells_spec = self.mesh_dict.setdefault(well_type, [])
+                wells_spec = self.mesh_dict.setdefault(self.main_group, [])
                 wells_spec.append((center, radius, z, height))
                 #print('well_type:', well_type, len(wells_spec))
-                #well = self.make_well(center, radius, z, height)
-                #wells = self.mesh_dict.setdefault(self.main_group + '_tri',
-                                                  #aims.AimsTimeSurface(3))
-                #aims.SurfaceManip.meshMerge(wells, well)
-                #wells.header()['material'] = well.header()['material']
 
     def read_spiral_stair(self, stair_xml, trans, style=None):
         #print('spiral stair')
@@ -999,8 +1131,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 z = bmin[2] * self.z_scale
                 height = 7. * self.z_scale
             #print('well group:', self.main_group, center)
-            wells_spec = self.mesh_dict.setdefault(
-                self.main_group + '_wells', [])
+            wells_spec = self.mesh_dict.setdefault(self.main_group, [])
             wells_spec.append((center, radius, z, height))
 
 
@@ -1108,7 +1239,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   (bbox[0][1] + bbox[1][1]) / 2,
                   0.]
         radius = max(np.array(bbox[1]) - bbox[0]) / 2
-        arch_spec = self.mesh_dict.setdefault(self.main_group + '_wells', [])
+        arch_spec = self.mesh_dict.setdefault(self.main_group, [])
         arch_spec.append((center, (radius, trans), 0., 3.))
 
 
@@ -1286,7 +1417,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return well
 
 
-    def make_well(self, center, radius, z, height, well_type=None):
+    def make_well(self, center, radius, z, height, well_type=None, props=None):
         if well_type is None:
             well_type = self.main_group
         if well_type == 'PS' or well_type.startswith('PS ') \
@@ -1432,7 +1563,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def start_depth_rect(self, child_xml, trans, style=None):
         level = self.item_props.level
-        mesh_def = self.depth_meshes.get(level)
+        mesh_def = self.depth_meshes_def.get(level)
         if mesh_def is not None:
             print('Warning: several depth meshes for level',
                   level, ':', mesh_def[1])
@@ -1443,7 +1574,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             depth_mesh.header()['material'] = {'face_culling': 0,
                                               'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
-        self.depth_meshes[level] = (depth_mesh, self.item_props)
+        self.depth_meshes_def[level] = (depth_mesh, self.item_props)
 
     def clean_depth(self):
         self.depth_maps.pop()
@@ -1538,10 +1669,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if xml_element.tag.split('}')[-1] != 'g':
                 raise ValueError('sound layer element is not a group:',
                                  xml_element)
-            level = 0
+            level = self.item_props.level
             text = None
             pos = None
-            level_t = xml_element.get('level')
             trans2 = xml_element.get('transform')
             trans_el = np.matrix(np.eye(3))
             if trans2 is not None:
@@ -1550,11 +1680,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     trans_el = transm
                 else:
                     trans_el = trans * transm
-            if level_t is not None:
-                if level_t == 'inf':
-                    level = 1
-                elif level_t == 'tech':
-                    level = 2
             for sub_el in xml_element:
                 tag = sub_el.tag.split('}')[-1]
                 if tag == 'text':
@@ -1596,7 +1721,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if xml_element.tag.split('}')[-1] != 'g':
                 raise ValueError('lambert93 element is not a group:',
                                  xml_element)
-            level = 0
             text = None
             pos = None
             trans2 = xml_element.get('transform')
@@ -1659,15 +1783,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             v[2] += dz
 
 
-    def delaunay(self, mesh):
+    @staticmethod
+    def delaunay(mesh):
         points = np.array([[p[0], p[1]] for p in mesh.vertex()])
         tri = Delaunay(points)
         mesh.polygon().assign(tri.simplices)
         #mesh.header()['material']['face_culling'] = 0
 
 
-    def build_depth_win(self, depth_mesh, size=(1000, 1000),
-                        object_win_size=(8, 8)):
+    @staticmethod
+    def build_depth_win(depth_mesh, size=(1000, 1000), object_win_size=(8, 8)):
         headless = False
         if headless:
             import anatomist.headless as ana
@@ -1803,22 +1928,18 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             v[2] += self.ground_altitude(v[:2])
 
 
-    def build_depth_wins(self, meshes, size=(1000, 1000),
+    def build_depth_wins(self, size=(1000, 1000),
                          object_win_size=(8, 8)):
-        self.depth_meshes = []
-        self.depth_wins = []
-        for ctype, depth_map in enumerate(self.depth_map_names):
+        self.depth_meshes = {}
+        self.depth_wins = {}
 
-            print('building depth map', ctype, depth_map)
-            depth_mesh = meshes.get(depth_map)
-            if depth_mesh is not None:
-                win, amesh = self.build_depth_win(depth_mesh, size,
-                                                  object_win_size)
-                self.depth_meshes.append(amesh)
-                self.depth_wins.append(win)
-            else:
-                self.depth_meshes.append(None)
-                self.depth_wins.append(None)
+        for level, mesh_def in self.depth_meshes_def.items():
+            print('building depth map', level)
+            depth_mesh, props = mesh_def
+            win, amesh = self.build_depth_win(depth_mesh, size,
+                                              object_win_size)
+            self.depth_meshes[level] = amesh
+            self.depth_wins[level] = win
 
 
     def release_depth_wins(self):
@@ -1861,112 +1982,80 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def apply_depths(self, meshes):
         self.nrenders = 0
 
-        corridors = self.corridors \
-            + (self.street_signs + self.symbols
-               + ('fontis', 'chatieres v3', 'chatieres private', 'bas',
-                  u'injecté', 'ossuaire',
-                  'stair_symbol', 'etiage_wall_tri', 'etiage_water_tri',
-                  'etiage_line', 'lys', 'grande_plaque', )
-               + self.limestone_filar, ) \
-            + (('fontis_inf', 'fontis private_inf', 'chatieres v3_inf',
-                'chatieres private_inf') + self.street_signs_inf,
-               self.symbols_tech + ('chatieres private_tech', ), ) \
-            + (('parcelles', 'grille surface'), )
-        hshifts = (0., 0., 0., 0., 0., 1.5, 1.5, 2.5, 0., 0.)
-        indiv_shifts = {'aqueduc': 10.,
-                        'fontis': 2.5,
-                        'lys': 5.,
-                        'grande_plaque': 5.,
-                        'chatieres v3': 0.5,
-                        'chatieres private': 0.5,
-                        self.street_signs_inf[0]: 1.5,
-                        'chatieres v3_inf': 0.5,
-                        'chatieres private_inf': 0.5,
-                        u'injecté': 0.5,
-                        'bas': 0.5,
-                        'ossuaire': 5.,
-                        'stair_symbol': 5.,
-                        'etiage': 2.5,
-                        'etiage_water_tri': 2.5,
-                        'etiage_wall_tri': 2.5,
-                        'etiage_line': 2.5,
-                        'rose': 2.5,
-                        'rose private': 2.5,
-                        'remblai leger': 0.8,
-                        'remblai epais': 1.5,
-                        'remblai leger_inf': 0.8,
-                        'remblai epais_inf': 1.5,
-                        'remblai leger inaccessibles': 0.8,
-                        'remblai epais inaccessibles': 1.5,
-                        'remblai leger inaccessibles_inf': 0.8,
-                        'remblai epais inaccessibles_inf': 1.5,
-                        }
-        indiv_shifts.update({m: -2.
-                             for m in self.limestone + self.limestone_filar
-                                + self.limestone_inf})
-        indiv_shifts['calcaire 2010'] = 0.  # this one as walls
-        indiv_shifts['calcaire vdg'] = 0.  # this one as walls
         object_win_size = (2., 2.)
-        self.build_depth_wins(meshes, (250, 250))
-        depth_for_c = [0, 1, 4, 2, 3, 6, 0, 1, 3, 4]
+        self.build_depth_wins((250, 250))
 
-        for ctype in range(len(corridors)):
-            win = self.depth_wins[depth_for_c[ctype]]
-            # print('ctype:', ctype, ', win:', win)
+        return
+
+        for main_group, mesh_l in meshes.items():
+            props = self.group_properties.get(main_group)
+            if not props:
+                print('skip group', main_group, 'with no properties')
+                continue
+
+            if props.text or props.depth_map:
+                # text will be done just after.
+                # depth maps will not need it
+                continue
+
+            level = props.level
+            win = self.depth_wins.get(level)
             debug = False
             if win is not None:
                 view = win.view()
             else:
                 view = None
-            hshift = hshifts[ctype]
 
-            for corridor in corridors[ctype]:
-                mesh_l = meshes.get(corridor)
-                not_ok = 0
-                if mesh_l is not None:
-                    print('processing corridor depth:', corridor)
-                    failed = 0
-                    done = 0
-                    hshift_m = indiv_shifts.get(corridor, hshift) * self.z_scale
-                    if not isinstance(mesh_l, list):
-                        mesh_l = [mesh_l]
-                    for mesh in mesh_l:
-                        for v in mesh.vertex():
-                            z = self.get_depth(v, view, object_win_size)
-                            if z is not None:
-                                v[2] += z + hshift_m
-                            else:
-                                failed += 1
-                                if debug:
-                                    print('missed Z:', v)
-                        done += len(mesh.vertex())
-                    if failed != 0:
-                        print('failed:', failed, '/', done)
-                        if float(failed) / done >= 0.2:
-                            print('abnormal failure rate - '
-                              'malfunction in 3D renderings ?')
-                            debug = True
+            not_ok = 0
+            if mesh_l is not None:
+                print('processing corridor depth:', main_group, '(level:',
+                      level, ')')
+                hshift = (props.height_shift
+                          if props.height_shift else 0.) * self.z_scale
+                failed = 0
+                done = 0
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    if not hasattr(mesh, 'vertex'):
+                        # not a mesh: skip it
+                        continue
+                    for v in mesh.vertex():
+                        z = self.get_depth(v, view, object_win_size)
+                        if z is not None:
+                            v[2] += z + hshift
+                        else:
+                            failed += 1
+                            if debug:
+                                print('missed Z:', v)
+                    done += len(mesh.vertex())
+                if failed != 0:
+                    print('failed:', failed, '/', done)
+                    if float(failed) / done >= 0.2:
+                        print('abnormal failure rate - '
+                          'malfunction in 3D renderings ?')
+                        debug = True
 
         # apply texts depths
-        level_names = {'': 0, 'sup': 0, 'inf': 1, 'tech': 3, 'surf': 4}
         text_zshift = 5.
         for mtype, mesh_items in six.iteritems(meshes):
-            if mtype.endswith('_text'):
-                for text_item in mesh_items['objects']:
-                    position = text_item.get('properties', {}).get('position')
-                    if position is not None:
-                        level = text_item.get('properties', {}).get('level',
-                                                                    '')
-                        level_map = level_names.get(level, 0)
-                        win = self.depth_wins[level_map]
-                        if win is not None:
-                            view = win.view()
-                            hshift = (hshifts[level_map] + text_zshift) \
-                                * self.z_scale
-                            z = self.get_depth(position, view, object_win_size)
-                            if z is not None and z + hshift > position[2]:
-                                position[2] = z + hshift
+            props = self.group_properties.get(main_group)
+            if not props or not props.text:
+                continue
 
+            for text_item in mesh_items['objects']:
+                position = text_item.get('properties', {}).get('position')
+                if position is not None:
+                    level = text_item.get('properties', {}).get('level',
+                                                                '')
+                    win = self.depth_wins[level]
+                    if win is not None:
+                        view = win.view()
+                        hshift = (props.height_shift + text_zshift) \
+                            * self.z_scale
+                        z = self.get_depth(position, view, object_win_size)
+                        if z is not None and z + hshift > position[2]:
+                            position[2] = z + hshift
 
         print('built depths in', self.nrenders, 'renderings')
 
@@ -2029,76 +2118,40 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def build_wells_with_depths(self, meshes):
-        # levels:
-        #     sup -> surf: PS, PSh, colim etc.
-        #     inf -> sup:  sans, echelle, PS sans
-        #     sup -> pe:   PE
-        #     inf -> surf: PS_inf, PSh_inf...
-        #     sup -> gtech
-        #     gtech -> surf
-        levels_list = ((0, 4), (1, 0), (0, 5), (1, 4), (0, 3), (3, 4))
-        zdiff = (0., 0., -9., 0., 0., 0.)
-        hdiff = (0., 1.5, -10., 0., 0., 0.)
-        for dtype, wtypes in enumerate(
-                (('PS_wells', 'PSh_wells', 'colim_wells',
-                  'colim private_wells', 'P ossements_wells', 'arche_wells',
-                  'PSh inaccessibles_wells',
-                  'PSh anciennes galeries big_wells'),
-                 ('sans_wells', 'PS sans_wells', 'echelle_wells',
-                  u'échelle_wells',
-                  u'\xe9chelle_wells',
-                  u'échelle inaccessibles_wells',
-                  u'échelle anciennes galeries big_wells',
-                  'arche_inf_wells',
-                  'PS sans inaccessibles_wells',
-                  'PSh sans_wells', ),
-                 ('PE_wells', 'PE inaccessibles_wells',
-                  'PE anciennes galeries big_wells', ),
-                 ('PS_inf_wells', 'PSh_inf_wells', 'colim_inf_wells',
-                  'colim private_inf_wells', ),
-                 (u'échelle vers gtech_wells',
-                  u'échelle vers gtech private_wells',
-                  u'\xe9chelle vers gtech_wells',
-                  'PSh vers gtech_wells'),
-                 ('PSh gtech_wells', 'PSh_tech_wells', 'PS gtech_wells',
-                  'PS_sq_tech_wells', u'échelle gtech_wells', ))):
-            views = [None, None, None, None, None, None]
-            if hasattr(self, 'depth_wins'):
-                for level in range(5):
-                    if len(self.depth_wins) > level \
-                            and self.depth_wins[level] is not None:
-                        views[level] = self.depth_wins[level].view()
 
-            levels = levels_list[dtype]
-            zadd = zdiff[dtype] * self.z_scale
-            hadd = hdiff[dtype] * self.z_scale
+        views = {level: win.view() for level, win in self.depth_wins.items()}
 
-            for wtype in wtypes:
-                specs = meshes.get(wtype)
-                if specs is not None:
-                    well_type = wtype[:-6]
-                    wells = None
-                    for ws in specs:
-                        center, radius, z, height = ws
-                        c3 = (center[0], center[1], 0.)
-                        if views[levels[0]] is not None:
-                            z0 = self.get_depth(c3, views[levels[0]])
-                            if z0 is not None:
-                                z = z0
-                        if views[levels[1]] is not None:
-                            z0 = self.get_depth(c3, views[levels[1]])
-                            if z0 is not None:
-                                height = z0 - z
-                        elif levels[1] == 4: # surface with no map
-                            z0 = self.ground_altitude(c3)
-                            height = z0 - z
-                        well = self.make_well(center, radius, z + zadd,
-                                              height + hadd, well_type)
-                        if wells is None:
-                            wells = well
-                        else:
-                            aims.SurfaceManip.meshMerge(wells, well)
-                    meshes[well_type + '_tri'] = wells
+        for main_group in list(meshes.keys()):
+            specs = meshes[main_group]
+            props = self.group_properties.get(main_group)
+            if not props or not specs or not props.well:
+                continue
+            level = props.level
+            next_level = props.upper_level
+            view = views.get(level)
+            view_up = views.get(next_level)
+
+            wells = None
+            for ws in specs:
+                center, radius, z, height = ws
+                c3 = (center[0], center[1], 0.)
+                z0 = self.get_depth(c3, view)
+                if z0 is not None:
+                    z = z0
+                z0 = self.get_depth(c3, view_up)
+                if z0 is not None:
+                    height = z0 - z
+                well = self.make_well(center, radius,
+                                      z + props.height_shift * self.z_scale,
+                                      height + props.height * self.z_scale,
+                                      main_group,
+                                      props)
+                if wells is None:
+                    wells = well
+                else:
+                    aims.SurfaceManip.meshMerge(wells, well)
+            meshes[main_group + '_tri'] = wells
+            self.group_properties[main_group + '_tri'] = props
 
 
     def tesselate(self, mesh, flat=False):
@@ -2545,7 +2598,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.load_ground_altitude_bdalti(bdalti_map)
 
         # make depth maps
-        for depths in self.depth_map_names:
+        for depths in DefaultItemProperties.depth_map_names:
             mesh = meshes.get(depths)
             if mesh is not None:
                 self.add_ground_alt(mesh)
@@ -2577,87 +2630,67 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     mesh.header()['material']['line_width'] = 2.
 
         # extrude corridors walls
-        heights = {'esc': 1., 'cuves': 1.5, 'cuves_inf': 1.5,
-                   'plaques rues': 0.5, 'plaques rues_inf': 0.5,
-                   u'plaques rues volées': 0.5,
-                   'repetiteur': 1., 'repetiteur_tech': 1.,
-                   'bassin': 0.3, 'bassin_tech': 0.3, 'bassin private': 0.3,
-                   'bassin_recouvert': 0.3,
-                   'eau': 0.2, 'eau_inf': 0.2, 'eau gtech_tech': 0.2,
-                   'rose': 0.2, 'rose private': 0.2,
-                   'remblai leger': 1.2,
-                   'remblai epais': 0.5,
-                   'remblai leger_inf': 1.2,
-                   'remblai epais_inf': 0.5,
-                   'remblai leger inaccessibles': 1.2,
-                   'remblai epais inaccessibles': 0.5,
-                   'remblai leger inaccessibles_inf': 1.2,
-                   'remblai epais inaccessibles_inf': 0.5,
-                   'hagues effondrees': 1.2,
-                   }
-        for corridor_t in self.corridors + (self.street_signs,
-                                            self.street_signs_inf, ):
-            for corridor in corridor_t:
-                mesh_l = meshes.get(corridor)
-                if mesh_l:
-                    if not isinstance(mesh_l, list):
-                        mesh_l = [mesh_l]
-                    for mesh in mesh_l:
-                        height = heights.get(corridor, 2.) * self.z_scale
-                        ceil, wall = self.extrude(mesh, height)
-                        if 'material' not in ceil.header():
-                            ceil.header()['material'] \
-                                = {'diffuse': [0.3, 0.3, 0.3, 1.]}
-                        elif 'diffuse' not in ceil.header()['material']:
-                            ceil.header()['material']['diffuse'] = [0.3, 0.3,
-                                                                    0.3, 1.]
-                        else:
-                            color = list(ceil.header()['material']['diffuse'])
-                            intensity \
-                                = np.sqrt(np.sum(np.array(color[:3])**2) / 3)
-                            if intensity <= 0.75:
-                                for i in range(3):
-                                    c = color[i] + 0.4
-                                    if c > 1.:
-                                        c = 1.
-                                    color[i] = c
-                            else:
-                                for i in range(3):
-                                    c = color[i] - 0.4
-                                    if c < 0.:
-                                        c = 0.
-                                    color[i] = c
-                            ceil.header()['material']['diffuse'] = color
-                        meshes.setdefault(corridor + '_wall', []).append(wall)
-                        meshes.setdefault(corridor + '_ceil', []).append(ceil)
-
-        # build floor or ceiling meshes using tesselated objects (anatomist)
-        for corridor in self.corridors_ceil:
-            mesh_l = meshes.get(corridor + '_ceil')
-            if mesh_l:
-                print('tesselate:', corridor + '_ceil')
+        for main_group in list(meshes.keys()):
+            # here we iterate through list(keys) instead of using items()
+            # because some processings will insert new meshes in meshes,
+            # and this would make the iteration fail
+            props = self.group_properties.get(main_group)
+            if not props:
+                continue
+            mesh_l = meshes[main_group]
+            if mesh_l and props.corridor or props.block:
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
-                    tess_mesh = self.tesselate(mesh, flat=True)
-                    if tess_mesh is not None:
-                        #print('tesselation OK')
-                        meshes.setdefault(corridor + '_ceil_tri',
-                                          []).append(tess_mesh)
-        for corridor_t in self.corridors:
-            for corridor in corridor_t:
-                if corridor not in self.corridors_ceil:
-                    mesh_l = meshes.get(corridor)
-                    if mesh_l:
-                        print('tesselate:', corridor)
-                        if not isinstance(mesh_l, list):
-                            mesh_l = [mesh_l]
-                        for mesh in mesh_l:
-                            tess_mesh = self.tesselate(mesh, flat=True)
-                            if tess_mesh is not None:
-                                #print('tesselation OK')
-                                meshes.setdefault(corridor + '_floor_tri',
-                                                  []).append(tess_mesh)
+                    height = props.height * self.z_scale
+                    ceil, wall = self.extrude(mesh, height)
+                    if 'material' not in ceil.header():
+                        ceil.header()['material'] \
+                            = {'diffuse': [0.3, 0.3, 0.3, 1.]}
+                    elif 'diffuse' not in ceil.header()['material']:
+                        ceil.header()['material']['diffuse'] = [0.3, 0.3,
+                                                                0.3, 1.]
+                    else:
+                        color = list(ceil.header()['material']['diffuse'])
+                        intensity \
+                            = np.sqrt(np.sum(np.array(color[:3])**2) / 3)
+                        if intensity <= 0.75:
+                            for i in range(3):
+                                c = color[i] + 0.4
+                                if c > 1.:
+                                    c = 1.
+                                color[i] = c
+                        else:
+                            for i in range(3):
+                                c = color[i] - 0.4
+                                if c < 0.:
+                                    c = 0.
+                                color[i] = c
+                        ceil.header()['material']['diffuse'] = color
+                    meshes.setdefault(main_group + '_wall', []).append(wall)
+                    meshes.setdefault(main_group + '_ceil', []).append(ceil)
+                    self.group_properties[main_group + '_wall'] = props
+                    self.group_properties[main_group + '_ceil'] = props
+
+                    # build floor or ceiling meshes using tesselated objects
+                    # (anatomist)
+                    if props.block:
+                        # "blocks" have a closed ceiling
+                        tess_mesh = self.tesselate(ceil, flat=True)
+                        if tess_mesh is not None:
+                            meshes.setdefault(main_group + '_ceil_tri',
+                                              []).append(tess_mesh)
+                            self.group_properties[main_group + '_ceil_tri'] \
+                                = props
+
+                    if props.corridor:
+                        # corridor have a closed floor
+                        tess_mesh = self.tesselate(mesh, flat=True)
+                        if tess_mesh is not None:
+                            meshes.setdefault(main_group+ '_floor_tri',
+                                              []).append(tess_mesh)
+                            self.group_properties[main_group + '_floor_tri'] \
+                                = props
 
         # merge meshes in each group
         self.merge_meshes_by_group(meshes)
@@ -2672,23 +2705,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # make cat flap mesh
         catflap_col = {'bas': [0.85, 0.56, 0.16, 0.8],
                        u'injecté': [0.66, 0.61, 0.63, 0.8]}
-        for layer in ('chatieres v3', 'chatieres v3_inf', 'chatieres private',
-                      'chatieres private_inf', 'bas', u'injecté'):
-            mesh = meshes.get(layer)
+        for main_group in list(meshes.keys()):
+            prop = self.group_properties.get(main_group)
+            if not prop or not prop.catflap:
+                continue
+            mesh = meshes[main_group]
             if mesh is not None:
                 cat_flap = self.make_cat_flap(
-                    mesh, catflap_col.get(layer, [1., 0., 0., 0.8]))
-                meshes['%s_0' % layer] = cat_flap[0]
-                meshes['%s_1' % layer] = cat_flap[1]
-                del meshes[layer]
+                    mesh, catflap_col.get(main_group, [1., 0., 0., 0.8]))
+                meshes['%s_0' % main_group] = cat_flap[0]
+                meshes['%s_1' % main_group] = cat_flap[1]
+                self.group_properties['%s_0' % main_group] = props
+                self.group_properties['%s_1' % main_group] = props
+                del meshes[main_group]
 
         # sounds depth
         object_win_size = [8, 8]
         for sound, mpos in self.sounds.items():
             for pos, radius in mpos:
-                dmap = pos[2]
-                win = self.depth_wins[dmap]
-                z = self.get_depth(pos, win.view(), object_win_size)  # + 10.
+                level = pos[2]
+                win = self.depth_wins[level]
+                z = self.get_depth(pos[:2] + [0.], win.view(), object_win_size)
                 pos[2] = z
 
 
@@ -2898,6 +2935,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         c = np.array(poly2[:, 2])
         poly2[:, 2] = poly2[:, 1]
         poly2[:, 1] = c
+
         poly = np.vstack((poly, poly2))
 
         poly2 = np.array([(0, 24, 3), (3, 24, 27), (3, 27, 6), (6, 27, 30),
