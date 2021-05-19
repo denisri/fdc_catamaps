@@ -118,10 +118,10 @@ Use the commandline with the '-h' option to get all parameters help.
 class ItemProperties(object):
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
-                  'private', 'inaccessible', 'corridor', 'block_item',
+                  'private', 'inaccessible', 'corridor', 'block',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map',
-                  'heigth', 'height_shift')
+                  'height', 'height_shift')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -134,7 +134,7 @@ class ItemProperties(object):
         self.private = False
         self.inaccessible = False
         self.corridor = False
-        self.block_item = False
+        self.block = False
         self.symbol = False
         self.arrow = False
         self.text = False
@@ -142,8 +142,8 @@ class ItemProperties(object):
         self.catflap = False
         self.hidden = False
         self.depth_map = False
-        self.height = 2.
-        self.height_shift = 0.
+        self.height = None
+        self.height_shift = None
 
     def __str__(self):
         d = ['{']
@@ -163,7 +163,7 @@ class ItemProperties(object):
                 'private': ItemProperties.is_true,
                 'inaccessible': ItemProperties.is_true,
                 'corridor': ItemProperties.is_true,
-                'block_item': ItemProperties.is_true,
+                'block': ItemProperties.is_true,
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
                 'text': ItemProperties.is_true,
@@ -214,7 +214,8 @@ class ItemProperties(object):
                 # properties as layer name suffixes
                 for prop, value in props.items():
                     value = ItemProperties.get_typed_prop(prop, value)
-                    setattr(self, prop, value)
+                    if value is not None:
+                        setattr(self, prop, value)
             if label:
                 self.label = label
                 self.name = label
@@ -226,16 +227,29 @@ class ItemProperties(object):
                     setattr(self, prop,
                             ItemProperties.get_typed_prop(prop, value))
 
-            self.corridor = self.is_corridor(element)
-            self.block = self.is_block(element)
-            self.well = self.is_well(element)
-            self.catflap = self.is_catflap(element)
-            self.hidden = self.is_hidden(element)
-            self.depth_map = self.is_depth_map(element)
+            corridor = self.is_corridor(element)
+            if corridor is not None:
+                self.corridor = corridor
+            block = self.is_block(element)
+            if block is not None:
+                self.block = block
+            well = self.is_well(element)
+            if well is not None:
+                self.well = True
+            catflap = self.is_catflap(element)
+            if catflap is not None:
+                self.catflap = catflap
+            hidden = self.is_hidden(element)
+            if hidden is not None:
+                self.hidden = hidden
+            depth_map = self.is_depth_map(element)
+            if depth_map is not None:
+                self.depth_map = depth_map
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
-            if element.tag == 'text' or element.tag.endswith('text'):
+            if element.tag == 'text' or element.tag.endswith('text') \
+                    or self.is_true(element.get('text')):
                 self.text =  True
 
             self.height = self.get_height(element)
@@ -262,6 +276,12 @@ class ItemProperties(object):
                 #elif self.eid:
                     #self.main_group = '_'.join([self.eid, self.level,
                                                 #priv_str, access_str])
+
+            if label:
+                print('label:', label, self)
+            if self.text and self.block:
+                print('both text and block:', self)
+                print('parent:', parents[-1])
 
     @staticmethod
     def remove_word(label, word):
@@ -349,10 +369,18 @@ class ItemProperties(object):
         if value is not None:
             return ItemProperties.is_true(value)
         label = ItemProperties.get_label(element)
-        return label in layers_list
+        if label in layers_list:
+            return True
+        return None  # we don't know
 
     def get_height(self, element):
-        height = 2.
+        height = element.get('item_height')
+        if height is not None:
+            return float(height)
+
+        if self.height is not None:
+            return self.height
+
         for etype, h in DefaultItemProperties.types_heights.items():
             is_type = getattr(self, etype, None)
             if is_type:
@@ -364,7 +392,13 @@ class ItemProperties(object):
         return height
 
     def get_height_shift(self, element):
-        height_shift = 0.
+        height_shift = element.get('height_shift')
+        if height_shift is not None:
+            return float(height_shift)
+
+        if self.height_shift is not None:
+            return self.height_shift
+
         for etype, shift in DefaultItemProperties.types_height_shifts.items():
             is_type = getattr(self, etype, None)
             if is_type:
@@ -588,7 +622,7 @@ class DefaultItemProperties(object):
     types_heights = {
         'corridor': 2.,
         'stair': 1.,
-        'block_item': 1.,
+        'block': 1.,
         'symbol': 0.3,
     }
 
@@ -881,7 +915,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if label is not None:
             # depths are taken into account even when hidden (because they
             # are normally hidden in the svg file)
-            if label.startswith('profondeurs'):
+            if item_props.depth_map or label.startswith('profondeurs'):
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
             if label in self.sound_layers:
@@ -1570,11 +1604,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             depth_mesh = mesh_def[0]
         else:
             depth_mesh = self.mesh_dict.setdefault(self.main_group,
-                                                  aims.AimsTimeSurface_3())
+                                                   aims.AimsTimeSurface_3())
             depth_mesh.header()['material'] = {'face_culling': 0,
                                               'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
         self.depth_meshes_def[level] = (depth_mesh, self.item_props)
+        print('start_depth_rect', self.main_group, level)
 
     def clean_depth(self):
         self.depth_maps.pop()
@@ -1645,7 +1680,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_depth_rect(self, rect_xml, trans, style=None):
-        if not self.main_group.startswith('profondeurs'):
+        props = self.item_props  # self.group_properties.get(self.main_group)
+        if not props.depth_map \
+                and not self.main_group.startswith('profondeurs'):
             # skip non-depth rects
             return
         depth_mesh = self.mesh_dict[self.main_group]
@@ -1896,7 +1933,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def ground_altitude_topomap(self, pos):
-        if self.alt_bounds is None or self.ground_img is None:
+        if not hasattr(self, 'alt_bounds') or self.alt_bounds is None \
+                or self.ground_img is None:
             return 0.
         x = int((pos[0] - self.alt_bounds[0][0])
                 / (self.alt_bounds[1][0] - self.alt_bounds[0][0])
@@ -1984,8 +2022,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         object_win_size = (2., 2.)
         self.build_depth_wins((250, 250))
-
-        return
 
         for main_group, mesh_l in meshes.items():
             props = self.group_properties.get(main_group)
@@ -2598,8 +2634,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.load_ground_altitude_bdalti(bdalti_map)
 
         # make depth maps
-        for depths in DefaultItemProperties.depth_map_names:
-            mesh = meshes.get(depths)
+        for level, mesh_def in self.depth_meshes_def.items():
+            mesh, props = mesh_def
             if mesh is not None:
                 self.add_ground_alt(mesh)
                 self.delaunay(mesh)
@@ -2637,11 +2673,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             props = self.group_properties.get(main_group)
             if not props:
                 continue
+            print('extrude:', main_group)
+            # print(props)
             mesh_l = meshes[main_group]
             if mesh_l and props.corridor or props.block:
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
+                    if not hasattr(mesh, 'vertex'):
+                        # not a mesh
+                        continue
                     height = props.height * self.z_scale
                     ceil, wall = self.extrude(mesh, height)
                     if 'material' not in ceil.header():
@@ -2813,7 +2854,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def build_ground_grid(self):
         layer = [l for l in self.svg.getroot()
                  if l.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                     == 'bord_sud'][0]
+                     == 'bord_sud']
+        if not layer:
+            return aims.AimsTimeSurface_2()  # no layer
+        layer = layer[0]
         self.main_group = 'bord_sud'
         bounds = self.boundingbox(layer)
         print('ground grid bounds:', bounds)
