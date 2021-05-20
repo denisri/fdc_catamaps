@@ -162,8 +162,10 @@ class SvgToMesh(object):
         if not style:
             return None
         color = style.get('fill')
-        if not color:
+        opacity = style.get('fill-opacity')
+        if not color or color == 'none':
             color = style.get('stroke')
+            opacity = style.get('stroke-opacity')
         if not color:
             return None
         color_spec = color.split(' ')
@@ -173,10 +175,14 @@ class SvgToMesh(object):
             n = int(math.ceil(len(c) / 3))
             if n < 1:
                 n = 1
+            if opacity not in (None, 'none'):
+                opacity = float(opacity)
+            else:
+                opacity = 1.
             color = (int('0x' + c[:n], 0) / 255.,
                     int('0x' + c[n:n*2], 0) / 255.,
                     int('0x' + c[n*2:n*3], 0) / 255.,
-                    1.)
+                    opacity)
             return color
         return None
 
@@ -205,6 +211,32 @@ class SvgToMesh(object):
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(np.asarray(pts.T))
         mesh.polygon().assign([(0, 1), (1, 2), (2, 3), (3, 0)])
+        if material is not None:
+            mesh.header()['material'] = material
+        return mesh
+
+
+    def read_circle(self, xml_path, trans, style=None):
+        ''' Read a circle element as a mesh
+        '''
+        if not aims:
+            raise RuntimeError('aims module is not available. read_circle() '
+                               'needs it.')
+        if style is None:
+            style = self.get_style(xml_path)
+        color = self.get_mesh_color(style)
+        material = None
+        if color:
+            material = {'diffuse': color}
+
+        x = float(xml_path.get('cx'))
+        y = float(xml_path.get('cy'))
+        r = float(xml_path.get('r'))
+        npt = 24
+        mesh = aims.SurfaceGenerator.circle_wireframe((x, y, 1.), r, npt)
+        pts = trans * np.matrix(mesh.vertex().np.T)
+        pts[2, :] = 0 # reset Z to 0
+        mesh.vertex().assign(np.asarray(pts.T))
         if material is not None:
             mesh.header()['material'] = material
         return mesh
@@ -271,6 +303,10 @@ class SvgToMesh(object):
             return self.read_rect(xml_path, trans, style)
         if xml_path.tag == 'polygon' or xml_path.tag.endswith('}polygon'):
             return self.read_polygon(xml_path, trans, style)
+        if xml_path.tag == 'circle' or xml_path.tag.endswith('}circle'):
+            return self.read_circle(xml_path, trans, style)
+
+        # read path
 
         if style is None:
             style = self.get_style(xml_path)
@@ -869,10 +905,11 @@ class SvgToMesh(object):
             elif child.tag.endswith('}defs') or child.tag == 'defs':
                 # skip defs sub-tree
                 continue
-            elif child.tag in ('path', 'rect', 'polygon') \
+            elif child.tag in ('path', 'rect', 'polygon', 'circle') \
                     or child.tag.endswith('}path') \
                     or child.tag.endswith('}rect') \
-                    or child.tag.endswith('}polygon'):
+                    or child.tag.endswith('}polygon') \
+                    or child.tag.endswith('}circle'):
                 child_mesh = self.read_path(child, trans, style)
                 if self.concat_mesh == 'merge':
                     aims.SurfaceManip.meshMerge(self.mesh, child_mesh)

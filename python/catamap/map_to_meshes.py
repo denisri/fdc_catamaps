@@ -277,11 +277,10 @@ class ItemProperties(object):
                     #self.main_group = '_'.join([self.eid, self.level,
                                                 #priv_str, access_str])
 
-            if label:
-                print('label:', label, self)
             if self.text and self.block:
-                print('both text and block:', self)
-                print('parent:', parents[-1])
+                #print('both text and block:', self)
+                #print('parent:', parents[-1])
+                self.block = False
 
     @staticmethod
     def remove_word(label, word):
@@ -940,7 +939,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         [self.clean_arrows] + clean_return, False)
             elif label == 'colim':
                 return (self.read_spiral_stair, clean_return, True)
-            elif label in self.wells_ids:
+            elif item_props.well or label in self.wells_ids:
                 return (self.read_wells, clean_return, True)
             elif label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
@@ -1076,7 +1075,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_wells(self, wells_xml, trans, style=None):
-        #print('read_wells.')
+        print('read_wells.')
         wells = None
         trans0 = trans
         for child in wells_xml:
@@ -1124,7 +1123,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     z = bmin[2] * self.z_scale
                     height = 20. * self.z_scale
-                #print('well group:', self.main_group, center)
+                print('well group:', self.main_group, center)
                 wells_spec = self.mesh_dict.setdefault(self.main_group, [])
                 wells_spec.append((center, radius, z, height))
                 #print('well_type:', well_type, len(wells_spec))
@@ -1609,7 +1608,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                               'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
         self.depth_meshes_def[level] = (depth_mesh, self.item_props)
-        print('start_depth_rect', self.main_group, level)
+        # print('start_depth_rect', self.main_group, level)
 
     def clean_depth(self):
         self.depth_maps.pop()
@@ -1619,7 +1618,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if hasattr(self, 'depth_group'):
             raise RuntimeError(
                 'Nested depth group in main_group %s, element: %s, items: %s'
-                % (self.main_group, repr(child_xml), repr(list(child_xml.items()))))
+                % (self.main_group, repr(child_xml),
+                   repr(list(child_xml.items()))))
         self.depth_group = {}
 
 
@@ -2177,8 +2177,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 z0 = self.get_depth(c3, view_up)
                 if z0 is not None:
                     height = z0 - z
+                shift = props.height_shift
+                if shift is None:
+                    shift = 0.
                 well = self.make_well(center, radius,
-                                      z + props.height_shift * self.z_scale,
+                                      z + shift * self.z_scale,
                                       height + props.height * self.z_scale,
                                       main_group,
                                       props)
