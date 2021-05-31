@@ -118,10 +118,11 @@ Use the commandline with the '-h' option to get all parameters help.
 class ItemProperties(object):
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
-                  'private', 'inaccessible', 'corridor', 'block',
+                  'private', 'inaccessible', 'corridor', 'block', 'wall',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map',
-                  'height', 'height_shift')
+                  'height', 'height_shift',
+                  'border')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -135,6 +136,7 @@ class ItemProperties(object):
         self.inaccessible = False
         self.corridor = False
         self.block = False
+        self.wall = False
         self.symbol = False
         self.arrow = False
         self.text = False
@@ -144,6 +146,7 @@ class ItemProperties(object):
         self.depth_map = False
         self.height = None
         self.height_shift = None
+        self.border = False
 
     def __str__(self):
         d = ['{']
@@ -164,6 +167,7 @@ class ItemProperties(object):
                 'inaccessible': ItemProperties.is_true,
                 'corridor': ItemProperties.is_true,
                 'block': ItemProperties.is_true,
+                'wall': ItemProperties.is_true,
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
                 'text': ItemProperties.is_true,
@@ -173,6 +177,7 @@ class ItemProperties(object):
                 'depth_map': ItemProperties.is_true,
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
+                'border': ItemProperties.float_value,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -233,6 +238,9 @@ class ItemProperties(object):
             block = self.is_block(element)
             if block is not None:
                 self.block = block
+            wall = self.is_wall(element)
+            if wall is not None:
+                self.wall = wall
             well = self.is_well(element)
             if well is not None:
                 self.well = True
@@ -245,6 +253,9 @@ class ItemProperties(object):
             depth_map = self.is_depth_map(element)
             if depth_map is not None:
                 self.depth_map = depth_map
+            #border = self.is_border(element)
+            #if border is not None:
+                #self.border = border
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
@@ -343,6 +354,11 @@ class ItemProperties(object):
             element, 'block', DefaultItemProperties.block_labels)
 
     @staticmethod
+    def is_wall(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'wall', DefaultItemProperties.wall_labels)
+
+    @staticmethod
     def is_hidden(element):
         return ItemProperties.is_listed_element_type(
             element, 'hidden', DefaultItemProperties.hidden_labels)
@@ -361,6 +377,11 @@ class ItemProperties(object):
     def is_depth_map(element):
         return ItemProperties.is_listed_element_type(
             element, 'depth_map', DefaultItemProperties.depth_map_labels)
+
+    @staticmethod
+    def is_border(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'border', DefaultItemProperties.border_labels)
 
     @staticmethod
     def is_listed_element_type(element, tag, layers_list):
@@ -495,6 +516,10 @@ class DefaultItemProperties(object):
         'porte',
         'porte_ouverte',
         'passage', 'grille-porte',
+    }
+
+    wall_labels = {
+        'grilles',
     }
 
     street_labels = {'plaques rues', }
@@ -2180,9 +2205,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 shift = props.height_shift
                 if shift is None:
                     shift = 0.
+                pheight = props.height
+                if pheight is None:
+                    pheight = 0.
                 well = self.make_well(center, radius,
                                       z + shift * self.z_scale,
-                                      height + props.height * self.z_scale,
+                                      height + pheight * self.z_scale,
                                       main_group,
                                       props)
                 if wells is None:
@@ -2197,9 +2225,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         import anatomist.api as ana
         a = ana.Anatomist()
         a.setUserLevel(5)  # needed to use tesselation fusion
+        orig_pos = np.array(mesh.vertex())
+        if 'transformation' in mesh.header():
+            # if the mesh has a 3D transformation, don't do that
+            flat = False
         if flat:
             # tessalate at constant Z, then set back Z after tesselation
-            orig_pos = np.array(mesh.vertex())
             for v in mesh.vertex():
                 v[2] = 0.
         amesh = a.toAObject(mesh)
@@ -2676,10 +2707,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             props = self.group_properties.get(main_group)
             if not props:
                 continue
-            print('extrude:', main_group)
+            print('extrude:', main_group, props.corridor, props.block)
             # print(props)
             mesh_l = meshes[main_group]
-            if mesh_l and props.corridor or props.block:
+            if mesh_l and props.corridor or props.block or props.wall:
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
@@ -2701,9 +2732,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         if intensity <= 0.75:
                             for i in range(3):
                                 c = color[i] + 0.4
-                                if c > 1.:
-                                    c = 1.
+                                #if c > 1.:
+                                    #c = 1.
                                 color[i] = c
+                            m = max(color[:3])
+                            if m > 1.:
+                                for i in range(3):
+                                    color[i] /= m
                         else:
                             for i in range(3):
                                 c = color[i] - 0.4
@@ -2729,6 +2764,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
                     if props.corridor:
                         # corridor have a closed floor
+                        print('tesselate corridor:', props.main_group)
                         tess_mesh = self.tesselate(mesh, flat=True)
                         if tess_mesh is not None:
                             meshes.setdefault(main_group+ '_floor_tri',
@@ -2886,7 +2922,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_skull_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
-        skproto = protos['label'].get('ossuaire')
+        if not protos:
+            return
+        skproto = protos.get('label')
+        if not skproto:
+            return
+        skproto = skproto.get('ossuaire')
         if skproto is None:
             return
         self.main_group = 'ossuaire'
@@ -2924,6 +2965,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_fontis_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
+        if not protos:
+            return
         fproto = protos['label'].get('fontis')
         if fproto is None:
             return
@@ -3014,6 +3057,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_lily_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
+        if not protos:
+            return
         lproto = protos['label'].get('lys')
         if lproto is None:
             print('No proto for lys')
@@ -3053,6 +3098,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_large_sign_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
+        if not protos:
+            return
         lproto = protos['label'].get('grande_plaque')
         if lproto is None:
             print('No proto for grande_plaque')
@@ -3301,7 +3348,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         symbols = [x for x in root
                    if x.get(
                       '{http://www.inkscape.org/namespaces/inkscape}label')
-                      == u'légende'][0]
+                      == u'légende']
+        if symbols:
+            symbols = symbols[0]
+        else:
+            return
         trans2 = symbols.get('transform')
         if trans2 is not None:
             transm = self.get_transform(trans2)
@@ -3318,10 +3369,20 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:
             eid = child.get('id')
-            if eid.endswith('_proto'):
+            ptype = None
+            if eid and eid.endswith('_proto'):
                 ptype = eid[:-6]
+                plabel = 'id'
+                pmap = ids
+            else:
+                label = child.get('label')
+                if label and label.endswith('_proto'):
+                    ptype = label[:-6]
+                    plabel = 'label'
+                    pmap = labels
+            if ptype:
                 element = copy.deepcopy(child)
-                element.set('id', eid[:-6])
+                element.set(plabel, ptype)
                 item = {'element': element}
                 bbox = self.boundingbox(child, trans)
                 item['boundingbox'] = bbox
@@ -3330,9 +3391,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 item['trans'] = trans
                 if ptype in rep_child:
                     item['children'] = True
-                    ids[ptype] = item
-                else:
-                    labels[ptype] = item
+                pmap[ptype] = item
+
         return repl_map
 
 
@@ -3684,7 +3744,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         mask_layer = [
             x for x in src_xml.getroot().getchildren()
             if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                == layer_label][0]
+                == layer_label]
+        if mask_layer:
+            mask_layer = mask_layer[0]
+        else:
+            return  # this region doesn't exist in the map
         target_layer = [
             x for x in xml.getroot().getchildren()
             if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
@@ -3782,7 +3846,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
-            if label in self.removed_labels:
+            if label in self.removed_labels \
+                    or layer.get('hidden') in ('true', '1', 1, 'True'):
                 to_remove.append(layer)
                 labels.append(label)
         print('removing layers:', labels)
@@ -3794,7 +3859,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.removed_labels.update(
             ('a_verifier', 'indications_big_2010', 'planches',
              'calcaire 2010',
-             'work done calc', 'galeries techniques despe'))
+             'work done calc', 'galeries techniques despe',
+             u'à vérifier', ))
         self.do_remove_layers(xml)
 
 
@@ -4373,6 +4439,18 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 print('style:', layer.get('style'))
                 break
 
+    def find_clip_rect(self, xml, rect_def):
+        for layer in xml.getroot():
+            if layer.tag != '{http://www.w3.org/2000/svg}g':
+                continue
+            label = layer.get(
+                '{http://www.inkscape.org/namespaces/inkscape}label')
+            if label == rect_def:
+                return layer[0].get('id')
+            for child in layer:
+                if child.get('id') == rect_def \
+                        or child.get('label') == rect_def:
+                    return child.get('id')
 
     def build_2d_map(self, xml, keep_private=True, wip=False,
                      filters=[]):
@@ -4625,6 +4703,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, shadows=True, do_pdf=False):
     svg2d = CataMapTo2DMap()
     map2d = svg2d.build_2d_map(xml_et, filters=filters)
+    clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
     if clip_rect:
         svg2d.clip_page(map2d, clip_rect)
     map2d.write(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
@@ -4782,7 +4861,7 @@ The program allows to produce:
             out_filename.replace('.svg', '_imprimable_private.jpg'))
 
     if do_2d:
-        do_2d_maps = set(do_2d_maps.split('.'))
+        do_2d_maps = set(do_2d_maps.split(','))
         print('build 2D maps:', do_2d_maps)
 
         col_filter = []

@@ -211,6 +211,19 @@ class SvgToMesh(object):
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(np.asarray(pts.T))
         mesh.polygon().assign([(0, 1), (1, 2), (2, 3), (3, 0)])
+
+        trans3d = getattr(trans, 'transform_3d', None)
+        if trans3d is not None:
+            vert = np.vstack((np.asarray(mesh.vertex()).T,
+                              np.ones((1, len(mesh.vertex())),
+                                      dtype=np.float32)))
+            vert = (trans3d * vert).T
+            vert = vert[:, :3]
+            mesh.vertex().assign(np.asarray(vert))
+            #if len(mesh.normal()) != 0:
+                #print('trans normals')
+            mesh.header()['transformation'] = list(np.ravel(trans3d))
+
         if material is not None:
             mesh.header()['material'] = material
         return mesh
@@ -237,6 +250,19 @@ class SvgToMesh(object):
         pts = trans * np.matrix(mesh.vertex().np.T)
         pts[2, :] = 0 # reset Z to 0
         mesh.vertex().assign(np.asarray(pts.T))
+
+        trans3d = getattr(trans, 'transform_3d', None)
+        if trans3d is not None:
+            vert = np.vstack((np.asarray(mesh.vertex()).T,
+                              np.ones((1, len(mesh.vertex())),
+                                      dtype=np.float32)))
+            vert = (trans3d * vert).T
+            vert = vert[:, :3]
+            mesh.vertex().assign(np.asarray(vert))
+            #if len(mesh.normal()) != 0:
+                #print('trans normals')
+            mesh.header()['transformation'] = list(np.ravel(trans3d))
+
         if material is not None:
             mesh.header()['material'] = material
         return mesh
@@ -265,6 +291,18 @@ class SvgToMesh(object):
         pts[2, :] = 0 # reset Z to 0
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(np.asarray(pts.T))
+
+        trans3d = getattr(trans, 'transform_3d', None)
+        if trans3d is not None:
+            vert = np.vstack((np.asarray(mesh.vertex()).T,
+                              np.ones((1, len(mesh.vertex())),
+                                      dtype=np.float32)))
+            vert = (trans3d * vert).T
+            vert = vert[:, :3]
+            mesh.vertex().assign(np.asarray(vert))
+            #if len(mesh.normal()) != 0:
+                #print('trans normals')
+            mesh.header()['transformation'] = list(np.ravel(trans3d))
 
         poly = [(i, i+1) for i in range(pts.shape[1] - 1)]
         poly.append((pts.shape[1] - 1, 0))
@@ -415,14 +453,44 @@ class SvgToMesh(object):
             #print('to: vert:', vert)
         mesh.vertex().assign(np.asarray(vert))
         mesh.polygon().assign(poly)
+        trans3d = getattr(trans, 'transform_3d', None)
+        if trans3d is not None:
+            vert = np.vstack((np.asarray(vert).T,
+                              np.ones((1, len(vert)), dtype=np.float32)))
+            vert = (trans3d * vert).T
+            vert = vert[:, :3]
+            mesh.vertex().assign(np.asarray(vert))
+            #if len(mesh.normal()) != 0:
+                #print('trans normals')
+            mesh.header()['transformation'] = list(np.ravel(trans3d))
+
         if material:
             mesh.header()['material'] = material
         return mesh
 
 
     @staticmethod
-    def get_transform(trans_str):
+    def get_transform(trans):
+        '''
+        Parameters
+        ----------
+        trans: str or XML element
+            if str: transform field in the SVG element.
+            if element: element itself
+        '''
         #print('transform:', trans_str)
+        mat3d = None
+        if not isinstance(trans, str):
+            trans_str = trans.get('transform')
+            if trans_str:
+                mat = np.matrix(np.eye(3))
+                return mat
+            trans3d = trans.get('transform_3d')
+            if trans3d:
+                mat3d = SvgToMesh.get_transform(trans3d)
+            return
+
+        trans_str = trans
         tr_list = trans_str.split(') ')
         tr_list = [x + ')' for x in tr_list[:-1]] + [tr_list[-1]]
         tmat = None
@@ -431,7 +499,7 @@ class SvgToMesh(object):
             i = trans_strx.find('(')
             if not i or trans_strx[-1] != ')':
                 print('unrecognized transform: %s', trans_strx)
-                return mat
+                return tmat
             ttype = trans_strx[:i]
             tdef1 = trans_strx[i+1:-1].strip().split(',')
             tdef = []
@@ -467,11 +535,20 @@ class SvgToMesh(object):
                 mat[0, 1] = np.tan(tdef[0] / 180. * np.pi)
             elif ttype == 'skewY':
                 mat[1, 0] = np.tan(tdef[0] / 180. * np.pi)
+            if ttype == 'matrix4':
+                mat = np.matrix(np.eye(4))
+                mat[:3, 0] = np.reshape(tdef[:3], (3, 1))
+                mat[:3, 1] = np.reshape(tdef[3:6], (3, 1))
+                mat[:3, 2] = np.reshape(tdef[6:9], (3, 1))
+                mat[:3, 3] = np.reshape(tdef[9:], (3, 1))
             if tmat is None:
                 tmat = mat
             else:
                 tmat *= mat
+
         #print('mat:', tmat)
+        if mat3d:
+            tmat.transform_3d = mat3d
         return tmat
 
 
@@ -873,6 +950,8 @@ class SvgToMesh(object):
             if style is None:
                 style = {} # so that read_path will not parse it again
 
+            #transm = self.get_transform(trans2)
+
             trans2 = child.get('transform')
             if trans2 is not None:
                 transm = self.get_transform(trans2)
@@ -880,6 +959,13 @@ class SvgToMesh(object):
                     trans = transm
                 else:
                     trans = trans * transm
+
+            trans3d = child.get('transform_3d')
+            if trans3d:
+                trans3d = self.get_transform(trans3d)
+                if hasattr(trans, 'transform_3d'):
+                    trans3d = trans.transform_3d * trans3d
+                trans.transform_3d = trans3d
 
             if self.debug:
                 print('process child:', child)
@@ -1098,6 +1184,12 @@ class SvgToMesh(object):
         up = aims.AimsTimeSurface(mesh)
         tr = aims.AffineTransformation3d()
         tr.setTranslation([0., 0., distance])
+        trans3d = mesh.header().get('transformation')
+        if trans3d:
+            trans3d = aims.AffineTransformation3d(trans3d)
+            trans3d.setTranslation([0, 0, 0])
+            trans = trans3d.transform([0., 0., distance])
+            tr.setTranslation(trans)
         aims.SurfaceManip.meshTransform(up, tr)
 
         walls = aims.AimsTimeSurface(3)
