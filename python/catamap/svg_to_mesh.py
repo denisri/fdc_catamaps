@@ -470,30 +470,39 @@ class SvgToMesh(object):
 
 
     @staticmethod
-    def get_transform(trans):
+    def get_transform(trans, previous=None):
         '''
         Parameters
         ----------
         trans: str or XML element
             if str: transform field in the SVG element.
             if element: element itself
+        previous: np array or None
+            parent transform to be composed with
         '''
         #print('transform:', trans_str)
         mat3d = None
         if not isinstance(trans, str):
-            trans_str = trans.get('transform')
-            if trans_str:
-                mat = np.matrix(np.eye(3))
-                return mat
             trans3d = trans.get('transform_3d')
-            if trans3d:
+            if trans3d is not None:
                 mat3d = SvgToMesh.get_transform(trans3d)
-            return
+            trans_str = trans.get('transform')
+            if not trans_str:
+                mat = np.matrix(np.eye(3))
+                if previous is not None:
+                    mat = previous * mat
+                    if trans3d is None and hasattr(previous, 'transform_3d'):
+                        trans3d = previous.transform_3d
+                if trans3d is not None:
+                    mat.transform_3d = trans3d
+                return mat
 
-        trans_str = trans
+        else:
+            trans_str = trans
+
         tr_list = trans_str.split(') ')
         tr_list = [x + ')' for x in tr_list[:-1]] + [tr_list[-1]]
-        tmat = None
+        tmat = previous
         for trans_strx in tr_list:
             mat = np.matrix(np.eye(3))
             i = trans_strx.find('(')
@@ -544,10 +553,10 @@ class SvgToMesh(object):
             if tmat is None:
                 tmat = mat
             else:
-                tmat *= mat
+                tmat = tmat * mat
 
         #print('mat:', tmat)
-        if mat3d:
+        if mat3d is not None:
             tmat.transform_3d = mat3d
         return tmat
 
@@ -565,13 +574,7 @@ class SvgToMesh(object):
         bmin, bmax = bbox
         while todo:
             element, trans = todo.pop(0)
-            trans2 = element.get('transform')
-            if trans2 is not None:
-                transm = self.get_transform(trans2)
-                if trans is None:
-                    trans = transm
-                else:
-                    trans = trans * transm
+            trans = self.get_transform(element, trans)
             if element.tag.endswith('}g'):
                 todo = [(c, trans) for c in element] + todo
             else:
@@ -611,17 +614,19 @@ class SvgToMesh(object):
         #otrans = np.matrix(scipy.linalg.inv(in_trans))
         while todo:
             element, c_trans, c_otrans = todo.pop(0)
-            trans2 = element.get('transform')
-            if trans2 is not None:
-                transm = self.get_transform(trans2)
-                if c_trans is None:
-                    c_trans = transm
-                else:
-                    c_trans = c_trans * transm
-                if c_otrans is None:
-                    c_otrans = transm
-                else:
-                    c_otrans = c_otrans * transm
+            transm = self.get_transform(element)
+            if c_trans is None:
+                c_trans = transm
+            else:
+                c_trans = c_trans * transm
+                if hasattr(transm, 'transform_3d'):
+                    c_trans.transform_3d = transm.transform_3d
+            if c_otrans is None:
+                c_otrans = transm
+            else:
+                c_otrans = c_otrans * transm
+                if hasattr(transm, 'transform_3d'):
+                    c_otrans.transform_3d = transm.transform_3d
                 #element.set('transform', None) # FIXME: how to remove it
             if element.tag.endswith('}g'):
                 todo = [(c, c_trans, c_otrans) for c in element] + todo
@@ -950,22 +955,7 @@ class SvgToMesh(object):
             if style is None:
                 style = {} # so that read_path will not parse it again
 
-            #transm = self.get_transform(trans2)
-
-            trans2 = child.get('transform')
-            if trans2 is not None:
-                transm = self.get_transform(trans2)
-                if trans is None:
-                    trans = transm
-                else:
-                    trans = trans * transm
-
-            trans3d = child.get('transform_3d')
-            if trans3d:
-                trans3d = self.get_transform(trans3d)
-                if hasattr(trans, 'transform_3d'):
-                    trans3d = trans.transform_3d * trans3d
-                trans.transform_3d = trans3d
+            trans = self.get_transform(child, trans)
 
             if self.debug:
                 print('process child:', child)
@@ -1328,13 +1318,7 @@ class SvgToMesh(object):
                 center = relem.get('center')
                 # print('replace element:', eid, label, relem)
                 if replace_children:
-                    trans2 = element.get('transform')
-                    if trans2 is not None:
-                        transm = self.get_transform(trans2)
-                        if trans is None:
-                            trans = transm
-                        else:
-                            trans = trans * transm
+                    trans = self.get_transform(element, trans)
 
                     tr_items = []
                     for child in element:
@@ -1394,13 +1378,7 @@ class SvgToMesh(object):
                                            trans)
                     parent.append(new_item)
             else:
-                trans2 = element.get('transform')
-                if trans2 is not None:
-                    transm = self.get_transform(trans2)
-                    if trans is None:
-                        trans = transm
-                    else:
-                        trans = trans * transm
+                transm = self.get_transform(element, trans)
 
                 added = [(child, trans, element, current_id, current_label)
                          for child in element]
@@ -1552,15 +1530,7 @@ class SvgToMesh(object):
 
 
     def remove_paths_outside_bounds(self, xml_group, bbmin, bbmax, trans=None):
-        trans2 = xml_group.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                trans = transm
-            else:
-                trans = trans * transm
-        if trans is None:
-            trans = np.matrix(np.eye(3))
+        trans = self.get_transform(xml_group, trans)
 
         to_remove = []
         for path in xml_group:
@@ -1575,34 +1545,12 @@ class SvgToMesh(object):
     def merge_paths(self, xml_group, trans=None):
         if len(xml_group) == 0:
             return
-        trans2 = xml_group.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                trans = transm
-            else:
-                trans = trans * transm
-        if trans is None:
-            trans = np.matrix(np.eye(3))
+        trans = self.get_transform(xml_group, trans)
         path = xml_group[0]
-        trans2 = path.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                ptrans = transm
-            else:
-                ptrans = trans * transm
-            path.set('transform', 'translate(0., 0.)')
-        if ptrans is None:
-            ptrans = np.matrix(np.eye(3))
+        ptrans = self.get_transform(path, trans)
         d = [self.transform_path(path, ptrans)]
         for p in xml_group[1:]:
-            trans2 = p.get('transform')
-            if trans2 is not None:
-                transm = self.get_transform(trans2)
-                ptrans = trans * transm
-            else:
-                ptrans = trans
+            ptrans = self.get_transform(p, trans)
             d.append(self.transform_path(p, ptrans))
         d = ' '.join(d)
         path.set('d', d)
@@ -1648,13 +1596,7 @@ class SvgToMesh(object):
         while todo:
             elem, strans = todo.pop(0)
             eid = elem.get('id')
-            trans = elem.get('transform')
-            if trans:
-                trans = self.get_transform(trans)
-                if strans is not None:
-                    trans = strans * trans
-            elif strans is not None:
-                trans = strans
+            trans = self.get_transform(elem, strans)
             if eid == id:
                 return elem, trans
             todo += [(child, trans) for child in elem]
