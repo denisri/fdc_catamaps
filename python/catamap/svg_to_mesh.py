@@ -245,8 +245,19 @@ class SvgToMesh(object):
         x = float(xml_path.get('cx'))
         y = float(xml_path.get('cy'))
         r = float(xml_path.get('r'))
+        angle_s = xml_path.get('sodipodi:start')
+        if angle_s:
+            angle_s = float(angle_s)
+        else:
+            angle_s = 0.
+        angle_e = xml_path.get('sodipodi:end')
+        if angle_e:
+            angle_e = float(angle_e)
+        else:
+            angle_e = np.pi * 2
         npt = 24
-        mesh = aims.SurfaceGenerator.circle_wireframe((x, y, 1.), r, npt)
+        mesh = aims.SurfaceGenerator.circle_wireframe(
+            (x, y, 1.), r, npt, (0, 0, 1 ), (1, 0, 0), angle_s, angle_e)
         pts = trans * np.matrix(mesh.vertex().np.T)
         pts[2, :] = 0 # reset Z to 0
         mesh.vertex().assign(np.asarray(pts.T))
@@ -1277,6 +1288,8 @@ class SvgToMesh(object):
         todo = [(xml.getroot(), np.matrix(np.eye(3)), None, None, None)]
         count = 0
         total = 0
+        if replace_dict is None:
+            replace_dict = {}
         rid = replace_dict.get('id', {})
         rlabel = replace_dict.get('label', {})
 
