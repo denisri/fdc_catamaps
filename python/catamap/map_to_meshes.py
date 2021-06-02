@@ -929,6 +929,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.level = self.item_props.level
         self.main_group = self.item_props.main_group
 
+        if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
+            print('*** TITLE ***', xml_element, self.main_group)
+            title = [x.text for x in xml_element]
+            self.title = getattr(self, 'title', []) + title
+
         # get element label
         label = xml_element.get(
             '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -1225,6 +1230,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   0.]
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
+        print('fontis_mesh:', self.fontis_mesh)
         fontis_mesh = aims.AimsTimeSurface(self.fontis_mesh)
         aims.SurfaceManip.meshTransform(fontis_mesh, tr)
         aims.SurfaceManip.meshMerge(mesh, fontis_mesh)
@@ -3191,6 +3197,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         finally:
             del sys.path[0]
         json_obj['version'] = build_version.build_version
+        title = getattr(self, 'title', None)
+        if title:
+            json_obj['title'] = title
 
         d = datetime.date.today()
         json_obj['date'] = '%04d-%02d-%02d' % d.timetuple()[:3]
@@ -3374,6 +3383,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 ptype = eid[:-6]
                 plabel = 'id'
                 pmap = ids
+                # exception case: if label is the same without _proto
+                if child.get('label') == ptype:
+                    plabel = 'label'
+                    pmap = labels
             else:
                 label = child.get('label')
                 if label and label.endswith('_proto'):

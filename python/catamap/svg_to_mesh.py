@@ -1584,7 +1584,11 @@ class SvgToMesh(object):
                 print('saving:', filename)
                 import json
                 #open(filename, 'w').write(repr(mesh) + '\n')
-                json.dump(mesh, open(filename, 'w'))
+                try:
+                    json.dump(mesh, open(filename, 'w'))
+                except Exception as e:
+                    print(e)
+                    print('while saving object:', mesh)
                 summary.setdefault('text_fnames', {})[filename] = key
             else:
                 if isinstance(mesh, aims.AimsTimeSurface_2):
