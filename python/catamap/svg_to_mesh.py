@@ -481,6 +481,13 @@ class SvgToMesh(object):
 
 
     @staticmethod
+    def set_transform(xml_elem, trans):
+        mat_str = 'matrix(%s)' % ', '.join(str(x)
+                                           for x in np.ravel(trans[:2, :].T))
+        xml_elem.set('transform', mat_str)
+
+
+    @staticmethod
     def get_transform(trans, previous=None):
         '''
         Parameters
@@ -1620,11 +1627,11 @@ class SvgToMesh(object):
         return None
 
 
-    def clip_page(self, xml_et, dims_or_rect):
-        if isinstance(dims_or_rect, six.string_types):
-            elem = self.find_element(xml_et, dims_or_rect)
+    def clip_rect_from_id(self, xml_et, rect_id):
+        if isinstance(rect_id, str):
+            elem = self.find_element(xml_et, rect_id)
             if not elem:
-                raise ValueError('element not found: %s' % dims_or_rect)
+                raise ValueError('element not found: %s' % rect_id)
             elem, trans = elem
             # un-apply element transform
             telem = elem.get('transform')
@@ -1634,13 +1641,21 @@ class SvgToMesh(object):
                     trans = trans * scipy.linalg.inv(telem)
                 else:
                     trans = scipy.linalg.inv(telem)
+            print('elem:', elem)
+            print(elem.items())
             bbox = self.boundingbox(elem, trans)
             dims = [bbox[0][0],
                     bbox[0][1],
                     bbox[1][0] - bbox[0][0],
                     bbox[1][1] - bbox[0][1]]
         else:
-            dims = dims_or_rect
+            dims = rect_id
+
+        return dims
+
+
+    def clip_page(self, xml_et, dims_or_rect):
+        dims = self.clip_rect_from_id(xml_et, dims_or_rect)
         doc = xml_et.getroot()
         init_w = float(doc.get('width'))
         init_h = float(doc.get('height'))

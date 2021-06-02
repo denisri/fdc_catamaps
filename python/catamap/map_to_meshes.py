@@ -232,6 +232,11 @@ class ItemProperties(object):
                     setattr(self, prop,
                             ItemProperties.get_typed_prop(prop, value))
 
+            # alternative to "private: true", using "visibility: private"
+            visibility = element.get('visibility')
+            if visibility == 'private':
+                self.private = True
+
             corridor = self.is_corridor(element)
             if corridor is not None:
                 self.corridor = corridor
@@ -3889,17 +3894,17 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
 
     def remove_private(self, xml):
+        priv_labels = ['inscriptions', 'inscriptions conso',
+                        'inscriptions inaccessibles',
+                        u'inscriptions flèches',
+                        u'inscriptions flèches inaccessibles',
+                        u'inscriptions conso flèches',
+                        u'maçonneries private', 'private', ]
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
-            priv_labels = ['inscriptions', 'inscriptions conso',
-                           'inscriptions inaccessibles',
-                           u'inscriptions flèches',
-                           u'inscriptions flèches inaccessibles',
-                           u'inscriptions conso flèches',
-                           u'maçonneries private', 'private', ]
             if label in priv_labels or label.endswith(' private') \
                     or 'tech' in label \
                     or label in ('calcaire 2010', 'work done calc'):
@@ -3988,7 +3993,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old',
-             'bord_sud', 'galeries big sud',
+             'bord_sud', 'bord', # 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93',])
         for layer in xml.getroot():
             label = layer.get(
@@ -4465,6 +4470,29 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         or child.get('label') == rect_def:
                     return child.get('id')
 
+    def ensure_clip_rect(self, out_xml, rect_id, in_xml):
+        ''' if rect_id is not in out_xml, then take it from in_xml and copy it
+        in a new layer un out_xml.
+        '''
+        if self.find_clip_rect(out_xml, rect_id):
+            return  # OK
+        elem = self.find_element(in_xml, rect_id)
+        if not elem:
+            raise ValueError('element not found: %s' % dims_or_rect)
+        rect, trans = elem
+        layer = ET.Element('{http://www.w3.org/2000/svg}g')
+        out_xml.getroot().insert(0, layer)
+        layer.set('{http://www.inkscape.org/namespaces/inkscape}label',
+                  'clip_border')
+        layer.set('{http://www.inkscape.org/namespaces/inkscape}groupmode',
+                  'layer')
+        layer.set('style', 'display:none')
+        layer.set('id', 'clip_border')
+        layer.append(copy.deepcopy(rect))
+        layer[0].set('id', rect.get('id'))  # copy same id
+        if trans is not None:
+            self.set_transform(layer, trans)
+
     def build_2d_map(self, xml, keep_private=True, wip=False,
                      filters=[]):
         all_filters = {
@@ -4718,6 +4746,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     map2d = svg2d.build_2d_map(xml_et, filters=filters)
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
     if clip_rect:
+        svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
         svg2d.clip_page(map2d, clip_rect)
     map2d.write(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     if shadows:
@@ -4793,6 +4822,9 @@ The program allows to produce:
         'may specify resolutions for several output maps: '
         '"--dpi 200,igc:360,private:280"')
     parser.add_argument(
+        '--clip',
+        help='clip using this rectangle ID in the inkscape SVG')
+    parser.add_argument(
         '--join', action='store_true',
         help='reverse the --split operation: concatenate layers from several '
         'files')
@@ -4844,6 +4876,8 @@ The program allows to produce:
             maps_dpi.update(maps_dpi2)
         # print('resolutions:', maps_dpi)
 
+    clip_rect = options.clip
+
     # print(options)
 
     svg_filename = options.input_file
@@ -4885,21 +4919,21 @@ The program allows to produce:
             'private': {
                 'name': 'imprimable_private',
                 'filters': ['remove_wip', 'printable_map'] + col_filter,
-                'clip_rect': 'rect15021-0',
+                'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'poster': {
                 'name': 'poster_private',
                 'filters': ['remove_wip', 'poster_map'] + col_filter,
-                'clip_rect': 'rect15021',
+                'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'wip': {
                 'name': 'imprimable_private_wip',
                 'filters': ['printable_map'] + col_filter,
-                'clip_rect': 'rect15021-0',
+                'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
@@ -4907,28 +4941,45 @@ The program allows to produce:
                 'name': 'imprimable',
                 'filters': ['remove_private', 'remove_gtech',
                             'printable_map_public'] + col_filter,
-                'clip_rect': 'rect15021',
+                'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'igc': {
                 'name': 'igc',
                 'filters': ['igc'],
-                'clip_rect': 'rect15021',
+                'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'igc_private': {
                 'name': 'igc_private',
                 'filters': ['igc_private'],
-                'clip_rect': 'rect15021-0',
+                'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': False,
+            },
+            'aqueduc': {
+                'name': 'aqueduc',
+                'filters': ['remove_private', 'printable_map'] + col_filter,
+                'clip_rect': 'aqueduc_clip',
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'aqueduc_private': {
+                'name': 'aqueduc_private',
+                'filters': ['remove_wip', 'printable_map'] + col_filter,
+                'clip_rect': 'aqueduc_clip',
+                'shadows': True,
+                'do_pdf': True,
             },
         }
 
         for map_type in do_2d_maps:
-            map_def = maps_def[map_type]
+            map_def = dict(maps_def[map_type])
+            if clip_rect:
+                map_def['clip_rect'] = clip_rect
+            print('clip:', map_def['clip_rect'])
             build_2d_map(
                 xml_et,
                 out_filename,
