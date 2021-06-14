@@ -147,6 +147,7 @@ class ItemProperties(object):
         self.height = None
         self.height_shift = None
         self.border = False
+        self.sound = False
 
     def __str__(self):
         d = ['{']
@@ -175,6 +176,7 @@ class ItemProperties(object):
                 'catflap': ItemProperties.is_true,
                 'hidden': ItemProperties.is_true,
                 'depth_map': ItemProperties.is_true,
+                'sound': ItemProperties.is_true,
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
@@ -237,35 +239,17 @@ class ItemProperties(object):
             if visibility == 'private':
                 self.private = True
 
-            corridor = self.is_corridor(element)
-            if corridor is not None:
-                self.corridor = corridor
-            block = self.is_block(element)
-            if block is not None:
-                self.block = block
-            wall = self.is_wall(element)
-            if wall is not None:
-                self.wall = wall
-            well = self.is_well(element)
-            if well is not None:
-                self.well = True
-            catflap = self.is_catflap(element)
-            if catflap is not None:
-                self.catflap = catflap
-            hidden = self.is_hidden(element)
-            if hidden is not None:
-                self.hidden = hidden
-            depth_map = self.is_depth_map(element)
-            if depth_map is not None:
-                self.depth_map = depth_map
-            #border = self.is_border(element)
-            #if border is not None:
-                #self.border = border
+            for kind in ('corridor', 'block', 'wall', 'well', 'catflap',
+                         'hidden', 'depth_map', 'arrow', 'text'):
+                # + border ?
+                value = self.is_something(element, kind)
+                if value is not None:
+                    setattr(self, kind, value)
+
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
-            if element.tag == 'text' or element.tag.endswith('text') \
-                    or self.is_true(element.get('text')):
+            if element.tag == 'text' or element.tag.endswith('text'):
                 self.text =  True
 
             self.height = self.get_height(element)
@@ -387,6 +371,17 @@ class ItemProperties(object):
     def is_border(element):
         return ItemProperties.is_listed_element_type(
             element, 'border', DefaultItemProperties.border_labels)
+
+    @staticmethod
+    def is_sound(element):
+        return ItemProperties.is_listed_element_type(
+            element, 'sound', DefaultItemProperties.sound_labels)
+
+    @staticmethod
+    def is_something(element, kind):
+        return ItemProperties.is_listed_element_type(
+            element, kind,
+            getattr(DefaultItemProperties, '%s_labels' % kind, ()))
 
     @staticmethod
     def is_listed_element_type(element, tag, layers_list):
@@ -644,9 +639,6 @@ class DefaultItemProperties(object):
         'PE': -9.,
         'PE anciennes galeries big': -9.,
     }
-    #indiv_shifts.update({m: -2.
-                          #for m in self.limestone + self.limestone_filar
-                            #+ self.limestone_inf})
 
     types_heights = {
         'corridor': 2.,
@@ -685,171 +677,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     '''
     Process XML tree to build 3D meshes
     '''
-
-    limestone = ('calcaire 2010', 'calcaire ciel ouvert',
-                 'calcaire masse2', 'calcaire masse', 'calcaire med',
-                 'calcaire sup', 'calcaire vdg', )
-    limestone_filar = ('calcaire limites', )
-    limestone_inf = ('calcaire inf', 'calcaire_inf')
-    corridors_sup = (
-        'galeries',
-        'galeries big sud',
-        'galeries private',
-        'piliers a bras',
-        'inaccessible',
-        'maconneries',
-        u'maçonneries',
-        'maconneries private',
-        u'maçonneries private',
-        u'maçonneries inaccessibles',
-        u'maçonneries anciennes galeries big',
-        'hagues',
-        'hagues effondrees',
-        'galeries agrandissements',
-        'cuves',
-        'oss off',
-        'anciennes galeries big',
-        'aqueduc',
-        'galeries inaccessibles',
-        'remblai epais',
-        'remblai leger',
-        'remblai epais inaccessibles',
-        'remblai leger inaccessibles',
-        'mur',
-        'mur_ouvert',
-        'mur private',
-        'mur_ouvert private',
-        'bassin',
-        'bassin private',
-        'bassin_recouvert',
-        'rose',
-        'rose private',
-        'repetiteur',
-        'eau',
-        'ebauches',
-        'grille',
-        'porte', 'porte_ouverte') + limestone
-    corridors_inf = (
-        'galeries_inf',
-        'galeries private_inf',
-        'piliers_inf',
-        'piliers a bras_inf',
-        'maconneries_inf',
-        'maconneries private_inf',
-        u'maçonneries inf',
-        u'maçonneries inf inaccessibles',
-        'cuves_inf',
-        'cuves private_inf',
-        'oss off_inf',
-        'galeries inaccessibles_inf',
-        'remblai epais inaccessibles_inf',
-        'remblai leger inaccessibles_inf',
-        'eau_inf',
-        'anciennes galeries_inf',
-        'mur_inf',
-        'mur_ouvert_inf',
-        'mur private_inf',
-        'mur_ouvert private_inf') + limestone_inf
-    surf = ()
-    corridors_esc = ('esc', 'esc_tri', 'porte_esc', 'esc_tech',
-                     'escaliers inaccessibles',
-                     'escaliers anciennes galeries big',)
-    corridors_gtech = ('galeries techniques', 'galeries techniques despe',
-                       'eau gtech_tech', 'ebauches_tech', 'grille_tech',
-                       'passage_tech', 'porte_tech', 'grille-porte_tech',
-                       'bassin_tech', 'repetiteur_tech', 'mur_tech',)
-    corridors_metro = ('metro', )
-    street_signs = ('plaques rues', u'plaques rues volées',
-                    'plaques rues inaccessibles', 'plaques rues private')
-    street_signs_inf = ('plaques rues_inf', )
-    symbols = ('symboles', 'symboles_inf', 'symboles private',
-               'symboles private_inf', 'symboles inaccessibles', 'marches',
-               'marhes_inf', 'marches private')
-    symbols_tech = ('symboles_tech', 'symboles gtech_tech',
-                    'stair_symbol_tech', 'symboles gtech', 'marches_tech', )
-    corridors = (corridors_sup, corridors_inf, surf, corridors_esc,
-                 corridors_gtech, corridors_metro)
-    corridors_ceil = ('maconneries', 'maconneries_inf',
-                      'maconneries private', 'maconneries private_inf',
-                      'piliers a bras',
-                      'piliers a bras_inf',
-                      'piliers a bras private',
-                      'piliers a bras private_inf',
-                      'piliers_inf', 'cuves', 'cuves_inf', 'cuves private_inf',
-                      'mur', 'mur_ouvert', 'mur private', 'mur_ouvertprivate',
-                      'mur_inf', 'mur_ouvert_inf', 'mur private_inf',
-                      'mur_ouvert private_inf',
-                      'mur_tech',
-                      'repetiteur',
-                      'rose',
-                      'rose private',
-                      'bassin', 'bassin private', 'bassin_recouvert',
-                      'bassin_tech',
-                      'eau', 'eau_inf', 'eau gtech_tech',
-                      'passage_tech', 'grille_tech', 'porte_tech',
-                      'grille-porte_tech',
-                      'haghes', 'hagues effondrees'
-                      'repetiteur_tech') + limestone + limestone_inf
-    upper_arrow_groups = (u'salles v1 flèches', 'salles v1 fleches',
-                          u'salles v1 flèches inaccessibles',
-                          u'salles flèches private', u'salles vdg flèches',
-                          u'rues v1 flèches', 'rues v1 fleches',
-                          u'rues v1 flèches private', u'rues flèches dessus',
-                          u'rues v1 flèches inaccessibles',
-                          u'curiosités flèches', 'curiosites fleches',
-                          u'curiosités flèches inaccessibles',
-                          u'historiques flèches',
-                          u'plaques de puits flèches',
-                          u'plaques de puits flèches inaccessibles',
-                          u'curiosités flèches private',
-                          u'curiosités flèches dessus',
-                          u'inscriptions flèches',
-                          u'inscriptions flèches inaccessibles',
-                          u'inscriptions conso flèches')
-    inf_arrow_groups = (u'salles v1 flèches_inf', 'salles v1 fleches_inf',
-                        u'rues v1 flèches_inf', 'rues v1 fleches_inf',
-                        u'curiosités flèches_inf',
-                        u'curiosités flèches private_inf',
-                        u'inscriptions flèches_inf',
-                        u'inscriptions conso flèches_inf')
-    tech_arrow_groups = (u'salles v1 flèches_tech', 'salles v1 fleches_tech',
-                        u'rues v1 flèches_tech', 'rues v1 fleches_tech',
-                        u'curiosités flèches_tech', 'curiosites fleches_tech',
-                        u'plaques de puits GTech flèches',
-                        u'curiosités flèches GTech',
-                        u'curiosités flèches private_tech')
-    surf_arrow_groups = (u'salles v1 flèches_surf', 'salles v1 fleches_surf',
-                        u'rues v1 flèches_surf', 'rues v1 fleches_surf',
-                        u'curiosités flèches_surf', 'curiosites fleches_surf',
-                        u'curiosités flèches private_surf')
-    esc_arrow_groups = (u'curiosités flèches_esc', )
-    arrow_groups = upper_arrow_groups + inf_arrow_groups + tech_arrow_groups \
-        + surf_arrow_groups + esc_arrow_groups
-
-    wells_ids = (u'échelle vers gtech', u'échelle vers gtech private',
-                 u'\xe9chelle vers gtech', 'PSh gtech', 'PSh vers gtech',
-                 'PE', 'PE inaccessibles', 'PE anciennes galeries big',
-                 'PS', 'PS inaccessibles', 'PS anciennes galeries big',
-                 'PSh', 'PSh inaccessibles', 'PSh anciennes galeries big',
-                 'P ossements', 'P ossements inaccessibles',
-                 'P ossements anciennes galeries big',
-                 'echelle', u'échelle', u'échelle anciennes galeries big',
-                 u'échelle inaccessibles',
-                 u'\xe9chelle anciennes galeries big'
-                 u'\xe9chelle inaccessible'
-                 u'\xe9chelle', 'sans', 'PS sans', 'PSh_inf', 'PS_inf',
-                 'PSh sans', 'PSh sans inaccessibles',
-                 'PE_inf', 'PS_sq_tech', 'PS gtech', u'échelle gtech')
-    hidden_layers = ('indications_big_2010', 'a_verifier', 'bord', 'bord_sud',
-                     u'légende_alt', u'découpage', 'raccords plan 2D',
-                     'raccords gtech 2D',
-                     'masque vdg', u'masque cimetière', 'masque plage',
-                     'agrandissement vdg', u'agrandissement cimetière',
-                     'agrandissement plage', 'agrandissements fond',
-                     'couleur_fond', 'couleur_fond sud',
-                     'planches', 'planches fond', 'calcaire sup',
-                     'calcaire limites', 'calcaire masse', 'calcaire masse2')
-    sound_layers = ('sons', )
 
     proto_scale = np.array([[0.5, 0,   0],
                             [0,   0.5, 0],
@@ -938,12 +765,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             title = [x.text for x in xml_element]
             self.title = getattr(self, 'title', []) + title
 
-        ## get element label
-        #label = xml_element.get(
-            #'{http://www.inkscape.org/namespaces/inkscape}label')
-        #if label is None:
-            #label = xml_element.get('label')
-
         label = item_props.label
 
         if label is not None:
@@ -952,7 +773,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if item_props.depth_map or label.startswith('profondeurs'):
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
-            if label in self.sound_layers:
+            if item_props.sound:
                 print('SOUND:', xml_element.tag, xml_element)
                 self.read_sounds(xml_element)
             elif label == 'lambert93':
@@ -963,23 +784,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # hidden layers are not rendered
             return (self.noop, clean_return, True)
 
-        if label is not None:
-            ## find out some keywords separated by ' ' or '_'
-            #label_w = '_'.join(label.split()).split('_')
-            #if 'inf' in label_w:
-                #label = ItemProperties.remove_word(label, 'inf')
+        if item_props.arrow:
+            return (self.read_arrows,
+                    [self.clean_arrows] + clean_return, False)
 
-            if label in self.arrow_groups:
-                return (self.read_arrows,
-                        [self.clean_arrows] + clean_return, False)
-            elif label == 'colim':
+        if label is not None:
+            if label == 'colim':
                 if xml_element.get(
                         '{http://www.inkscape.org/namespaces/inkscape}'
                         'groupmode') == 'layer':
                     return (None, clean_return, False)
                 item_props.well = True
                 return (self.read_spiral_stair, clean_return, True)
-            elif item_props.well or label in self.wells_ids:
+            elif item_props.well:
                 return (self.read_wells, clean_return, True)
             elif label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
@@ -994,48 +811,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return (self.read_lily, clean_return, True)
             elif label.startswith('grande_plaque'):
                 return (self.read_large_sign, clean_return, True)
-
-        eid = xml_element.get('id')
-        #print('id:', eid)
-        if eid is None:
-            return (None, clean_return, False)
-
-        # find out some keywords separated by ' ' or '_' or '-'
-        if '-' in eid:
-            eid = eid[:eid.index('-')]
-        eid_w = '_'.join(eid.split()).split('_')
-
-        if 'inf' in eid_w:
-            #print('** EID:', eid, 'repace main_group:', self.main_group)
-            eid = ItemProperties.remove_word(eid, 'inf')
-
-        level_suffix = ''
-        if self.level:
-            level_suffix = '_' + self.level
-
-        #if self.level:
-            #print('main_group:', self.main_group)
-            #print('label:', label, ', level:', self.level)
-
-        if eid == 'PE' or eid.startswith('PE-'):
-            return (self.read_wells, clean_return, True)
-        elif eid == 'PS' or eid.startswith('PS-'):
-            return (self.read_wells, clean_return, True)
-        elif eid == 'PSh' or eid.startswith('PSh-'):
-            return (self.read_wells, clean_return, True)
-        elif eid == 'sans' or eid.startswith('sans-'):
-            return (self.read_wells, clean_return, True)
-        elif eid == 'P ossements' or eid.startswith('P ossements-'):
-            return (self.read_wells, clean_return, True)
-        elif eid in (u'échelle', u'\xc3\xa9chelle') \
-                or eid.startswith('échelle-') \
-                or eid.startswith(u'\xc3\xa9chelle-'):
-            return (self.read_wells, clean_return, True)
-        elif eid == 'ossuaire' or eid.startswith('ossuaire-'):
-            if self.skull_mesh is None:
-                return (None, clean_return, False)
-            else:
+            elif label == 'ossuaire':
                 return (self.read_bones, clean_return, True)
+
         return (None, clean_return, False)
 
 
@@ -2086,34 +1864,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         print('built depths in', self.nrenders, 'renderings')
 
 
-    def apply_arrow_depth(self, mesh, arrow_type):
-        if arrow_type in self.inf_arrow_groups:
-            z_map = 1
-            # text is related to upper level depth
-            tz_map = 0
-        elif arrow_type in self.tech_arrow_groups:
-            z_map = 3
-            # text is related to tech level depth
-            tz_map = 3
-        elif arrow_type in self.esc_arrow_groups:
-            z_map = 2
-            # text is related to stairs level depth
-            tz_map = 0
-        else:
-            z_map = 0
-            # text is related to upper level depth
-            tz_map = 0
-        hshifts = (0., 0., 0., 0., 0.)
-        text_hshift = 4.
+    def apply_arrow_depth(self, mesh, props):
+        arrow_type = props.label
+        level = props.level
+        tz_level = props.upper_level
+        hshift = props.height_shift
+        if hshift is None:
+            hshift = 0.
+        hshift *= self.z_scale
+        text_hshift = props.height_shift
+        if text_hshift is None:
+            text_hshift = 4.
+        text_hshift *= self.z_scale
         text_z1 = 4. * self.z_scale
         text_z0 = text_z1
-        text_win = self.depth_wins[tz_map]
+        text_win = self.depth_wins[tz_level]
         object_win_size = (8, 8)
         base = 1 * self.z_scale
         dz = text_z0 - base
-        win = self.depth_wins[z_map]
-        hshift = hshifts[z_map] * self.z_scale
-        hshift1 = (hshifts[tz_map] + text_hshift) * self.z_scale
+        win = self.depth_wins[level]
+        print('arrow_depth', props.main_group, ':', text_hshift, win, text_win)
+        hshift1 = hshift + text_hshift
         if win is not None:
             view = win.view()
             for v in mesh.vertex():
@@ -2128,14 +1899,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         if tz is not None and tz + hshift1 > text_z1:
                             tz += hshift1
                             text_z = tz
-                    # old_z * s + d = new_z
-                    # text_z0 * s + d = text_z
-                    # base * s + d = z + base
-                    # d = text_z - text_z0 * s = z + base * (1 - s)
-                    # s * (text_z0 - base) = text_z - base - z
-                    # s = (text_z - base - z) / (text_z0 - base)
-                    # d = (text_z0 * z + base * (text_z0 - text_z)))
-                    #     / (text_z0 - base)
                     s = (text_z - base - z) / dz
                     d = (text_z0 * z + base * (text_z0 - text_z)) / dz
                     v[2] = s * old_z + d
@@ -2475,6 +2238,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def postprocess(self, meshes):
         # use custom colors for some things
+        #for main_group, mesh in meshes.items():
+            #props = self.group_properties.get(main_group)
+            #if props and hasattr(mesh, 'header'):
+                #color = self.get_alt_color(main_group
+
         mesh = meshes.get('parcelles')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [0.45, 0.7, 0.93, 0.5]}
@@ -2669,7 +2437,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if not isinstance(mesh_l, list):
                 mesh_l = [mesh_l]
             for mesh in mesh_l:
-                self.apply_arrow_depth(mesh, arrow)
+                self.apply_arrow_depth(mesh, props)
                 if 'material' not in mesh.header():
                     mesh.header()['material'] \
                         = {'diffuse': [1., 0.5, 0., 1.]}
@@ -2787,9 +2555,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def attach_arrows_to_text(self, meshes, with_squares=False):
         # find text attached to each arrow
-        for arrow in self.arrow_groups:
-            mesh_l = meshes.get(arrow)
-            if mesh_l:
+        for arrow, mesh_l in meshes.items():
+            props = self.group_properties.get(arrow)
+            if props and props.arrow and mesh_l:
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
@@ -2821,7 +2589,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             poly = mesh.polygon()
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
                                      (n+3, n)]
-
 
 
     def find_text_for_arrow(self, meshes, mesh):
