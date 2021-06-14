@@ -601,7 +601,8 @@ class DefaultItemProperties(object):
         'couleur_fond', 'couleur_fond sud',
         'planches', 'planches fond', 'calcaire sup',
         'calcaire limites', 'calcaire masse', 'calcaire masse2',
-        'lambert93'
+        'lambert93',
+        'légende',
     }
     hidden_labels.update(sound_labels)
     hidden_labels.update(depth_map_names)
@@ -630,7 +631,6 @@ class DefaultItemProperties(object):
         'etiage_wall_tri': 2.5,
         'etiage_line': 2.5,
         'rose': 2.5,
-        'rose private': 2.5,
         'remblai leger': 0.8,
         'remblai epais': 1.5,
         'remblai leger_inf': 0.8,
@@ -935,16 +935,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.main_group = self.item_props.main_group
 
         if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
-            print('*** TITLE ***', xml_element, self.main_group)
             title = [x.text for x in xml_element]
             self.title = getattr(self, 'title', []) + title
 
-        # get element label
-        label = xml_element.get(
-            '{http://www.inkscape.org/namespaces/inkscape}label')
-        if label is None:
-            label = xml_element.get('label')
+        ## get element label
+        #label = xml_element.get(
+            #'{http://www.inkscape.org/namespaces/inkscape}label')
+        #if label is None:
+            #label = xml_element.get('label')
 
+        label = item_props.label
 
         if label is not None:
             # depths are taken into account even when hidden (because they
@@ -964,22 +964,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return (self.noop, clean_return, True)
 
         if label is not None:
-            # find out some keywords separated by ' ' or '_'
-            label_w = '_'.join(label.split()).split('_')
-            if 'inf' in label_w:
-                label = ItemProperties.remove_word(label, 'inf')
+            ## find out some keywords separated by ' ' or '_'
+            #label_w = '_'.join(label.split()).split('_')
+            #if 'inf' in label_w:
+                #label = ItemProperties.remove_word(label, 'inf')
 
             if label in self.arrow_groups:
                 return (self.read_arrows,
                         [self.clean_arrows] + clean_return, False)
             elif label == 'colim':
+                if xml_element.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}'
+                        'groupmode') == 'layer':
+                    return (None, clean_return, False)
+                item_props.well = True
                 return (self.read_spiral_stair, clean_return, True)
             elif item_props.well or label in self.wells_ids:
                 return (self.read_wells, clean_return, True)
             elif label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
             elif label in ('fontis', 'fontis_inf', 'fontis private',
-                           'fontis private_inf'):
+                            'fontis private_inf'):
                 return (self.read_fontis, clean_return, True)
             elif label in ('stair_symbol', ):
                 return (self.read_stair_symbol, clean_return, True)
@@ -1110,7 +1115,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_wells(self, wells_xml, trans, style=None):
-        print('read_wells.')
+        # print('read_wells.')
         wells = None
         trans0 = trans
         for child in wells_xml:
@@ -1158,13 +1163,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     z = bmin[2] * self.z_scale
                     height = 20. * self.z_scale
-                print('well group:', self.main_group, center)
                 wells_spec = self.mesh_dict.setdefault(self.main_group, [])
                 wells_spec.append((center, radius, z, height))
                 #print('well_type:', well_type, len(wells_spec))
 
     def read_spiral_stair(self, stair_xml, trans, style=None):
         #print('spiral stair')
+        props = self.group_properties[self.main_group]
+        props.well = True
+        props.corridor = False
+        props.block = False
+        props.wall = False
         child = stair_xml[0]
         if child is None:
             return
@@ -1191,14 +1200,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     bmax[1] = v[1]
             center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
             radius = (bmax[0] - bmin[0]) / 2
-            if self.main_group in ('colim', 'colim private', 'colim_inf',
-                                   'colim private_inf'):
-                z = bmin[2] * self.z_scale
-                height = 20. * self.z_scale
-            else:
-                z = bmin[2] * self.z_scale
-                height = 7. * self.z_scale
-            #print('well group:', self.main_group, center)
+            z = bmin[2] * self.z_scale
+            height = 20. * self.z_scale
             wells_spec = self.mesh_dict.setdefault(self.main_group, [])
             wells_spec.append((center, radius, z, height))
 
@@ -1235,7 +1238,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   0.]
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
-        print('fontis_mesh:', self.fontis_mesh)
         fontis_mesh = aims.AimsTimeSurface(self.fontis_mesh)
         aims.SurfaceManip.meshTransform(fontis_mesh, tr)
         aims.SurfaceManip.meshMerge(mesh, fontis_mesh)
@@ -1296,6 +1298,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def read_arch(self, arch_xml, trans, style=None):
         ## don't apply transform, we will do it later on the mesh
+        props = self.group_properties[self.main_group]
+        props.symbol = True
         bbox = None
         for child in arch_xml:
             bboxc = self.boundingbox(child, trans)
@@ -1313,6 +1317,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_water_scale(self, ws_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
         bbox = self.boundingbox(ws_xml[0], trans)
         center = [(bbox[0][0] + bbox[1][0]) / 2,
                   (bbox[0][1] + bbox[1][1]) / 2,
@@ -1500,70 +1506,18 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return self.make_ladder(center, radius, z, height)
         elif well_type.startswith('colim'):
             return self.make_spiral_stair(center, radius, z, height)
-        elif well_type.startswith('arche'):
-            return self.make_arch(center, radius, z, height)
 
         return self.make_ps_well(center, radius, z, height, well_type)
 
 
-    def make_arch_square(self, center, radius_and_trans, z, height):
-        radius, trans = radius_and_trans
-        # get transform parent to children
-        tmat = np.eye(4)
-        tmat[:2, :2] = trans[:2, :2]
-        tmat[:2, 3:] = trans[:2, 2:3]
-        # mesh will be created in source space, apply its source space center
-        tr = aims.AffineTransformation3d(tmat)
-        tr = tr.inverse()
-        center0 = tr.transform((0, 0, 0))
-        # source scale
-        scl0 = (tr.transform((1, 0, 0)) - center0).norm()
-        scl1 = (tr.transform((0, 1, 0)) - center0).norm()
-        scl = (scl0 + scl1) / 2
-        #print('arch:', center, ', scl:', scl, scl0, scl1, ', radius:', radius)
+    def make_arche(self, center, radius_and_trans, z, height, well_type=None,
+                   props=None):
+        # translate method name
+        return self.make_arch(center, radius_and_trans, z, height,
+                              well_type=well_type, props=props)
 
-        rp = radius * 0.4
-        radius = radius * scl
-        hp = radius * 1.4
-        wp = radius * 1.8
-        rp2 = radius * 0.36
-        c1 = aims.SurfaceGenerator.cube([0, 0, 0], rp, False)
-        c2 = aims.AimsTimeSurface_3(c1)
-        c3 = aims.SurfaceGenerator.cube([0, 0, 0], rp2, False)
-        tmat = np.eye(4)
-        tmat[2, 2] = 5.
-        tmat[0, 3] = -wp
-        tmat[2, 3] = radius
-        tr = aims.AffineTransformation3d(tmat)
-        aims.SurfaceManip.meshTransform(c1, tr)
-        tmat[0, 3] = wp
-        tr = aims.AffineTransformation3d(tmat)
-        aims.SurfaceManip.meshTransform(c2, tr)
-        tmat = np.eye(4)
-        tmat[0, 0] = 4.
-        tmat[2, 3] = radius + hp
-        tr = aims.AffineTransformation3d(tmat)
-        aims.SurfaceManip.meshTransform(c3, tr)
-        aims.SurfaceManip.meshMerge(c1, c2)
-        aims.SurfaceManip.meshMerge(c1, c3)
-        tmat = np.eye(4)
-        tmat[:3, 3] = center0
-        tr = aims.AffineTransformation3d(tmat)
-        aims.SurfaceManip.meshTransform(c1, tr)
-        tmat = np.eye(4)
-        tmat[:2, :2] = trans[:2, :2]
-        tmat[:2, 3:] = trans[:2, 2:3]
-        tmat[2, 3] = z
-        tr = aims.AffineTransformation3d(tmat)
-        aims.SurfaceManip.meshTransform(c1, tr)
-        tmat2 = np.eye(4)
-        tmat2[:3, 3] += center
-        tr = aims.AffineTransformation3d(tmat2)
-        aims.SurfaceManip.meshTransform(c1, tr)
-        c1.header()['material'] = {'diffuse': [1., 1., 0.5, 1.]}
-        return c1
-
-    def make_arch(self, center, radius_and_trans, z, height):
+    def make_arch(self, center, radius_and_trans, z, height, well_type=None,
+                  props=None):
         radius, trans = radius_and_trans
         # get transform parent to children
         tmat = np.eye(4)
@@ -1992,7 +1946,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             + self.lambert_coords.y.intercept
         z = bdalti.get_z(x, y, self.bdalti_map, self.bdalti_base,
                          background_z=50.)
-        #print('ground_altitude_bdalti:', pos, x, y, z)
         return z
 
 
@@ -2110,7 +2063,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         # apply texts depths
         text_zshift = 5.
-        for mtype, mesh_items in six.iteritems(meshes):
+        for main_group, mesh_items in six.iteritems(meshes):
             props = self.group_properties.get(main_group)
             if not props or not props.text:
                 continue
@@ -2123,8 +2076,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     win = self.depth_wins[level]
                     if win is not None:
                         view = win.view()
-                        hshift = (props.height_shift + text_zshift) \
-                            * self.z_scale
+                        hshift = ((props.height_shift
+                                   if props.height_shift else 0.)
+                                  + text_zshift) * self.z_scale
                         z = self.get_depth(position, view, object_win_size)
                         if z is not None and z + hshift > position[2]:
                             position[2] = z + hshift
@@ -2196,40 +2150,48 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         for main_group in list(meshes.keys()):
             specs = meshes[main_group]
             props = self.group_properties.get(main_group)
-            if not props or not specs or not props.well:
+            if not props or not specs:
                 continue
-            level = props.level
-            next_level = props.upper_level
-            view = views.get(level)
-            view_up = views.get(next_level)
+            method = None
+            if props.symbol:
+                stype = props.label
+                if hasattr(self, 'make_%s' % stype):
+                    method = getattr(self, 'make_%s' % stype)
+            elif props.well:
+                method = self.make_well
+            if method:
+                level = props.level
+                next_level = props.upper_level
+                view = views.get(level)
+                view_up = views.get(next_level)
 
-            wells = None
-            for ws in specs:
-                center, radius, z, height = ws
-                c3 = (center[0], center[1], 0.)
-                z0 = self.get_depth(c3, view)
-                if z0 is not None:
-                    z = z0
-                z0 = self.get_depth(c3, view_up)
-                if z0 is not None:
-                    height = z0 - z
-                shift = props.height_shift
-                if shift is None:
-                    shift = 0.
-                pheight = props.height
-                if pheight is None:
-                    pheight = 0.
-                well = self.make_well(center, radius,
-                                      z + shift * self.z_scale,
-                                      height + pheight * self.z_scale,
-                                      main_group,
-                                      props)
-                if wells is None:
-                    wells = well
-                else:
-                    aims.SurfaceManip.meshMerge(wells, well)
-            meshes[main_group + '_tri'] = wells
-            self.group_properties[main_group + '_tri'] = props
+                wells = None
+                for ws in specs:
+                    center, radius, z, height = ws
+                    c3 = (center[0], center[1], 0.)
+                    z0 = self.get_depth(c3, view)
+                    if z0 is not None:
+                        z = z0
+                    z0 = self.get_depth(c3, view_up)
+                    if z0 is not None:
+                        height = z0 - z
+                    shift = props.height_shift
+                    if shift is None:
+                        shift = 0.
+                    pheight = props.height
+                    if pheight is None:
+                        pheight = 0.
+                    well = method(center, radius,
+                                  z + shift * self.z_scale,
+                                  height + pheight * self.z_scale,
+                                  main_group,
+                                  props)
+                    if wells is None:
+                        wells = well
+                    else:
+                        aims.SurfaceManip.meshMerge(wells, well)
+                meshes[main_group + '_tri'] = wells
+                self.group_properties[main_group + '_tri'] = props
 
 
     def tesselate(self, mesh, flat=False):
@@ -2686,29 +2648,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.delaunay(mesh)
 
         meshes['grille surface'] = self.build_ground_grid()
+        props = ItemProperties()
+        props.level = 'surf'
+        self.group_properties['grille surface'] = props
 
         # apply depths to corridors
         self.apply_depths(meshes)
-
-        #for corridor, mesh in six.iteritems(meshes):
-            #if corridor.endswith('_inf'):
-                #self.change_level(mesh, -5.)
 
         # build wells with inf/sup depths
         self.build_wells_with_depths(meshes)
 
         # apply real depths to arrows
-        for arrow in self.arrow_groups:
-            mesh_l = meshes.get(arrow)
-            if mesh_l:
-                if not isinstance(mesh_l, list):
-                    mesh_l = [mesh_l]
-                for mesh in mesh_l:
-                    self.apply_arrow_depth(mesh, arrow)
-                    if 'material' not in mesh.header():
-                        mesh.header()['material'] \
-                            = {'diffuse': [1., 0.5, 0., 1.]}
-                    mesh.header()['material']['line_width'] = 2.
+        for main_group in list(meshes.keys()):
+            props = self.group_properties.get(main_group)
+            if not props or not props.arrow:
+                continue
+            mesh_l = meshes.get(main_group)
+            if not mesh_l:
+                contine
+            if not isinstance(mesh_l, list):
+                mesh_l = [mesh_l]
+            for mesh in mesh_l:
+                self.apply_arrow_depth(mesh, arrow)
+                if 'material' not in mesh.header():
+                    mesh.header()['material'] \
+                        = {'diffuse': [1., 0.5, 0., 1.]}
+                mesh.header()['material']['line_width'] = 2.
 
         # extrude corridors walls
         for main_group in list(meshes.keys()):
@@ -2775,7 +2740,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
                     if props.corridor:
                         # corridor have a closed floor
-                        print('tesselate corridor:', props.main_group)
+                        # print('tesselate corridor:', props.main_group)
                         tess_mesh = self.tesselate(mesh, flat=True)
                         if tess_mesh is not None:
                             meshes.setdefault(main_group+ '_floor_tri',
@@ -2910,7 +2875,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         layer = layer[0]
         self.main_group = 'bord_sud'
         bounds = self.boundingbox(layer)
-        print('ground grid bounds:', bounds)
+        # print('ground grid bounds:', bounds)
         interval = 5.
         grid = np.mgrid[bounds[0][0]:bounds[1][0]:interval,
                         bounds[0][1]:bounds[1][1]:interval].T
@@ -2941,7 +2906,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         skproto = skproto.get('ossuaire')
         if skproto is None:
             return
-        self.main_group = 'ossuaire'
+        self.main_group = 'ossuaire_model'
         skmesh_l = aims.AimsTimeSurface_2()
         for child in skproto['element']:
             aims.SurfaceManip.meshMerge(
