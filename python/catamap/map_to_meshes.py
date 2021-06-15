@@ -4376,7 +4376,7 @@ def inkscape_version(inkscape_exe='inkscape'):
 
     over = subprocess.check_output(inkscape_exe + ['--version']).decode()
     print('over:', over)
-    ver = [int(x) for x in over.strip().split()[1].split('.')]
+    ver = [int(x) for x in over.strip().split()[1].split('-')[0].split('.')]
     _inkscape_version[tuple(inkscape_exe)] = ver
     return ver
 
