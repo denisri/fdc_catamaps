@@ -3283,7 +3283,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     trans = map_trans + ' ' + trans
                 element.set('transform', trans)
 
-            added = element.getchildren()
+            added = element[:]
             todo = added + todo
 
 
@@ -3615,11 +3615,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         layer_label = u'masque %s' % region
         target_layer_label = u'agrandissement %s' % region
         mask_layer = [
-            x for x in src_xml.getroot().getchildren()
+            x for x in src_xml.getroot()
             if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
                 == layer_label][0]
         target_layer = [
-            x for x in xml.getroot().getchildren()
+            x for x in xml.getroot()
             if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
                 == target_layer_label][0]
         target_trans = self.get_transform(target_layer.get('transform'))
@@ -3663,7 +3663,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         #if region == 'vdg':
             ## special case VDG: take specific corridors
             #corridors_layer = [
-                #x for x in xml.getroot().getchildren()
+                #x for x in xml.getroot()
                 #if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
                     #== 'galeries big PARIS'][0]
             #tr = self.get_transform(corridors_layer.get('transform'))
