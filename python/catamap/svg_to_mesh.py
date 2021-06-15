@@ -1087,9 +1087,9 @@ class SvgToMesh(object):
             elif self.main_group is None \
                     and (child.tag.endswith('}g') or child.tag == 'g'):
                 self.main_group = child.get('id')
-            if not skip_children and hasattr(child, 'getchildren'):
+            if not skip_children and len(child) != 0:
                 todo = [(c, trans, self.main_group)
-                        for c in child.getchildren()] + todo
+                        for c in child] + todo
 
         if self.concat_mesh in ('merge', 'time'):
             return self.mesh
@@ -1235,8 +1235,7 @@ class SvgToMesh(object):
             element, parent, begin = todo.pop(0)
             total += 1
             if element.tag.endswith('}g'):
-                if not hasattr(element, 'getchildren') \
-                        or len(element.getchildren()) == 0:
+                if len(element) == 0:
                     if parent is not None:
                         parent.remove(element)
                         count += 1
@@ -1265,7 +1264,7 @@ class SvgToMesh(object):
             self.id_count += 1
             item.set('id', eid)
             if item.tag == 'g' or item.tag.endswith('}g'):
-                todo = item.getchildren() + todo
+                todo = item[:] + todo
         return xml2
 
 
