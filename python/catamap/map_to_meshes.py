@@ -114,6 +114,50 @@ Use the commandline with the '-h' option to get all parameters help.
 
 '''
 
+xml_help = '''
+Codes in XML SVG files
+======================
+
+Codes correspond to properties used in the program.
+Bool properties can be written "true", "True", "1", or "false", "False", "0".
+
+label:
+    name of the element type
+level:
+    depth level name (sup, inf, surf, tech, metro, esc...)
+upper_level:
+    depth level for the top of elements. Only used for elements joining two levels
+    (wells, arrows)
+private: bool
+inaccessible: bool
+visibility:
+    may be "private": alternative to "private: true".
+symbol: bool
+corridor: bool
+    corridors have a floor and walls. Meshes are extruded and tesselated to be filled.
+block: bool
+    block elements have a ceiling and walls. Meshes are extruded and tesselated to be
+    filled.
+wall: bool
+    wall elements have only side walls (no floor or ceiling).
+arrow: bool
+    arrows join a text label to a location on map. They are filar meshes.
+text: bool
+well: bool
+    wells are replaced with custom elements, which type is the element label (PE, PS,
+    PSh, échelle, sans, P ossements, ...)
+catflap: bool
+    replaced with striped tubes
+hidden: bool
+height:
+    height of the element (esp. for corridor, block, wall elements)
+height_shift:
+    z shift of the element (esp. for corridor, block, wall elements, but also arrows)
+depth_map: bool
+    the layer is a depth map, which label is the level identifier.
+border: bool
+'''
+
 
 class ItemProperties(object):
 
