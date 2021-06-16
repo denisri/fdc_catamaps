@@ -686,7 +686,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                  headless=True):
         super(CataSvgToMesh, self).__init__(concat_mesh)
         self.props_stack = []
-        self.arrows = []
         self.depth_maps = []
         self.depth_meshes_def = {}
         self.nrenders = 0
@@ -784,10 +783,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # hidden layers are not rendered
             return (self.noop, clean_return, True)
 
-        if item_props.arrow:
-            return (self.read_arrows,
-                    [self.clean_arrows] + clean_return, False)
-
         if label is not None:
             if label == 'colim':
                 if xml_element.get(
@@ -832,8 +827,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if self.main_group is None:
             print('path with no group:', xml_path, list(xml_path.items()))
         mesh = super(CataSvgToMesh, self).read_path(xml_path, trans, style)
-        if len(self.arrows) != 0 and self.arrows[-1]:
-            #print('arrow')
+        props = self.group_properties.get(self.main_group)
+        if props and props.arrow:
+            # print('arrow')
             vert = mesh.vertex()
             nv = len(vert)
             for i in six.moves.xrange(nv):
@@ -882,14 +878,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             props['level'] = self.level
             desc['properties'] = props
         return desc
-
-
-    def read_arrows(self, child_xml, trans, style=None):
-        self.arrows.append(True)
-
-
-    def clean_arrows(self):
-        self.arrows.pop()
 
 
     def read_wells(self, wells_xml, trans, style=None):
@@ -1272,18 +1260,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def make_well(self, center, radius, z, height, well_type=None, props=None):
         if well_type is None:
-            well_type = self.main_group
-        if well_type == 'PS' or well_type.startswith('PS ') \
-                or well_type.startswith('PS_'):
+            well_type = self.label
+        if well_type == 'PS':
             return self.make_ps_well(center, radius, z, height, well_type)
-        if well_type.startswith('PSh') or well_type.startswith('sans'):
+        if well_type in ('PSh', 'sans'):
             return self.make_psh_well(center, radius, z, height)
-        elif well_type.startswith('echelle') \
-                or well_type.startswith('échelle') \
-                or well_type.startswith(u'\xe9chelle'):
+        elif well_type in ('echelle', u'échelle', u'\xe9chelle'):
             return self.make_ladder(center, radius, z, height)
-        elif well_type.startswith('colim'):
-            return self.make_spiral_stair(center, radius, z, height)
+        #elif well_type.startswith('colim'):
+            #return self.make_spiral_stair(center, radius, z, height)
 
         return self.make_ps_well(center, radius, z, height, well_type)
 
@@ -1878,32 +1863,34 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         text_hshift *= self.z_scale
         text_z1 = 4. * self.z_scale
         text_z0 = text_z1
-        text_win = self.depth_wins[tz_level]
+        text_win = self.depth_wins.get(tz_level)
         object_win_size = (8, 8)
         base = 1 * self.z_scale
         dz = text_z0 - base
-        win = self.depth_wins[level]
-        print('arrow_depth', props.main_group, ':', text_hshift, win, text_win)
+        win = self.depth_wins.get(level)
         hshift1 = hshift + text_hshift
+        view = None
+        text_view = None
         if win is not None:
             view = win.view()
-            for v in mesh.vertex():
-                z = self.get_depth(v, view, object_win_size)
-                if z is not None:
-                    z += hshift
-                    old_z = v[2]
-                    text_z = text_z1
-                    if text_win is not None:
-                        text_view = text_win.view()
-                        tz = self.get_depth(v, text_view, object_win_size)
-                        if tz is not None and tz + hshift1 > text_z1:
-                            tz += hshift1
-                            text_z = tz
-                    s = (text_z - base - z) / dz
-                    d = (text_z0 * z + base * (text_z0 - text_z)) / dz
-                    v[2] = s * old_z + d
-                else:
-                    pass # warn ?
+        if text_win is not None:
+            text_view = text_win.view()
+
+        for v in mesh.vertex():
+            z = self.get_depth(v, view, object_win_size)
+            if z is not None:
+                z += hshift
+                old_z = v[2]
+                text_z = text_z1
+                tz = self.get_depth(v, text_view, object_win_size)
+                if tz is not None and tz + hshift1 > text_z1:
+                    tz += hshift1
+                    text_z = tz
+                s = (text_z - base - z) / dz
+                d = (text_z0 * z + base * (text_z0 - text_z)) / dz
+                v[2] = s * old_z + d
+            else:
+                pass # warn ?
 
 
     def build_wells_with_depths(self, meshes):
@@ -2436,6 +2423,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 contine
             if not isinstance(mesh_l, list):
                 mesh_l = [mesh_l]
+            print('## ARROW DEPTH:', main_group, ':', props.level, props.upper_level)
             for mesh in mesh_l:
                 self.apply_arrow_depth(mesh, props)
                 if 'material' not in mesh.header():

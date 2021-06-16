@@ -1073,17 +1073,18 @@ class SvgToMesh(object):
                 current_text = current_text_d['text']
                 if text is None:
                     print('tspan without text, id:', child.get('id'))
+                    text = ''
                 else:
                     text = six.ensure_str(child.text)
-                    if not current_text:
-                        current_text = text
-                    else:
-                        current_text += '\n' + text
-                    current_text_d['text'] = current_text
-                    size = self.text_size(current_text_o)
-                    current_text_o['properties']['size'] = size
-                    current_text_o['objects'][0]['properties']['position'] \
-                        = [-size[0]/2., size[1]/2., 0]
+                if not current_text:
+                    current_text = text
+                else:
+                    current_text += '\n' + text
+                current_text_d['text'] = current_text
+                size = self.text_size(current_text_o)
+                current_text_o['properties']['size'] = size
+                current_text_o['objects'][0]['properties']['position'] \
+                    = [-size[0]/2., size[1]/2., 0]
             elif self.main_group is None \
                     and (child.tag.endswith('}g') or child.tag == 'g'):
                 self.main_group = child.get('id')
