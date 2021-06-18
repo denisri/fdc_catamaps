@@ -164,9 +164,7 @@ class ItemProperties(object):
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
-                  'depth_map',
-                  'height', 'height_shift',
-                  'border')
+                  'depth_map', 'height', 'height_shift', 'border', 'alt_colors')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -192,6 +190,7 @@ class ItemProperties(object):
         self.height_shift = None
         self.border = False
         self.sound = False
+        self.alt_colors = None
 
     def __str__(self):
         d = ['{']
@@ -316,6 +315,10 @@ class ItemProperties(object):
                     if self.text:
                         tags.append('text')
                     self.main_group = '_'.join(tags)
+
+            alt_colors = element.get('alt_colors')
+            if alt_colors is not None:
+                self.alt_colors = json.loads(alt_colors)
 
                 #elif self.eid:
                     #self.main_group = '_'.join([self.eid, self.level,
@@ -1813,11 +1816,26 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return None
 
 
+    @staticmethod
+    def get_alt_color(props, colorset='map_3d'):
+        if not props.alt_colors:
+            return None
+        color = props.alt_colors.get(colorset)
+        if color:
+            c1 = color[1::2]
+            c2 = color[2::2]
+            col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in zip(c1, c2)]
+            print('alt color:', color, col, c1, c2)
+            return col
+
+
     def apply_depths(self, meshes):
         self.nrenders = 0
 
         object_win_size = (2., 2.)
         self.build_depth_wins((250, 250))
+
+        #return  # FIXME
 
         for main_group, mesh_l in meshes.items():
             props = self.group_properties.get(main_group)
@@ -1825,8 +1843,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 print('skip group', main_group, 'with no properties')
                 continue
 
-            if props.text or props.depth_map:
-                # text will be done just after.
+            if props.text or props.depth_map or props.arrow:
+                # text and arrows will be done just after.
                 # depth maps will not need it
                 continue
 
@@ -1842,6 +1860,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if mesh_l is not None:
                 print('processing corridor depth:', main_group, '(level:',
                       level, ')')
+                alt_color = self.get_alt_color(props)
+
                 hshift = (props.height_shift
                           if props.height_shift else 0.) * self.z_scale
                 failed = 0
@@ -1852,6 +1872,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if not hasattr(mesh, 'vertex'):
                         # not a mesh: skip it
                         continue
+                    if alt_color:
+                        mesh.header()['material']['diffuse'] = alt_color
                     for v in mesh.vertex():
                         z = self.get_depth(v, view, object_win_size)
                         if z is not None:
@@ -2280,24 +2302,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('grille surface')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
-        mesh = meshes.get('galeries big PARIS')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [1., 0.84, 0., 1.]}
-        mesh = meshes.get('anciennes galeries big')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.8, 0.8, 0.8, 0.3]}
-        mesh = meshes.get('ex- galeries_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.7, 0.7, 0.57, 0.3]}
-        mesh = meshes.get('anciennes galeries_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.7, 0.7, 0.57, 0.3]}
-        mesh = meshes.get('galeries_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.89, 0.45, 0.15, 1.]}
-        mesh = meshes.get('galeries private_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.89, 0.45, 0.15, 1.]}
         mesh = meshes.get('cuves')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.4, 0.3, 0.3, .5]}
@@ -2307,9 +2311,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('cuves private_inf')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.4, 0.3, 0.3, .5]}
-        mesh = meshes.get('aqueduc')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.65, 1., .3]}
         mesh = meshes.get('galeries techniques')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.13, 0.75, .13, 1.]}
@@ -2467,7 +2468,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 contine
             if not isinstance(mesh_l, list):
                 mesh_l = [mesh_l]
-            print('## ARROW DEPTH:', main_group, ':', props.level, props.upper_level)
             for mesh in mesh_l:
                 self.apply_arrow_depth(mesh, props)
                 if 'material' not in mesh.header():
