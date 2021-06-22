@@ -683,7 +683,7 @@ class DefaultItemProperties(object):
         'remblai epais inaccessibles_inf': 1.5,
         'calcaire 2010': 0.,  # this one as walls
         'calcaire vdg': 0.,  # this one as walls
-        'PE': -9.,
+        'PE': 0.,
         'PE anciennes galeries big': -9.,
     }
 
@@ -715,7 +715,7 @@ class DefaultItemProperties(object):
         u'échelle': 1.5,
         u'échelle anciennes galeries big': 1.5,
         'PSh sans': 1.5,
-        'PE': -10.,
+        'PE': 10.5,
         'PE anciennes galeries big': -10.,
     }
 
@@ -1306,13 +1306,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def make_well(self, center, radius, z, height, well_type=None, props=None):
-        if well_type is None:
-            well_type = self.label
+        if well_type is None and props is not None:
+            well_type = props.label
         if well_type == 'PS':
             return self.make_ps_well(center, radius, z, height, well_type)
         if well_type in ('PSh', 'sans'):
             return self.make_psh_well(center, radius, z, height)
-        elif well_type in ('echelle', u'échelle', u'\xe9chelle'):
+        elif well_type in ('echelle', u'échelle'):
             return self.make_ladder(center, radius, z, height)
         #elif well_type.startswith('colim'):
             #return self.make_spiral_stair(center, radius, z, height)
@@ -2000,8 +2000,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     well = method(center, radius,
                                   z + shift * self.z_scale,
                                   height + pheight * self.z_scale,
-                                  main_group,
-                                  props)
+                                  well_type=None,
+                                  props=props)
                     if wells is None:
                         wells = well
                     else:
@@ -2302,33 +2302,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('grille surface')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
-        mesh = meshes.get('cuves')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.3, 0.3, .5]}
-        mesh = meshes.get('cuves_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.3, 0.3, .5]}
-        mesh = meshes.get('cuves private_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.3, 0.3, .5]}
-        mesh = meshes.get('galeries techniques')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.13, 0.75, .13, 1.]}
-        mesh = meshes.get('metro')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.13, 0.13, .75, 1.]}
-        mesh = meshes.get('oss off')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.68, 0.48, .43, 1.]}
-        mesh = meshes.get('oss off_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.27, .27, 1.]}
-        mesh = meshes.get('galeries inaccessibles')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.68, 0.48, .43, 1.]}
-        mesh = meshes.get('galeries inaccessibles_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.27, .27, 1.]}
         mesh = meshes.get('symboles')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
@@ -2356,15 +2329,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('repetiteur_tech')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
-        mesh = meshes.get('plaques rues')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.5, 0.2, 0., 1.]}
-        mesh = meshes.get('plaques rues_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.5, 0.2, 0., 1.]}
-        mesh = meshes.get(u'plaques rues volées')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.6, 0.5, 0.5, 1.]}
         mesh = meshes.get('bassin')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
