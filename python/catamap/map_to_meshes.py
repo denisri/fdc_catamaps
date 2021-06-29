@@ -158,13 +158,14 @@ depth_map: bool
 border: bool
 '''
 
-
 class ItemProperties(object):
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
+                  # 'wireframe',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
-                  'depth_map', 'height', 'height_shift', 'border', 'alt_colors')
+                  'depth_map', 'height', 'height_shift', 'border',
+                  'alt_colors')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -179,6 +180,7 @@ class ItemProperties(object):
         self.corridor = False
         self.block = False
         self.wall = False
+        # self.wireframe = False
         self.symbol = False
         self.arrow = False
         self.text = False
@@ -212,6 +214,7 @@ class ItemProperties(object):
                 'corridor': ItemProperties.is_true,
                 'block': ItemProperties.is_true,
                 'wall': ItemProperties.is_true,
+                # 'wireframe': ItemProperties.is_true,
                 'symbol': ItemProperties.is_true,
                 'arrow': ItemProperties.is_true,
                 'text': ItemProperties.is_true,
@@ -282,8 +285,9 @@ class ItemProperties(object):
             if visibility == 'private':
                 self.private = True
 
-            for kind in ('corridor', 'block', 'wall', 'well', 'catflap',
-                         'hidden', 'depth_map', 'arrow', 'text'):
+            for kind in ('corridor', 'block', 'wall', # 'wireframe',
+                         'well',
+                         'catflap', 'hidden', 'depth_map', 'arrow', 'text'):
                 # + border ?
                 value = self.is_something(element, kind)
                 if value is not None:
@@ -777,6 +781,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         item_props = ItemProperties()
         item_props.fill_properties(xml_element, self.props_stack, style=style)
+
+        if len(self.props_stack) == 1:
+            self.explicitly_show.append(item_props.label)
+
         if is_group:
             # maintain the stack of parent properties to allow inheritance
             self.props_stack.append(item_props)
@@ -1144,6 +1152,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh = self.mesh_dict.setdefault(mesh_id, type(ws_mesh)())
             if len(mesh.header()) == 0:
                 mesh.header().update(ws_model.header())
+                self.group_properties[mesh_id] = props
             aims.SurfaceManip.meshMerge(mesh, ws_mesh)
 
 
