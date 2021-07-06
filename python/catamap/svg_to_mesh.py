@@ -1030,8 +1030,12 @@ class SvgToMesh(object):
                         print(list(child.items()))
                         #aims.SurfaceManip.meshMerge(meshes, child_mesh)
                         raise
-                    if 'material' not in meshes[0].header():
-                        meshes[0].header().update(child_mesh.header())
+                    try:
+                        if 'material' not in meshes[0].header():
+                            meshes[0].header().update(child_mesh.header())
+                    except Exception as e:
+                        print('material:', self.main_group, meshes)
+                        raise
                 else:
                     self.mesh_list.append(child_mesh)
             elif child.tag.endswith('}clipPath') or child.tag == 'clipPath':

@@ -165,7 +165,26 @@ class ItemProperties(object):
                   # 'wireframe',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
-                  'alt_colors')
+                  'alt_colors', 'category')
+    '''
+    name:
+    label: mesh identifier
+    eid: SVG id
+    main_group: qualified mesh identifier
+        with level, public/private, accessible/inaccessible info
+    level: depth map level
+        surf (surface), sup (upper level), inf, tech, metro... the list is
+        mainly open if maps are defined in the SVG fle.
+    uper_level:
+        layer above this one, which elements are connected. For instance a
+        stair or well will connect 2 layers.
+    private: bool
+    inaccessible: bool
+
+    category: str
+        category the 3D representation will be visible in. The 3D viewer will
+        display checkboxes for categories which can be neabled or disabled.
+    '''
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -193,6 +212,7 @@ class ItemProperties(object):
         self.border = False
         self.sound = False
         self.alt_colors = None
+        self.category = None
 
     def __str__(self):
         d = ['{']
@@ -274,7 +294,8 @@ class ItemProperties(object):
                 self.name = label
 
             # properties tags
-            for prop in ('level', 'upper_level', 'private', 'inaccessible', ):
+            for prop in ('level', 'upper_level', 'private', 'inaccessible',
+                         'category', ):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -308,29 +329,26 @@ class ItemProperties(object):
                         setattr(self, prop,
                                 getattr(DefaultItemProperties, prop))
 
-                # build main group (mesh object etc)
-                priv_str = 'private' if self.private else 'public'
-                access_str = ('inaccessible' if self.inaccessible
-                              else 'accessible')
-                if self.label:
-                    if self.level is None:
-                        print('level None in', self)
-                    tags = [self.label, self.level, priv_str, access_str]
-                    if self.text:
-                        tags.append('text')
-                    self.main_group = '_'.join(tags)
+            # build main group (mesh object etc)
+            priv_str = 'private' if self.private else 'public'
+            access_str = ('inaccessible' if self.inaccessible
+                          else 'accessible')
+            if self.label is None:
+                print('no label for item:', self)
+                self.label = 'undefined'
+            if self.level is None:
+                print('level None in', self)
+                self.level = 'undefined'
+            tags = [self.label, self.level, priv_str, access_str]
+            if self.text:
+                tags.append('text')
+            self.main_group = '_'.join(tags)
 
             alt_colors = element.get('alt_colors')
             if alt_colors is not None:
                 self.alt_colors = json.loads(alt_colors)
 
-                #elif self.eid:
-                    #self.main_group = '_'.join([self.eid, self.level,
-                                                #priv_str, access_str])
-
             if self.text and self.block:
-                #print('both text and block:', self)
-                #print('parent:', parents[-1])
                 self.block = False
 
     @staticmethod
@@ -838,17 +856,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # hidden layers are not rendered
             return (self.noop, clean_return, True)
 
+        if item_props.well:
+            if xml_element.get(
+                    '{http://www.inkscape.org/namespaces/inkscape}'
+                    'groupmode') == 'layer':
+                return (None, clean_return, False)
+            return (self.read_well, clean_return, False)
+
         if label is not None:
-            if label == 'colim':
-                if xml_element.get(
-                        '{http://www.inkscape.org/namespaces/inkscape}'
-                        'groupmode') == 'layer':
-                    return (None, clean_return, False)
-                item_props.well = True
-                return (self.read_spiral_stair, clean_return, True)
-            elif item_props.well:
-                return (self.read_wells, clean_return, True)
-            elif label == 'etiage':
+            if label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
             elif label in ('fontis', 'fontis_inf', 'fontis private',
                             'fontis private_inf'):
@@ -935,69 +951,117 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return desc
 
 
-    def read_wells(self, wells_xml, trans, style=None):
-        # print('read_wells.')
-        wells = None
-        trans0 = trans
-        for child in wells_xml:
-            trans = trans0
-            trans2 = child.get('transform')
-            if trans2 is not None:
-                transm = self.get_transform(trans2)
-                if trans is None:
-                    trans = transm
-                else:
-                    trans = trans * transm
-            while child is not None \
-                    and (child.tag.endswith('}g') or child.tag == 'g'):
-                if len(child) == 0:
-                    child = None
-                    break
-                child = child[0]
-                trans2 = child.get('transform')
-                if trans2 is not None:
-                    transm = self.get_transform(trans2)
-                    if trans is None:
-                        trans = transm
-                    else:
-                        trans = trans * transm
-            if child is None:
-                continue
-            if child.tag.endswith('}path') or child.tag == 'path':
-                mesh = self.read_path(child, trans, style)
-                bmin = list(mesh.vertex()[0])
-                bmax = list(bmin)
-                for v in mesh.vertex():
-                    if v[0] < bmin[0]:
-                        bmin[0] = v[0]
-                    if v[0] > bmax[0]:
-                        bmax[0] = v[0]
-                    if v[1] < bmin[1]:
-                        bmin[1] = v[1]
-                    if v[1] > bmax[1]:
-                        bmax[1] = v[1]
-                center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
-                radius = (bmax[0] - bmin[0]) / 2
-                if self.main_group in ('sans', 'PS sans', 'echelle'):
-                    z = bmin[2] * self.z_scale
-                    height = 7. * self.z_scale
-                else:
-                    z = bmin[2] * self.z_scale
-                    height = 20. * self.z_scale
-                wells_spec = self.mesh_dict.setdefault(self.main_group, [])
-                wells_spec.append((center, radius, z, height))
-                #print('well_type:', well_type, len(wells_spec))
+    def read_well(self, well_xml, trans, style=None):
+        props = self.item_props
+        #print('read_well', props)
+        label = props.label
+        # colim, echelle, sans, PSh are groups
+        if label not in ('PS', 'PE', 'P Ossements'):
+            return self.read_stair_group(well_xml, trans, style=style)
 
-    def read_spiral_stair(self, stair_xml, trans, style=None):
-        #print('spiral stair')
+        if not well_xml.tag.endswith('}path') and not well_xml.tag == 'path':
+            return
+
+        trans2 = well_xml.get('transform')
+        if trans2 is not None:
+            transm = self.get_transform(trans2)
+            if trans is None:
+                trans = transm
+            else:
+                trans = trans * transm
+
+        #print('read_well path')
+        mesh = self.read_path(well_xml, trans, style)
+        bmin = list(mesh.vertex()[0])
+        bmax = list(bmin)
+        for v in mesh.vertex():
+            if v[0] < bmin[0]:
+                bmin[0] = v[0]
+            if v[0] > bmax[0]:
+                bmax[0] = v[0]
+            if v[1] < bmin[1]:
+                bmin[1] = v[1]
+            if v[1] > bmax[1]:
+                bmax[1] = v[1]
+        center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
+        radius = (bmax[0] - bmin[0]) / 2
+        if label in ('sans', 'PS sans', 'echelle'):
+            z = bmin[2] * self.z_scale
+            height = 7. * self.z_scale
+        else:
+            z = bmin[2] * self.z_scale
+            height = 20. * self.z_scale
+        wells_spec = self.mesh_dict.setdefault(props.main_group, [])
+        wells_spec.append((center, radius, z, height))
+        #print('well_type:', well_type, len(wells_spec))
+
+    #def read_wells(self, wells_xml, trans, style=None):
+        ## print('read_wells.')
+        #wells = None
+        #trans0 = trans
+        #for child in wells_xml:
+            #trans = trans0
+            #trans2 = child.get('transform')
+            #if trans2 is not None:
+                #transm = self.get_transform(trans2)
+                #if trans is None:
+                    #trans = transm
+                #else:
+                    #trans = trans * transm
+            #while child is not None \
+                    #and (child.tag.endswith('}g') or child.tag == 'g'):
+                #if len(child) == 0:
+                    #child = None
+                    #break
+                #child = child[0]
+                #trans2 = child.get('transform')
+                #if trans2 is not None:
+                    #transm = self.get_transform(trans2)
+                    #if trans is None:
+                        #trans = transm
+                    #else:
+                        #trans = trans * transm
+            #if child is None:
+                #continue
+            #if child.tag.endswith('}path') or child.tag == 'path':
+                #mesh = self.read_path(child, trans, style)
+                #bmin = list(mesh.vertex()[0])
+                #bmax = list(bmin)
+                #for v in mesh.vertex():
+                    #if v[0] < bmin[0]:
+                        #bmin[0] = v[0]
+                    #if v[0] > bmax[0]:
+                        #bmax[0] = v[0]
+                    #if v[1] < bmin[1]:
+                        #bmin[1] = v[1]
+                    #if v[1] > bmax[1]:
+                        #bmax[1] = v[1]
+                #center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
+                #radius = (bmax[0] - bmin[0]) / 2
+                #if self.main_group in ('sans', 'PS sans', 'echelle'):
+                    #z = bmin[2] * self.z_scale
+                    #height = 7. * self.z_scale
+                #else:
+                    #z = bmin[2] * self.z_scale
+                    #height = 20. * self.z_scale
+                #wells_spec = self.mesh_dict.setdefault(self.main_group, [])
+                #wells_spec.append((center, radius, z, height))
+                ##print('well_type:', well_type, len(wells_spec))
+
+    def read_stair_group(self, stair_xml, trans, style=None):
+        #print('stair', props)
         props = self.group_properties[self.main_group]
         props.well = True
         props.corridor = False
         props.block = False
         props.wall = False
+        # we are looking for a group with a path child
+        if len(stair_xml[:]) == 0:
+            return
         child = stair_xml[0]
         if child is None:
             return
+
         trans2 = child.get('transform')
         if trans2 is not None:
             transm = self.get_transform(trans2)
@@ -1178,7 +1242,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh.header()['material'] = mat
 
 
-    def make_psh_well(self, center, radius, z, height):
+    def make_psh_well(self, center, radius, z, height, props):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
         r0 = radius * 0.7
@@ -1223,12 +1287,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                      (nv + 12, nv + 13, nv + 15), (nv + 12, nv + 15, nv + 14)]
             nv += 16
         norm += [(0., 0., 1.)] * (len(vert) - nv0)
-        well.header()['material'] = {'diffuse': [0., 1., .6, 1.],
+        color = self.get_alt_color(props)
+        if not color:
+            color = [0., 1., .6, 1.]
+        well.header()['material'] = {'diffuse': color,
                                      'face_culling': 0}
         return well
 
 
-    def make_ladder(self, center, radius, z, height):
+    def make_ladder(self, center, radius, z, height, props):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
         pole1 = p1 + aims.Point3df(radius, 0., 0.)
@@ -1253,11 +1320,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 'point1': b1, 'point2': b2, 'radius': r1, 'facets': 4,
                 'smooth': True, 'closed': False})
             aims.SurfaceManip.meshMerge(ladder, bar)
-        ladder.header()['material'] = {'diffuse': [1., 0., .6, 1.]}
+        color = self.get_alt_color(props)
+        if not color:
+            color = [1., 0., .6, 1.]
+        ladder.header()['material'] = {'diffuse': color}
         return ladder
 
 
-    def make_spiral_stair(self, center, radius, z, height):
+    def make_spiral_stair(self, center, radius, z, height, props=None):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
         r0 = radius * 0.25
@@ -1288,12 +1358,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                      (nv + 4, nv + 5, nv + 6)]
             nv += 7
         well.updateNormals()
-        well.header()['material'] = {'diffuse': [1., .6, 0., 1.],
+        color = self.get_alt_color(props)
+        if not color:
+            color = [1., .6, 0., 1.]
+        well.header()['material'] = {'diffuse': color,
                                      'face_culling': 0}
         return well
 
 
-    def make_ps_well(self, center, radius, z, height, well_type):
+    def make_ps_well(self, center, radius, z, height, well_type, props):
         '''PS or PE (blue), P ossements (yellow)
         '''
         p1 = aims.Point3df(center[0], center[1], z)
@@ -1301,16 +1374,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         well = aims.SurfaceGenerator.cylinder({
             'point1': p1, 'point2': p2, 'radius': radius, 'facets': 8,
             'smooth': True, 'closed': False})
-        if well_type.startswith('PE'):
-            well.header()['material'] = {'diffuse': [0., 0.7, 1., 1.]}
-        elif well_type == 'PS' or well_type.startswith('PS_') \
-                or well_type.startswith('PS '):
-            well.header()['material'] = {'diffuse': [1., 1., 1., 1.]}
-        elif well_type.startswith('P ossements'):
-            well.header()['material'] = {'diffuse': [1., 1., 0., 1.]}
-        else:
-            well.header()['material'] = {'diffuse': [0., 1., .6, 1.]}
-        well.header()['material']['face_culling'] = 0
+        color = self.get_alt_color(props)
+        if not color:
+            color = [0., 1., .6, 1.]
+            if well_type.startswith('PE'):
+                color = [0., 0.7, 1., 1.]
+            elif well_type == 'PS' or well_type.startswith('PS_') \
+                    or well_type.startswith('PS '):
+                color = [1., 1., 1., 1.]
+            elif well_type.startswith('P ossements'):
+                color = [1., 1., 0., 1.]
+        well.header()['material'] = {'diffuse': color, 'face_culling': 0}
         return well
 
 
@@ -1318,15 +1392,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if well_type is None and props is not None:
             well_type = props.label
         if well_type == 'PS':
-            return self.make_ps_well(center, radius, z, height, well_type)
+            return self.make_ps_well(center, radius, z, height, well_type,
+                                     props)
         if well_type in ('PSh', 'sans'):
-            return self.make_psh_well(center, radius, z, height)
+            return self.make_psh_well(center, radius, z, height, props)
         elif well_type in ('echelle', u'échelle'):
-            return self.make_ladder(center, radius, z, height)
-        #elif well_type.startswith('colim'):
-            #return self.make_spiral_stair(center, radius, z, height)
+            return self.make_ladder(center, radius, z, height, props)
+        elif well_type.startswith('colim'):
+            return self.make_spiral_stair(center, radius, z, height, props)
 
-        return self.make_ps_well(center, radius, z, height, well_type)
+        return self.make_ps_well(center, radius, z, height, well_type, props)
 
 
     def make_arche(self, center, radius_and_trans, z, height, well_type=None,
@@ -1827,14 +1902,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     @staticmethod
     def get_alt_color(props, colorset='map_3d'):
-        if not props.alt_colors:
+        if not props or not props.alt_colors:
             return None
         color = props.alt_colors.get(colorset)
         if color:
             c1 = color[1::2]
             c2 = color[2::2]
-            col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in zip(c1, c2)]
-            print('alt color:', color, col, c1, c2)
+            col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in
+                   zip(c1, c2)]
+            #print('alt color:', props.main_group, col)
             return col
 
 
@@ -1978,10 +2054,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if not props or not specs:
                 continue
             method = None
-            if props.symbol:
-                stype = props.label
-                if hasattr(self, 'make_%s' % stype):
-                    method = getattr(self, 'make_%s' % stype)
+            stype = props.label
+            if hasattr(self, 'make_%s' % stype):
+                method = getattr(self, 'make_%s' % stype)
             elif props.well:
                 method = self.make_well
             if method:
@@ -1992,7 +2067,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
                 wells = None
                 for ws in specs:
-                    center, radius, z, height = ws
+                    try:
+                        center, radius, z, height = ws
+                    except TypeError:
+                        import traceback
+                        traceback.print_exc()
+                        print('= while processing', main_group)
+                        print('ws:', ws)
+                        print('method:', method)
+                        print('specs:', specs)
+                        raise
                     c3 = (center[0], center[1], 0.)
                     z0 = self.get_depth(c3, view)
                     if z0 is not None:
@@ -2305,9 +2389,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             #if props and hasattr(mesh, 'header'):
                 #color = self.get_alt_color(main_group
 
-        mesh = meshes.get('parcelles')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [0.45, 0.7, 0.93, 0.5]}
         mesh = meshes.get('grille surface')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
@@ -2347,15 +2428,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('bassin_tech')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
-        mesh = meshes.get('eau')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.92, 1., .5]}
-        mesh = meshes.get('eau_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.92, 1., .5]}
-        mesh = meshes.get('eau gtech_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.4, 0.92, 1., .5]}
         mesh = meshes.get('calcaire sup')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.54, 0.47, .42, .4]}
@@ -2377,28 +2449,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = meshes.get('porte_esc')
         if mesh is not None and len(mesh) != 0:
             mesh[0].header()['material'] = {'diffuse': [.6, 0.6, .3, 1.]}
-        mesh = meshes.get('remblai epais')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.7, .7, .41, .4]}
 
         # lighen texts for black background
-        tspec = meshes.get('salles v1_text')
-        if tspec is not None:
-            self.recolor_text_specs(tspec, [1., 1., 1., 1.])
         tspec = meshes.get('annotations_text')
         if tspec is not None:
             self.recolor_text_specs(tspec, [.8, .8, .8, 1.])
         tspec = meshes.get('rues sans plaques_text')
         if tspec is not None:
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
-        for rtype in ('rues v1_text', 'rues v1 private_text',
-                      'rues inaccessibles_text'):
-          #'rues vdg_text',
-                      #'rues email_text',
-                      #'rues inf_text', 'rues inf petit_text'):
-            tspec = meshes.get(rtype)
-            if tspec is not None:
-                self.recolor_text_specs(tspec, [.8, .8, .8, 1.])
 
         # move arrows in order to follow text in 3D
         self.attach_arrows_to_text(meshes)
@@ -2984,40 +3042,56 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             pmeshes = []
             for filename, mesh in six.iteritems(summary['meshes']):
                 filename = os.path.basename(filename)
+                props = self.group_properties.get(mesh)
+                if not props:
+                    print('no props for mesh:', mesh, filename)
                 if '.' in filename:  # remove extension
                     filename = '.'.join(filename.split('.')[:-1])
                 layer = 0
                 if 'profondeur' in filename or 'bord' in filename:
                     continue  # skip
-                if '_tech_' in filename or 'techniques' in filename \
-                        or 'gtech' in filename or 'ebauches' in filename \
-                        or 'metro' in filename:
-                    layer = 5
-                elif filename.startswith('plaques ') \
-                        or u' flèches' in filename \
-                        or filename.startswith('etiage_'):
-                    layer = 2
-                elif 'parcelles' in filename:
-                    layer = 3
-                elif 'oss off' in filename:
-                    layer = 4
-                elif filename.startswith('anciennes ') \
-                        or 'anciennes galeries' in filename \
-                        or filename.startswith('aqueduc') \
-                        or filename.startswith('ex-') \
-                        or ' inaccessibles' in filename:
-                    layer = 1
-                elif filename.startswith('remblai'):
-                    layer = 6
-                elif filename.startswith('calcaire'):
-                    layer = 7
-                elif u'légende' in filename or 'grandes plaques' in filename:
-                    layer = 8
-                elif 'grille surface' in filename:
-                    layer = 9
-                size = os.stat(os.path.join(dirname, filename + '.obj')).st_size
+                if props and props.category:
+                    if props.category not in categories:
+                        categories.append(props.category)
+                    layer = categories.index(props.category)
+                else:
+                    # old way, specific
+                    if (props and props.level == 'tech') \
+                            or '_tech_' in filename \
+                            or 'techniques' in filename \
+                            or 'gtech' in filename or 'ebauches' in filename \
+                            or 'metro' in filename:
+                        layer = 5
+                    elif (props and props.arrow) \
+                            or filename.startswith('plaques ') \
+                            or u' flèches' in filename \
+                            or filename.startswith('etiage_'):
+                        layer = 2
+                    elif 'parcelles' in filename:
+                        layer = 3
+                    elif 'oss off' in filename:
+                        layer = 4
+                    elif (props and props.inaccessible) \
+                            or filename.startswith('anciennes ') \
+                            or 'anciennes galeries' in filename \
+                            or filename.startswith('aqueduc') \
+                            or filename.startswith('ex-') \
+                            or ' inaccessibles' in filename:
+                        layer = 1
+                    elif filename.startswith('remblai'):
+                        layer = 6
+                    elif filename.startswith('calcaire'):
+                        layer = 7
+                    elif u'légende' in filename \
+                            or 'grandes plaques' in filename:
+                        layer = 8
+                    elif 'grille surface' in filename:
+                        layer = 9
+                size = os.stat(os.path.join(dirname,
+                                            filename + '.obj')).st_size
                 # hash
-                md5 = hashlib.md5(open(os.path.join(dirname, filename + '.obj'),
+                md5 = hashlib.md5(open(os.path.join(dirname,
+                                                    filename + '.obj'),
                                        'rb').read()).hexdigest()
                 if 'private' in filename:
                     pmeshes.append([layer, filename, size, md5])
