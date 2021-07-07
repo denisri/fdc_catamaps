@@ -1,1 +1,1 @@
-build_version = 521
+build_version = 525

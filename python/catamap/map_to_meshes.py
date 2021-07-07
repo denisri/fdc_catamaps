@@ -165,7 +165,7 @@ class ItemProperties(object):
                   # 'wireframe',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
-                  'alt_colors', 'category')
+                  'alt_colors', 'category', 'layer', 'well_read_mode')
     '''
     name:
     label: mesh identifier
@@ -213,6 +213,8 @@ class ItemProperties(object):
         self.sound = False
         self.alt_colors = None
         self.category = None
+        self.layer = False
+        self.well_read_mode = None
 
     def __str__(self):
         d = ['{']
@@ -246,6 +248,7 @@ class ItemProperties(object):
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
+                'layer': ItemProperties.is_true,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -269,6 +272,8 @@ class ItemProperties(object):
             self.copy_from(parents[-1])
         else:
             self.reset_properties()
+
+        self.layer = False  # this one does not propagate to children
 
         if element is not None:
             eid, props = self.get_id(element, get_props=True)
@@ -295,7 +300,7 @@ class ItemProperties(object):
 
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
-                         'category', ):
+                         'category', 'well_read_mode'):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -344,9 +349,19 @@ class ItemProperties(object):
                 tags.append('text')
             self.main_group = '_'.join(tags)
 
+            if element.get(
+                    '{http://www.inkscape.org/namespaces/inkscape}'
+                    'groupmode') == 'layer':
+                self.layer = True
+
             alt_colors = element.get('alt_colors')
             if alt_colors is not None:
                 self.alt_colors = json.loads(alt_colors)
+
+            if self.well and self.well_read_mode is None:
+                well_read_mode = DefaultItemProperties.well_read_modes.get(
+                    label)
+                self.well_read_mode = well_read_mode
 
             if self.text and self.block:
                 self.block = False
@@ -741,6 +756,25 @@ class DefaultItemProperties(object):
         'PE anciennes galeries big': -10.,
     }
 
+    well_read_modes = {
+        'PS': 'path',
+        'PS galeries big': 'path',
+        'PE': 'path',
+        'PE galeries big': 'path',
+        'P ossements': 'path',
+        'P ossements galeries big': 'path',
+        'PSh': 'group',
+        'PSh galeries big': 'group',
+        'PSh vers': 'group',
+        'colim': 'group',
+        'échelle': 'group',
+        'échelle vers': 'group',
+        'échelle galeries big': 'group',
+        'PSh sans': 'group',
+        'sans': 'group',
+    }
+
+
 
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     '''
@@ -857,9 +891,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return (self.noop, clean_return, True)
 
         if item_props.well:
-            if xml_element.get(
-                    '{http://www.inkscape.org/namespaces/inkscape}'
-                    'groupmode') == 'layer':
+            if item_props.layer:
                 return (None, clean_return, False)
             return (self.read_well, clean_return, False)
 
@@ -955,20 +987,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         props = self.item_props
         #print('read_well', props)
         label = props.label
-        # colim, echelle, sans, PSh are groups
-        if label not in ('PS', 'PE', 'P Ossements'):
-            return self.read_stair_group(well_xml, trans, style=style)
+        if props.well_read_mode == 'group':
+            return self.read_well_group(well_xml, trans, style=style)
 
         if not well_xml.tag.endswith('}path') and not well_xml.tag == 'path':
             return
-
-        trans2 = well_xml.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                trans = transm
-            else:
-                trans = trans * transm
 
         #print('read_well path')
         mesh = self.read_path(well_xml, trans, style)
@@ -985,71 +1008,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 bmax[1] = v[1]
         center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
         radius = (bmax[0] - bmin[0]) / 2
-        if label in ('sans', 'PS sans', 'echelle'):
-            z = bmin[2] * self.z_scale
-            height = 7. * self.z_scale
-        else:
-            z = bmin[2] * self.z_scale
-            height = 20. * self.z_scale
+        z = bmin[2] * self.z_scale
+        height = 20. * self.z_scale
         wells_spec = self.mesh_dict.setdefault(props.main_group, [])
         wells_spec.append((center, radius, z, height))
         #print('well_type:', well_type, len(wells_spec))
 
-    #def read_wells(self, wells_xml, trans, style=None):
-        ## print('read_wells.')
-        #wells = None
-        #trans0 = trans
-        #for child in wells_xml:
-            #trans = trans0
-            #trans2 = child.get('transform')
-            #if trans2 is not None:
-                #transm = self.get_transform(trans2)
-                #if trans is None:
-                    #trans = transm
-                #else:
-                    #trans = trans * transm
-            #while child is not None \
-                    #and (child.tag.endswith('}g') or child.tag == 'g'):
-                #if len(child) == 0:
-                    #child = None
-                    #break
-                #child = child[0]
-                #trans2 = child.get('transform')
-                #if trans2 is not None:
-                    #transm = self.get_transform(trans2)
-                    #if trans is None:
-                        #trans = transm
-                    #else:
-                        #trans = trans * transm
-            #if child is None:
-                #continue
-            #if child.tag.endswith('}path') or child.tag == 'path':
-                #mesh = self.read_path(child, trans, style)
-                #bmin = list(mesh.vertex()[0])
-                #bmax = list(bmin)
-                #for v in mesh.vertex():
-                    #if v[0] < bmin[0]:
-                        #bmin[0] = v[0]
-                    #if v[0] > bmax[0]:
-                        #bmax[0] = v[0]
-                    #if v[1] < bmin[1]:
-                        #bmin[1] = v[1]
-                    #if v[1] > bmax[1]:
-                        #bmax[1] = v[1]
-                #center = ((bmin[0] + bmax[0]) / 2, (bmin[1] + bmax[1]) / 2)
-                #radius = (bmax[0] - bmin[0]) / 2
-                #if self.main_group in ('sans', 'PS sans', 'echelle'):
-                    #z = bmin[2] * self.z_scale
-                    #height = 7. * self.z_scale
-                #else:
-                    #z = bmin[2] * self.z_scale
-                    #height = 20. * self.z_scale
-                #wells_spec = self.mesh_dict.setdefault(self.main_group, [])
-                #wells_spec.append((center, radius, z, height))
-                ##print('well_type:', well_type, len(wells_spec))
-
-    def read_stair_group(self, stair_xml, trans, style=None):
-        #print('stair', props)
+    def read_well_group(self, stair_xml, trans, style=None):
+        #print('well with group', props)
         props = self.group_properties[self.main_group]
         props.well = True
         props.corridor = False
@@ -1058,19 +1024,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # we are looking for a group with a path child
         if len(stair_xml[:]) == 0:
             return
+
+        #trans = self.get_transform(stair_xml, trans)
+
         child = stair_xml[0]
         if child is None:
             return
 
-        trans2 = child.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                trans = transm
-            else:
-                trans = trans * transm
-
         if child.tag.endswith('}path') or child.tag == 'path':
+            trans = self.get_transform(child, trans)
+
             mesh = self.read_path(child, trans, style)
             bmin = list(mesh.vertex()[0])
             bmax = list(bmin)

@@ -1041,7 +1041,7 @@ class SvgToMesh(object):
             elif child.tag.endswith('}clipPath') or child.tag == 'clipPath':
                 #print('clipPath')
                 # skip clipPaths
-                continue
+                pass
             elif child.tag.endswith('}text') or child.tag == 'text':
                 tgroup = self.main_group
                 if not tgroup.endswith('_text'):
