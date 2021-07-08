@@ -2587,6 +2587,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
+                    if not hasattr(mesh, 'vertex'):
+                        print('*** WARNING: ***')
+                        print('A non-mesh object lies in an arrows '
+                              'layer/group')
+                        print(props)
+                        print('faulty mesh:', mesh)
+                        continue
                     text_o = self.find_text_for_arrow(meshes, mesh)
                     if text_o:
                         props = text_o['properties']
