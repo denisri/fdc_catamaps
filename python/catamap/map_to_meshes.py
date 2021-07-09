@@ -3012,9 +3012,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             pmeshes = []
             for filename, mesh in six.iteritems(summary['meshes']):
                 filename = os.path.basename(filename)
-                props = self.group_properties.get(mesh)
+                group = mesh
+                if group.endswith('_tri'):
+                    group = group[:-4]
+                elif group.endswith('_line'):
+                    group = group[:-5]
+                props = self.group_properties.get(group)
                 if not props:
-                    print('no props for mesh:', mesh, filename)
+                    print('no props for mesh:', group, filename)
                 if '.' in filename:  # remove extension
                     filename = '.'.join(filename.split('.')[:-1])
                 layer = 0
