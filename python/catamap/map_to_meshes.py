@@ -141,20 +141,38 @@ block: bool
 wall: bool
     wall elements have only side walls (no floor or ceiling).
 arrow: bool
-    arrows join a text label to a location on map. They are filar meshes.
+    arrows join a text label to a location on map. They are filar meshes. Most
+    of them are just a segment (2 points) but they may contain more points.
+    Points orientation is important as the arrow goes from the text (above the
+    meshes) down to the pointed item below.
 text: bool
 well: bool
-    wells are replaced with custom elements, which type is the element label (PE, PS,
-    PSh, échelle, sans, P ossements, ...)
+    wells are replaced with custom elements, which type is the element label
+    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
+    or layers) shoud specify the level and upper_level.
+well_read_mode: str
+    tells if well elements should be read in the XML file as a single "path"
+    element (a circle for instance), or a group (a grop containing a circle,
+    and additional lines). Thus allowed values are "path" or "group".
 catflap: bool
-    replaced with striped tubes
+    In catflaps, paths are replaced with striped tubes.
 hidden: bool
-height:
-    height of the element (esp. for corridor, block, wall elements)
+    removed from 3D maps.
+item_height:
+    height of the element (esp. for corridor, block, wall elements). WARNING:
+    it is "item_height", not "height" as height is already an official SVG
+    attribute for some elements (rectangles for instance).
 height_shift:
-    z shift of the element (esp. for corridor, block, wall elements, but also arrows)
+    z shift of the element (esp. for corridor, block, wall elements, but also
+    wells and arrows). An element with a height shift will not begin on the
+    ground, but above or below as specified.
 depth_map: bool
-    the layer is a depth map, which label is the level identifier.
+    the layer is a depth map. It should contain a level attribute to define the level it maps.
+alt_colors: str
+    color to be used in 3D maps. This is a string representing a JSON format dictionary. Keys are colorsets names, values are RGBA hex strings. The default colorset is "map_3d". Ex: {"map_3d": "#cccccc4c"}
+catrgory: str
+    the category string the element will be associated in the 3D views.
+    Categories can be displayed/hidden using buttons or menus in 3D views.
 border: bool
 '''
 
@@ -162,7 +180,6 @@ class ItemProperties(object):
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
-                  # 'wireframe',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'category', 'layer', 'well_read_mode')
@@ -2444,6 +2461,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         meshes['grille surface'] = self.build_ground_grid()
         props = ItemProperties()
         props.level = 'surf'
+        props.category = 'Surface'
         self.group_properties['grille surface'] = props
 
         # apply depths to corridors
@@ -2520,6 +2538,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     meshes.setdefault(main_group + '_ceil', []).append(ceil)
                     self.group_properties[main_group + '_wall'] = props
                     self.group_properties[main_group + '_ceil'] = props
+                    self.group_properties[main_group + '_floor'] = props
 
                     # build floor or ceiling meshes using tesselated objects
                     # (anatomist)
@@ -2561,8 +2580,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 continue
             mesh = meshes[main_group]
             if mesh is not None:
-                cat_flap = self.make_cat_flap(
-                    mesh, catflap_col.get(main_group, [1., 0., 0., 0.8]))
+                color = catflap_col.get(prop.label)
+                if color is None:
+                    color = mesh.header().get('material', {}).get('diffuse')
+                    if not color:
+                        color = [1., 0., 0., 0.8]
+                cat_flap = self.make_cat_flap(mesh, color)
                 meshes['%s_0' % main_group] = cat_flap[0]
                 meshes['%s_1' % main_group] = cat_flap[1]
                 self.group_properties['%s_0' % main_group] = props
@@ -2669,11 +2692,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def build_ground_grid(self):
         layer = [l for l in self.svg.getroot()
                  if l.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                     == 'bord_sud']
+                     in ('bord_sud', 'bord complet')]
         if not layer:
+            print('No border layer found. Not building ground grid.')
             return aims.AimsTimeSurface_2()  # no layer
         layer = layer[0]
-        self.main_group = 'bord_sud'
+        label = layer.get('{http://www.inkscape.org/namespaces/inkscape}label')
+        self.main_group = label
         bounds = self.boundingbox(layer)
         # print('ground grid bounds:', bounds)
         interval = 5.
@@ -2692,6 +2717,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh.polygon().assign(grid_s)
         mesh.header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
         self.ground_grid = mesh
+        # print('ground grid:', mesh.vertex().size(), 'vertices')
         return mesh
 
 
