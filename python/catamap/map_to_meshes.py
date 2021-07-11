@@ -1,6 +1,267 @@
 #!/usr/bin/env python
 # coding: UTF-8
 
+'''
+Catacombs maps using SVG source map with codes inside it.
+
+The program allows to produce:
+
+* 2D "readable" maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
+
+* 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
+
+Requirements
+============
+
+* Having inkscape installed on the system and available in the PATH.
+  A recent version of inkscape (1.0 at least) is recommended to avoid units and
+  scaling problems.
+* Either:
+
+  * the Pillow (PIL) python module (see later)
+  * or ImageMagick "convert" tool to convert PNG to JPEG. If Pillow is present,
+    then convert will not be
+    used.
+
+    **Warning:** https://github.com/ImageMagick/ImageMagick/issues/396
+    ImageMagick cache (disk limit) size is too small.
+    Edit /etc/ImageMagick-6/policy.xml and change disk resource limit::
+
+        <policy domain="resource" name="memory" value="12GiB"/>
+        <policy domain="resource" name="map" value="20GiiB"/>
+        <policy domain="resource" name="width" value="50KP"/>
+        <policy domain="resource" name="height" value="50KP"/>
+        <policy domain="resource" name="area" value="20GiB"/>
+        <policy domain="resource" name="disk" value="80GiB"/>
+
+Python modules:
+
+These can be installed using the command::
+
+    python -m pip install six numpy scipy Pillow
+
+* :mod:`~catamap.svg_to_mesh` submodule and its requirements (part of this
+  project)
+* xml ElementTree
+* six
+* numpy
+* scipy
+* Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
+  "convert" tool will be used (see above)
+
+The 3D part has additional requirements:
+
+* soma.aims (https://github.com/brainvisa/aims-free)
+* anatomist (https://github.com/brainvisa/anatomist-free and
+  https://github.com/brainvisa/anatomist-gpl)
+* json
+
+Usage
+=====
+
+* set the ``python`` subdirectory of the project in your ``PYTHONPATH`` environment variable. Under Unix sh/bash shells, this would be::
+
+    export PYTHONPATH="~/fdc_catamaps/python:$PYTHONPATH"
+
+  (it can be set in a ``.bash_profile`` or ``.bashrc`` init file)
+
+* get or make the source SVG file with codes inside, for instance ``plan_14_fdc_2021_04_29.svg``
+
+* go to the directory containing it
+* run the module ``catamap`` as a program::
+
+    python -m catamap --2d plan_14_fdc_2021_04_29.svg
+
+It should work using either python2 or python3.
+The 2D maps options will produce files with suffixes in the current directory:
+modified .svg files, .pdf and .jpg files.
+
+The 3D maps option will produce meshes in a subdirectory.
+
+Use the commandline with the '-h' option to get all parameters help.
+
+
+Inkscape SVG files
+==================
+
+SVG files may (should) contain additional XML properties that can be set in the XML editor in the Inkscape software. They allow to specify how objects should be parsed, grouped, represented etc. For now they are mainly used in the 3D part, but the 2D part also uses ``level``, ``label``, and ``private`` information information.
+
+Codes correspond to properties used in the program, and can be set in XML elements in the SVG file.
+
+Bool properties can be written ``true``, ``True``, ``1``, or ``false``, ``False``, ``0``.
+
+Properties are inherited from parent (group/layer) to children. Thus if a layer has the property ``corridor`` set to ``true``, all objects in this layer will be marked as ``corridor``.
+
+In the program, elements are grouped into meshes: a mesh will be the concatenation of all elements of the same kind, to avoid having dozens of thousands of mesh files to load. An object "kind" (a group making a single mesh) is identified by several of its properties, but not all. Namely the identifier is::
+
+    <label>_<level>_<public/private>_<accessible/inaccessible>
+
+Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property ``block``, it will be part of the same mesh group anyway, and the ``block`` property will not be retained.
+
+An important illustration to this, is the ``category`` property: ``category`` is not part of the group identifier, thus items of this group cannot be split into several display categories: they must also use different labels, for instance, to be dissociated.
+
+Properties list
+---------------
+
+**label:** str (**2D and 3D maps**)
+    name of the element type
+**level:** str (**2D and 3D maps**)
+    depth level name (sup, inf, surf, tech, metro, esc...). Levels are an
+    "open" property, there is no predefined list of levels, apart for 2
+    exceptions:
+
+    * items which don't specify a level are set by default to a level named
+      ``sup`` (generally superior corridor level).
+    * a ``surf`` level represents the ground surface, and is automatically
+      built. It is flat, altitude 0 by default, but can be associated to an
+      altitude map and geolocalisation information. See :ref:`altitude_maps`
+      later.
+
+    Levels are associated to depth maps, so for each level used (except
+    ``surf``), a ``depth_map`` layer is supposed to be defined. See
+    :ref:`depth_maps`.
+**upper_level:** str (**3D maps**)
+    depth level for the top of elements. Only used for elements joining two levels
+    (wells, arrows)
+**private:** bool (**2D and 3D maps**)
+    private elements will only be visible if a code is provided
+**inaccessible:** bool (**3D maps**)
+    inaccessible elements will be separated from others, and set in the
+    ``Inaccessible`` display category.
+**visibility:** str (**2D and 3D maps**)
+    may be ``private``: alternative to ``private: true``.
+**symbol:** bool (**3D maps**)
+    not sure it is used, after all...
+**corridor:** bool (**3D maps**)
+    corridors have a floor and walls. Meshes are extruded and tesselated to be
+    filled.
+**block:** bool (**3D maps**)
+    block elements have a ceiling and walls. Meshes are extruded and tesselated
+    to be filled.
+**wall:** bool (**3D maps**)
+    wall elements have only side walls (no floor or ceiling).
+**arrow:** bool (**3D maps**)
+    arrows join a text label to a location on map. They are filar meshes. Most
+    of them are just a segment (2 points) but they may contain more points.
+    Points orientation is important as the arrow goes from the text (above the
+    meshes) down to the pointed item below.
+**text:** bool (**3D maps**)
+    text layers.
+**well:** bool (**3D maps**)
+    wells are replaced with custom elements, which type is the element label
+    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
+    or layers) shoud specify the level and upper_level.
+**well_read_mode:** str (**3D maps**)
+    tells if well elements should be read in the XML file as a single "path"
+    element (a circle for instance), or a group (a grop containing a circle,
+    and additional lines). Thus allowed values are ``path`` or ``group``.
+**catflap:** bool (**3D maps**)
+    In catflaps, paths are replaced with striped tubes.
+**hidden:** bool (**3D maps**)
+    removed from 3D maps.
+**item_height:** float (**3D maps**)
+    height of the element (esp. for corridor, block, wall elements).
+    **WARNING:** it is ``item_height``, not ``height`` as height is already an
+    official SVG attribute for some elements (rectangles for instance).
+**height_shift:** float (**3D maps**)
+    z shift of the element (esp. for corridor, block, wall elements, but also
+    wells and arrows). An element with a height shift will not begin on the
+    ground, but above or below as specified.
+**depth_map:** bool (**3D maps**)
+    the layer is a depth map. It should contain a level attribute to define the
+    level it maps. See :ref:`depth_maps` for details.
+**alt_colors:** JSON dict (**3D maps**)
+    color to be used in 3D maps. This is a string representing a JSON format dictionary. Keys are colorsets names, values are RGBA hex strings. The default colorset is ``map_3d``. Ex::
+
+        ``{"map_3d": "#cccccc4c"}``
+
+**catrgory:** str (**3D maps**)
+    the category string the element will be associated in the 3D views.
+    Categories can be displayed/hidden using buttons or menus in 3D views.
+**border:** bool (**3D maps**)
+    not used if I remember...
+**map_transform**: SVG transformation spec (**2D maps**)
+    additional transformation applied to elements, used for
+    instance to shift lower level parts when they are superimposed under an
+    upper level. Without this shift, they would not be seen because they are
+    hidden by the upper level. The transform is specified in the same way as
+    the standard SVG ``transform`` property.
+
+    This propery can be set to paths, groups, and arrows (which will thus point
+    to a shifted location).
+**glabel:** str (**2D maps**)
+    "group label" used only in the legends layer prototypes. Such items which
+    match the ``label`` of elements in the rest of the maps will be used to
+    replace them in the cleaned 2D map.
+**title:** bool (**3D maps**)
+    The title string(s) will be used and displayed in the web site title.
+**date:** str (**2D maps**)
+    the date text will be replaced with the date of the map build.
+
+.. _depth_maps:
+
+Depth maps
+----------
+
+Depth maps are layers containing depth information, **and nothing else**.
+
+Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:
+
+* a *text element*: the position of the element (its center if the text is centered) will be used as the position. The text should specify a floating point number which is the depth at this position.
+* a group containing a text element and a segment path: the text is a float number specifying the depth, and the segment (2 points, oriented from the text toward the application point) specifies where the depth applied: the end pont of the segment will be assigned the given depth.
+* a rectangle: this was originally the way to specify depth, but it proved to be difficult to read and is thus obsolete. Prefer the two above methods. In 2 words, the min of the rectangle is the depth, and the position of the rectangle (its center) is the position. Well, better forget it.
+
+
+.. _altitude_maps:
+
+Altitude maps
+-------------
+
+Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an ``upper_level`` property in depth maps which could be any other map).
+
+To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.
+
+Geolocalisation of the SVG file
++++++++++++++++++++++++++++++++
+
+The SVG file should contain a layer named ``lambert93`` which contains, as its name says it, world coordinates in the **Lambert 93 coordinates system**.
+
+Coordinates can be spacified at any location of the map. At least 3 points are needed to estimate a transformation, but the more points are provided, the more precise the estimation will be. The coordinates transformation between the SVG positions and the Lambert93 coordinates will be estimated as a linear transformation fit to all SVG/Lambert 93 coortinates couples.
+
+A Lambert93 point is specified in this ``lambert93`` layer as a group containing 2 objects:
+
+* a text item with text being the 2 cooridinates separated by a coma, ex::
+
+    652470.89,6858871.84
+
+* a segment line (2 points, oriented) going from the text toward the application point on the map.
+
+Lambert 93 positions can be found using https://www.geoportail.gouv.fr/carte: on the map, select "tools" on the right, and enable "display coordinates". Then select for "reference system" the "Lambert 93" mode.
+
+Altitude maps
++++++++++++++
+
+Altitude maps can be retreived from BDAlti: https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti
+
+Then maps have to be converted using tools in :mod:`catamap.altitude.bdalti`.
+The ``altitude`` directory should be located in the same directory as the SVG map file.
+
+
+map_to_meshes module
+====================
+
+This module is an extension of the :mod:`~catamap.svg_to_mesh` module and ist main class, :class:`~catamap.svg_to_mesh.SvgToMesh` for more specific purposes. This means the former is dedicated to generically read Inkscape files and convert elements to meshes, while the specialized classes here are dedicated to building catacombs maps.
+
+:class:`~catamap.map_to_meshes.CataSvgToMesh` wiil build 3D maps meshes and objects
+
+:class:`~catamap.map_to_meshes.CataMapTo2DMap` will build "cleaner" 2D maps (with some symbols replaced and enlarged, regions zooms and more, and export PDF and JPG versions.
+
+
+map_to_meshes module API
+------------------------
+
+'''
+
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -37,171 +298,29 @@ try:
 except ImportError:
     bdalti = None
 
-'''
-Catacombs maps using SVG source map with codes inside it.
 
-The program allows to produce:
+class xml_help(object):
 
-* 2D "readable" maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
-
-* 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
-
-Requirements
-------------
-
-* Having inkscape installed on the system and available in the PATH.
-  A recent version of inkscape (1.0 at least) is recommended to avoid units and
-  scaling problems.
-* Either the Pillow (PIL) python podule (see later) or ImageMagick "convert"
-  tool to convert PNG to JPEG. If Pillow is present, then convert will not be
-  used.
-
-  Warning: https://github.com/ImageMagick/ImageMagick/issues/396
-  ImageMagick cache (disk limit) size is too small.
-  Edit /etc/ImageMagick-6/policy.xml and change disk resource limit::
-
-      <policy domain="resource" name="memory" value="12GiB"/>
-      <policy domain="resource" name="map" value="20GiiB"/>
-      <policy domain="resource" name="width" value="50KP"/>
-      <policy domain="resource" name="height" value="50KP"/>
-      <policy domain="resource" name="area" value="20GiB"/>
-      <policy domain="resource" name="disk" value="80GiB"/>
-
-Python modules:
-
-These can be installed using the command::
-
-    python -m pip install six numpy scipy Pillow
-
-* svg_to_mesh submodule and its requirements (part of this project)
-* xml ElementTree
-* six
-* numpy
-* scipy
-* Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
-  "convert" tool will be used (see above)
-
-The 3D part has additional requirements:
-
-* soma.aims (https://github.com/brainvisa/aims-free)
-* anatomist (https://github.com/brainvisa/anatomist-free and
-  https://github.com/brainvisa/anatomist-gpl)
-* json
-
-Usage
------
-
-* set the ``python`` subdirectory of the project in your ``PYTHONPATH`` environment variable. Under Unix sh/bash shells, this would be::
-
-    export PYTHONPATH="~/fdc_catamaps/python:$PYTHONPATH"
-
-  (it can be set in a ``.bash_profile`` or ``.bashrc`` init file)
-
-* get or make the source SVG file with codes inside, for instance ``plan_14_fdc_2021_04_29.svg``
-
-* go to the directory containing it
-* run the module ``catamap`` as a program::
-
-    python -m catamap --2d plan_14_fdc_2021_04_29.svg
-
-It should work using either python2 or python3.
-The 2D maps options will produce files with suffixes in the current directory:
-modified .svg files, .pdf and .jpg files.
-
-The 3D maps option will produce meshes in a subdirectory.
-
-Use the commandline with the '-h' option to get all parameters help.
-
+    '''
 '''
 
-xml_help = '''
-Codes in XML SVG files
-======================
+    pass
 
-Codes correspond to properties used in the program.
-Bool properties can be written "true", "True", "1", or "false", "False", "0".
-
-label:
-    name of the element type
-level:
-    depth level name (sup, inf, surf, tech, metro, esc...)
-upper_level:
-    depth level for the top of elements. Only used for elements joining two levels
-    (wells, arrows)
-private: bool
-inaccessible: bool
-visibility:
-    may be "private": alternative to "private: true".
-symbol: bool
-corridor: bool
-    corridors have a floor and walls. Meshes are extruded and tesselated to be filled.
-block: bool
-    block elements have a ceiling and walls. Meshes are extruded and tesselated to be
-    filled.
-wall: bool
-    wall elements have only side walls (no floor or ceiling).
-arrow: bool
-    arrows join a text label to a location on map. They are filar meshes. Most
-    of them are just a segment (2 points) but they may contain more points.
-    Points orientation is important as the arrow goes from the text (above the
-    meshes) down to the pointed item below.
-text: bool
-well: bool
-    wells are replaced with custom elements, which type is the element label
-    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
-    or layers) shoud specify the level and upper_level.
-well_read_mode: str
-    tells if well elements should be read in the XML file as a single "path"
-    element (a circle for instance), or a group (a grop containing a circle,
-    and additional lines). Thus allowed values are "path" or "group".
-catflap: bool
-    In catflaps, paths are replaced with striped tubes.
-hidden: bool
-    removed from 3D maps.
-item_height:
-    height of the element (esp. for corridor, block, wall elements). WARNING:
-    it is "item_height", not "height" as height is already an official SVG
-    attribute for some elements (rectangles for instance).
-height_shift:
-    z shift of the element (esp. for corridor, block, wall elements, but also
-    wells and arrows). An element with a height shift will not begin on the
-    ground, but above or below as specified.
-depth_map: bool
-    the layer is a depth map. It should contain a level attribute to define the level it maps.
-alt_colors: str
-    color to be used in 3D maps. This is a string representing a JSON format dictionary. Keys are colorsets names, values are RGBA hex strings. The default colorset is "map_3d". Ex: {"map_3d": "#cccccc4c"}
-catrgory: str
-    the category string the element will be associated in the 3D views.
-    Categories can be displayed/hidden using buttons or menus in 3D views.
-border: bool
-'''
 
 class ItemProperties(object):
+    '''
+    XML item properties structure, used by
+    :class:`~catamap.map_to_meshes.CataSvgToMesh`. They represents properties
+    read from the XML file elements.
+
+    Properties match those documented in :class:`~catamap.map_to_meshes.xml_help`, except the ``height`` property which is named ``item_height`` in XML file elements (because ``height`` is already used in SVG).
+    '''
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'category', 'layer', 'well_read_mode')
-    '''
-    name:
-    label: mesh identifier
-    eid: SVG id
-    main_group: qualified mesh identifier
-        with level, public/private, accessible/inaccessible info
-    level: depth map level
-        surf (surface), sup (upper level), inf, tech, metro... the list is
-        mainly open if maps are defined in the SVG fle.
-    uper_level:
-        layer above this one, which elements are connected. For instance a
-        stair or well will connect 2 layers.
-    private: bool
-    inaccessible: bool
-
-    category: str
-        category the 3D representation will be visible in. The 3D viewer will
-        display checkboxes for categories which can be neabled or disabled.
-    '''
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -532,7 +651,12 @@ class ItemProperties(object):
 
 
 class DefaultItemProperties(object):
-    ''' Defaults and constant values '''
+    ''' Defaults and constant values.
+
+    This is mainly a remaining of the v1 of the software, where fewer things
+    were indicated in the SVG file, and the program was written originally for
+    a single map (GRS, Paris 14e) with hard-coded labels.
+    '''
 
     ground_level = 'surf'
     level = 'sup'

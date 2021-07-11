@@ -1,4 +1,14 @@
 
+'''
+svg_to_mesh module
+==================
+
+This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.
+
+svg_to_mesh module API
+----------------------
+'''
+
 from __future__ import print_function
 from __future__ import absolute_import
 

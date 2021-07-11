@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 
+'''
+Geoportail altitude maps module
+===============================
+
+Conversion tools for Geoportail altitude maps.
+
+We have shifted to BDalti, see :mod:`catamap.altitude.bdalti`.
+'''
+
 import urllib2
 import os
 

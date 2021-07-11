@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 
+'''
+
+BDAlti maps module
+==================
+
+Convertion tools for BDAlti maps (https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti) and their use in :mod:`catamap`.
+
+API
+---
+'''
+
 from __future__ import print_function
 
 import numpy as np
