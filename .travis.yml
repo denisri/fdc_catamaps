@@ -1,0 +1,31 @@
+os: linux
+language: python
+
+jobs:
+  include:
+    - os: linux
+      language: python
+      name: python 3.8
+      python: 3.8
+
+install:
+    - python --version
+    - pip install numpy 'six>=1.13' scipy Pillow
+    # for docs only
+    - if [[ "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then sudo apt-get install -y pandoc graphviz; pip install sphinx sphinx-gallery pandoc; fi
+    - python setup.py install
+    # build doc; set .nojekyll otherwise github.io doesn't copy dirs starting
+    # with '_' (such as '_static')
+    - if [[  "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then cd doc && python -m sphinx html && touch build/html/.nojekyll && cd ..; fi
+    - if [[ -n "$GITHUB_ACCESS_TOKEN" ]]; then export PUSH_DOC_TO_GH_PAGES=yes; fi
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  token: $GITHUB_ACCESS_TOKEN
+  target_branch: gh-pages
+  local_dir: doc/build/html
+  on:
+    branch: master
+    condition: $PUSH_DOC_TO_GH_PAGES == yes && $TRAVIS_OS_NAME == linux && $TRAVIS_PYTHON_VERSION == 3.8
+

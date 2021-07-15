@@ -5,6 +5,7 @@ Contains a set of python modules / program to produce catacombs maps using SVG s
 
 A web site sources is also provided in `catamap_web/`
 
+See more doc on: https://denisri.github.io/fdc_catamaps/
 
 The program allows to produce:
 
