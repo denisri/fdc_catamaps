@@ -1,0 +1,280 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>catamap.altitude.bdalti &#8212; CataMap 2.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CataMap 2.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for catamap.altitude.bdalti</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">BDAlti maps module</span>
+<span class="sd">==================</span>
+
+<span class="sd">Convertion tools for BDAlti maps (https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti) and their use in :mod:`catamap`.</span>
+
+<span class="sd">API</span>
+<span class="sd">---</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">soma</span> <span class="kn">import</span> <span class="n">aims</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">osp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span>
+
+
+<div class="viewcode-block" id="get_map_image"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.get_map_image">[docs]</a><span class="k">def</span> <span class="nf">get_map_image</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    get image at coords xi, yi in the map table. Lazy load and cache it.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># print(xi, yi)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">meta_map</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">][</span><span class="n">yi</span><span class="p">][</span><span class="n">xi</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">image</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;raw_images&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;load altitude map:&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span>
+    <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="get_z"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.get_z">[docs]</a><span class="k">def</span> <span class="nf">get_z</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">background_z</span><span class="o">=-</span><span class="mf">99999.00</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    get the altitude from (x, y) coords in Lambert93 coords</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">xpos</span> <span class="o">=</span> <span class="n">meta_map</span><span class="p">[</span><span class="s1">&#39;xllcorners&#39;</span><span class="p">]</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">xpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">meta_map</span><span class="p">[</span><span class="s1">&#39;cellsize&#39;</span><span class="p">]</span>
+    <span class="n">xi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x0</span> <span class="o">/</span> <span class="n">cs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">xi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xpos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">background_z</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">/</span> <span class="n">cs</span> <span class="o">-</span> <span class="n">xi</span>
+
+    <span class="n">ypos</span> <span class="o">=</span> <span class="n">meta_map</span><span class="p">[</span><span class="s1">&#39;yllcorners&#39;</span><span class="p">]</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">ypos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># cs = meta_map[&#39;cellsize&#39;]</span>
+    <span class="n">yi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y0</span> <span class="o">/</span> <span class="n">cs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">yi</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">yi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ypos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">background_z</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">/</span> <span class="n">cs</span> <span class="o">-</span> <span class="n">yi</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">get_map_image</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">background_z</span>
+
+    <span class="n">x2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x1</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">getSizeX</span><span class="p">())</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y1</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">getSizeY</span><span class="p">())</span>
+    <span class="c1"># print(&#39;  -&gt;&#39;, x2, y2)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">getSizeY</span><span class="p">()</span> <span class="o">-</span> <span class="n">y2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">z</span> <span class="o">==</span> <span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;NODATA_value&#39;</span><span class="p">]:</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">background_z</span>
+
+    <span class="k">return</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="convert_raw_map"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.convert_raw_map">[docs]</a><span class="k">def</span> <span class="nf">convert_raw_map</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">out_fname</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    convert one raw map from bdalti (.asc) to .ima format</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="n">types</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ncols&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;cellsize&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;xllcorner&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;yllcorner&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;NODATA_value&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[:</span><span class="mi">6</span><span class="p">]:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># print(metadata)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Volume</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ncols&#39;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;nrows&#39;</span><span class="p">])),</span>
+                        <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">6</span><span class="p">:]):</span>
+        <span class="n">array</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+
+    <span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">aims</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">out_fname</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="convert_raw_maps"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.convert_raw_maps">[docs]</a><span class="k">def</span> <span class="nf">convert_raw_maps</span><span class="p">(</span><span class="n">fnames</span><span class="p">,</span> <span class="n">out_fnames</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    convert all raw data files from bdalti (.asc) to .ima format</span>
+
+<span class="sd">    fnames:</span>
+<span class="sd">        input files pattern (used with glob.glob())</span>
+<span class="sd">    out_fnames:</span>
+<span class="sd">        output files pattern, should contain a &quot;%s&quot; pattern</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">fnames</span><span class="p">):</span>
+        <span class="n">bname</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">out_fname</span> <span class="o">=</span> <span class="n">out_fnames</span> <span class="o">%</span> <span class="n">bname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">convert_raw_map</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">out_fname</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="build_meta_table"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.build_meta_table">[docs]</a><span class="k">def</span> <span class="nf">build_meta_table</span><span class="p">(</span><span class="n">ima_fnames</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    build the metadata table from converted .ima files</span>
+
+<span class="sd">    ima_fnames: pattern with a &quot;%s&quot;, same as out_fnames in convert_raw_maps()</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">meta_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cellsize&#39;</span><span class="p">,</span> <span class="s1">&#39;xllcorner&#39;</span><span class="p">,</span> <span class="s1">&#39;yllcorner&#39;</span><span class="p">]</span>
+    <span class="n">pos_table</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">ima_fnames</span> <span class="o">%</span> <span class="s1">&#39;*&#39;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Finder</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">header</span><span class="p">()</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">meta_keys</span><span class="p">}</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">pos_table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">pos_table</span><span class="p">)</span>
+
+    <span class="n">xpos</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;xllcorner&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos_table</span><span class="p">]))</span>
+    <span class="n">ypos</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;yllcorner&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos_table</span><span class="p">]))</span>
+
+    <span class="n">meta_table</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xpos</span><span class="p">))]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ypos</span><span class="p">))]</span>
+
+    <span class="k">for</span> <span class="n">metadata</span> <span class="ow">in</span> <span class="n">pos_table</span><span class="p">:</span>
+        <span class="n">meta_table</span><span class="p">[</span><span class="n">ypos</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;yllcorner&#39;</span><span class="p">])]</span> \
+            <span class="p">[</span><span class="n">xpos</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;xllcorner&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">metadata</span>
+
+    <span class="n">meta_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="n">meta_table</span><span class="p">,</span>
+                <span class="s1">&#39;xllcorners&#39;</span><span class="p">:</span> <span class="n">xpos</span><span class="p">,</span>
+                <span class="s1">&#39;yllcorners&#39;</span><span class="p">:</span> <span class="n">ypos</span><span class="p">,</span>
+                <span class="s1">&#39;cellsize&#39;</span><span class="p">:</span> <span class="n">xpos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+
+    <span class="k">return</span> <span class="n">meta_map</span></div>
+
+
+<span class="c1"># ----</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">base</span> <span class="o">=</span> <span class="s1">&#39;/volatile/home/denis/catacombes/plans/14/plan_14_2017/altitude/BDALTIV2_2-0_75M_ASC_LAMB93-IGN69_FRANCE_2020-04-28/BDALTIV2&#39;</span>
+    <span class="n">fnames</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;1_DONNEES_LIVRAISON_2020-05-00201/BDALTIV2_MNT_75M_ASC_LAMB93_IGN69_FRANCE/*.asc&#39;</span><span class="p">)</span>
+    <span class="n">out_fnames</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;raw_images/</span><span class="si">%s</span><span class="s1">.ima&#39;</span><span class="p">)</span>
+    <span class="n">out_map</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;map.json&#39;</span><span class="p">)</span>
+
+    <span class="c1"># ---</span>
+
+    <span class="c1">#convert_raw_maps(fnames, out_fnames)</span>
+
+    <span class="c1"># ---</span>
+
+    <span class="c1">#meta_map = build_meta_table(out_fnames)</span>
+
+    <span class="c1">#with open(out_map, &#39;w&#39;) as f:</span>
+        <span class="c1">#json.dump(meta_map, f)</span>
+
+    <span class="c1"># ----</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_map</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">meta_map</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">648076.25</span><span class="p">,</span> <span class="mf">6858784.37</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">651831.92</span><span class="p">,</span> <span class="mf">6857938.91</span><span class="p">),</span>
+              <span class="p">(</span><span class="mf">652528.99</span><span class="p">,</span> <span class="mf">6861468.52</span><span class="p">)]</span>
+    <span class="n">ztest</span> <span class="o">=</span> <span class="p">[</span><span class="mf">58.24</span><span class="p">,</span> <span class="mf">59.8</span><span class="p">,</span> <span class="mf">26.97</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">zt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ztest</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">get_z</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s1">&#39;, z:&#39;</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="s1">&#39;, expected:&#39;</span><span class="p">,</span> <span class="n">zt</span><span class="p">,</span> <span class="s1">&#39;(D=</span><span class="si">%f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">zt</span><span class="p">))</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CataMap 2.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, FDC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>
