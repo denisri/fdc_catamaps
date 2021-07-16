@@ -237,9 +237,16 @@
 <span class="sd">    This propery can be set to paths, groups, and arrows (which will thus point</span>
 <span class="sd">    to a shifted location).</span>
 <span class="sd">**glabel:** str (**2D maps**)</span>
-<span class="sd">    &quot;group label&quot; used only in the legends layer prototypes. Such items which</span>
-<span class="sd">    match the ``label`` of elements in the rest of the maps will be used to</span>
-<span class="sd">    replace them in the cleaned 2D map.</span>
+<span class="sd">    &quot;group label&quot; used to replace elements with ones from the legends layer.</span>
+<span class="sd">    The ``glabel`` is associated to one legends element if the legends element</span>
+<span class="sd">    ``label`` property has the value of the ``glabel`` property of the element</span>
+<span class="sd">    plus the duffix ``_proto``. Ex, in the legends::</span>
+
+<span class="sd">        label: colim_proto</span>
+
+<span class="sd">    in the map elements::</span>
+
+<span class="sd">        glabel: colim</span>
 <span class="sd">**title:** bool (**3D maps**)</span>
 <span class="sd">    The title string(s) will be used and displayed in the web site title.</span>
 <span class="sd">**date:** str (**2D maps**)</span>
@@ -297,12 +304,17 @@
 <span class="sd">-------</span>
 
 <span class="sd">See the map: :download:`example map &lt;static/example_map.svg&gt;`</span>
-<span class="sd">The result in 2D is:</span>
+<span class="sd">The result in 2D is (left: original map, right: result):</span>
+
+<span class="sd">.. image:: static/example_map.png</span>
+<span class="sd">    :height: 400</span>
 
 <span class="sd">.. image:: static/example_map_imprimable.jpg</span>
-<span class="sd">    :height: 800</span>
+<span class="sd">    :height: 400</span>
 
 <span class="sd">In 3D: `here &lt;_static/example_3d/index.html&gt;`_</span>
+
+<span class="sd">See for instance how wells indications are enlarged in the &quot;printable&quot; 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.</span>
 
 
 <span class="sd">map_to_meshes module</span>

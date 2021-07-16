@@ -1,0 +1,25 @@
+# Wavefront OBJ
+
+mtllib junctions_sup_public_accessible_line.mtl
+
+o junctions_sup_public_accessible_line_0
+
+s 1
+
+usemtl junctions_sup_public_accessible_line_0
+
+v 77.2316 54.883 -10
+v 78.2492 55.1753 -10
+v 80.2357 56.4896 -10
+v 80.2509 57.3548 -10
+v 79.4149 57.3317 -10
+v 77.1772 55.8343 -10
+
+
+l 1//1 2//2
+l 2//2 3//3
+l 3//3 4//4
+l 4//4 5//5
+l 5//5 6//6
+l 6//6 1//1
+

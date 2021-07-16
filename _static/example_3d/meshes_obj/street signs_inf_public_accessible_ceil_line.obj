@@ -1,0 +1,19 @@
+# Wavefront OBJ
+
+mtllib street signs_inf_public_accessible_ceil_line.mtl
+
+o street signs_inf_public_accessible_ceil_line_0
+
+s 1
+
+usemtl street signs_inf_public_accessible_ceil_line_0
+
+v 62.2624 71.6011 -14
+v 63.7064 70.6308 -14
+v 83.7006 60.3996 -14
+v 82.6577 58.3937 -14
+
+
+l 1//1 2//2
+l 3//3 4//4
+
