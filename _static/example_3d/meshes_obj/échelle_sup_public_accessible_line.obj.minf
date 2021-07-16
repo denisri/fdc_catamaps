@@ -1,0 +1,9 @@
+attributes = {
+    'data_type' : 'VOID',
+    'file_type' : 'WAVEFRONT',
+    'material' : {
+        'diffuse' : [ 1, 1, 1, 0.501961 ]
+      },
+    'object_type' : 'Segments',
+    'vertex_number' : 11
+  }

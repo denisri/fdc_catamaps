@@ -1,0 +1,5 @@
+attributes = {
+    'data_type' : 'VOID',
+    'file_type' : 'WAVEFRONT',
+    'object_type' : 'Segments'
+  }

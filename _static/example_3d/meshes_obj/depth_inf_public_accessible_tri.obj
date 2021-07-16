@@ -1,0 +1,23 @@
+# Wavefront OBJ
+
+mtllib depth_inf_public_accessible_tri.mtl
+
+o depth_inf_public_accessible_tri_0
+
+s 1
+
+usemtl depth_inf_public_accessible_tri_0
+
+v 200.228 14.7926 -15
+v 11.244 14.6981 -15
+v 12.2834 287.408 -15
+v 200.043 286.369 -15
+
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+
+f 1//1 4//4 2//2
+f 4//4 3//3 2//2
+
