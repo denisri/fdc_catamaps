@@ -5,5 +5,6 @@ attributes = {
         'diffuse' : [ 1, 0.6, 0, 1 ],
         'face_culling' : 0
       },
-    'object_type' : 'Mesh'
+    'object_type' : 'Mesh',
+    'vertex_number' : 1418
   }

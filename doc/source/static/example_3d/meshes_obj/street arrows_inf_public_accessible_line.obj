@@ -1,0 +1,19 @@
+# Wavefront OBJ
+
+mtllib street arrows_inf_public_accessible_line.mtl
+
+o street arrows_inf_public_accessible_line_0
+
+s 1
+
+usemtl street arrows_inf_public_accessible_line_0
+
+v 58.0873 48.2522 2
+v 80.671 58.7935 -14.5
+v 92.9057 55.4632 2
+v 66.6589 70.0078 -14.5
+
+
+l 1//1 2//2
+l 3//3 4//4
+

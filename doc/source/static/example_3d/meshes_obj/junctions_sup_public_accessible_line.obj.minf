@@ -1,0 +1,8 @@
+attributes = {
+    'data_type' : 'VOID',
+    'file_type' : 'WAVEFRONT',
+    'material' : {
+        'diffuse' : [ 0.874509803921569, 0.549019607843137, 0.125490196078431, 0.67692298 ]
+      },
+    'object_type' : 'Segments'
+  }

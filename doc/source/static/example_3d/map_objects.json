@@ -1,5 +1,5 @@
 {
-    "version": 559,
+    "version": 571,
     "title": [
         "EXAMPLE MAP"
     ],
@@ -15,7 +15,8 @@
         "Remblai",
         "Calcaire",
         "Légende",
-        "Surface"
+        "Surface",
+        "other"
     ],
     "default_categories": [
         "Couloirs",
@@ -24,86 +25,208 @@
     "meshes": [
         [
             0,
+            "catflaps_sup_public_accessible_0_tri",
+            11790,
+            "bd84df1001c1f2b50fe8f0eee2cdf66b"
+        ],
+        [
+            0,
+            "catflaps_sup_public_accessible_1_tri",
+            13132,
+            "928aa933a9bd9df928e98ed13ce9730e"
+        ],
+        [
+            0,
             "colim_sup_public_accessible_tri",
-            35644,
-            "fbf689574ed16a304dc88a3e0dd5858e"
+            70107,
+            "1e9b86eb60cffc2e98c64f9196165542"
         ],
         [
             0,
             "corridors_inf_public_accessible_ceil_line",
-            1089,
-            "9dc26123c4ba157381bb25a6b6173f67"
+            3692,
+            "75e478b68bcee282e3e240ba803665ba"
         ],
         [
             0,
             "corridors_inf_public_accessible_floor_tri",
-            1852,
-            "c4072897170d8350f37dbabbd2ce8d21"
+            6786,
+            "291cade38ca7639bc9da825b476da9e3"
         ],
         [
             0,
             "corridors_inf_public_accessible_line",
-            1074,
-            "f559c206ae8d3f028260d0e4d8573af7"
+            3677,
+            "7d7f0406e6dd1c22b806af81c448ca3e"
         ],
         [
             0,
             "corridors_inf_public_accessible_wall_tri",
-            3558,
-            "666be3354f225385076091740f0094c8"
+            13578,
+            "a321e8e3c25748bfc0689e89fa9185ea"
         ],
         [
             0,
             "corridors_sup_public_accessible_ceil_line",
-            949,
-            "4f391217ef973a258104e3edef34e0e2"
+            6751,
+            "e1d3bbfea7c9138e94f4897ba89d84b6"
         ],
         [
             0,
             "corridors_sup_public_accessible_floor_tri",
-            1675,
-            "8282d8772fd7327e0457ee669a25a058"
+            11879,
+            "b983c7d067fc1b4f5fba4e99403ba30b"
         ],
         [
             0,
             "corridors_sup_public_accessible_line",
-            956,
-            "739d9b61f5a7df3410834fb9bea2d1a1"
+            6416,
+            "4b9fb6b1ddc51dd9ca7a1614ff1f9604"
         ],
         [
             0,
             "corridors_sup_public_accessible_wall_tri",
-            3120,
-            "56baae2e1c360f53d514823e2fbcd004"
+            23745,
+            "c5d023e763d6fb0c1cd167ac34135da6"
         ],
         [
             0,
-            "depth sup_sup_public_accessible_tri",
-            317,
-            "c313accbd9420f0c7f327e651b258c99"
+            "junctions_sup_public_accessible_line",
+            366,
+            "82185b318d91a90065ea6706188cc0a7"
         ],
         [
             0,
-            "depth_inf_public_accessible_tri",
-            305,
-            "ed491dc8dbef51e09d3b7e45fb2245db"
+            "masonry_inf_public_accessible_ceil_line",
+            1189,
+            "c5576d5c833991565d7d8a7b13f907ad"
+        ],
+        [
+            0,
+            "masonry_inf_public_accessible_ceil_tri",
+            1328,
+            "b89b2a01645f92f6cc7a95359c6e7d02"
+        ],
+        [
+            0,
+            "masonry_inf_public_accessible_line",
+            1174,
+            "9e256829fa457b834a953bed81d6f08e"
+        ],
+        [
+            0,
+            "masonry_inf_public_accessible_wall_tri",
+            3956,
+            "0873f500437e85eecfe11488c3183bb7"
+        ],
+        [
+            0,
+            "masonry_sup_public_accessible_ceil_line",
+            1247,
+            "c62dbc98267895eaf9249a6d415db08e"
+        ],
+        [
+            0,
+            "masonry_sup_public_accessible_ceil_tri",
+            1382,
+            "aeed08d67aa64d8bd1270ef360ed86ab"
+        ],
+        [
+            0,
+            "masonry_sup_public_accessible_line",
+            1176,
+            "6812539e144cb16c84d1cdd70de0d158"
+        ],
+        [
+            0,
+            "masonry_sup_public_accessible_wall_tri",
+            4005,
+            "0513ffd535bbed34b55b5ccb00064549"
         ],
         [
             0,
             "échelle_inf_public_accessible_tri",
             21895,
-            "a6ef129d92c470173b827397e16ba5f9"
+            "8ab16da6528639b1477acb6f7962bdfe"
+        ],
+        [
+            2,
+            "room arrows_sup_public_accessible_line",
+            332,
+            "14906451cbf499f457bc65bd29581894"
+        ],
+        [
+            2,
+            "street arrows_inf_public_accessible_line",
+            286,
+            "de09ead247fa0a412b3f9ba2fddf558d"
+        ],
+        [
+            2,
+            "street arrows_sup_public_accessible_line",
+            798,
+            "447d54480996fa362ac9388992e36042"
+        ],
+        [
+            2,
+            "street signs_inf_public_accessible_ceil_line",
+            299,
+            "a5df91b8d6950d3d820c3f14b6d9f5f9"
+        ],
+        [
+            2,
+            "street signs_inf_public_accessible_line",
+            292,
+            "0f49fd47183050e5e55e701597ab2074"
+        ],
+        [
+            2,
+            "street signs_inf_public_accessible_wall_tri",
+            632,
+            "1fba9e61fc507fe91d4eec58d663928a"
+        ],
+        [
+            2,
+            "street signs_sup_public_accessible_ceil_line",
+            804,
+            "4192ae037e5855fd7bac14daf0d3a8f5"
+        ],
+        [
+            2,
+            "street signs_sup_public_accessible_line",
+            833,
+            "f52f08e60a36bb5b9123498d7a90c4f0"
+        ],
+        [
+            2,
+            "street signs_sup_public_accessible_wall_tri",
+            2362,
+            "4a2e81f2cb42529cc24c378318beb140"
         ],
         [
             9,
             "grille surface_line",
             50,
             "443b8331548112a05d7712acf6e175e0"
+        ],
+        [
+            10,
+            "depth sup_sup_public_accessible_tri",
+            315,
+            "a35ceb9ef56b8a4fc1d052e5e65e1827"
+        ],
+        [
+            10,
+            "depth_inf_public_accessible_tri",
+            305,
+            "14b081b27c7312545405eed9e2bd7cc0"
         ]
     ],
     "meshes_private": [],
     "text_fnames": [
         "colim_sup_public_accessible.aobj",
+        "rooms_sup_public_accessible_text.aobj",
+        "streets_sup_public_accessible_text.aobj",
         "title_sup_public_accessible_text.aobj",
         "échelle_inf_public_accessible.aobj"
     ],
@@ -112,20 +235,32 @@
         [
             0,
             "colim_sup_public_accessible.aobj",
-            73,
-            "8f8a117e19f41965d82d4c60e44b3457"
+            144,
+            "edfa6470b2f3751f0aff5a6b8bba4a45"
+        ],
+        [
+            0,
+            "rooms_sup_public_accessible_text.aobj",
+            1462,
+            "2a6303d026e93957259d8c6b0b8ea7dd"
+        ],
+        [
+            0,
+            "streets_sup_public_accessible_text.aobj",
+            5303,
+            "01cce926e725976bffedb3c8b2fed0de"
         ],
         [
             0,
             "title_sup_public_accessible_text.aobj",
-            506,
-            "bfb97826f54c6242865a7a41881b08f2"
+            516,
+            "122428a44da6bfd8e2582b1168c749b5"
         ],
         [
             0,
             "échelle_inf_public_accessible.aobj",
-            74,
-            "9dd9b61ad66751c812f347e14615c4dc"
+            72,
+            "db70a8bd391d0f55b36764623dcfa097"
         ]
     ],
     "texts_private": []

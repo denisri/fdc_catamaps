@@ -190,9 +190,16 @@ Properties list
     This propery can be set to paths, groups, and arrows (which will thus point
     to a shifted location).
 **glabel:** str (**2D maps**)
-    "group label" used only in the legends layer prototypes. Such items which
-    match the ``label`` of elements in the rest of the maps will be used to
-    replace them in the cleaned 2D map.
+    "group label" used to replace elements with ones from the legends layer.
+    The ``glabel`` is associated to one legends element if the legends element
+    ``label`` property has the value of the ``glabel`` property of the element
+    plus the duffix ``_proto``. Ex, in the legends::
+
+        label: colim_proto
+
+    in the map elements::
+
+        glabel: colim
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
 **date:** str (**2D maps**)
@@ -250,12 +257,17 @@ Example
 -------
 
 See the map: :download:`example map <static/example_map.svg>`
-The result in 2D is:
+The result in 2D is (left: original map, right: result):
+
+.. image:: static/example_map.png
+    :height: 400
 
 .. image:: static/example_map_imprimable.jpg
-    :height: 800
+    :height: 400
 
 In 3D: `here <_static/example_3d/index.html>`_
+
+See for instance how wells indications are enlarged in the "printable" 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.
 
 
 map_to_meshes module

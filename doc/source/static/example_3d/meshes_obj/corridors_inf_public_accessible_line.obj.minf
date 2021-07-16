@@ -2,7 +2,7 @@ attributes = {
     'data_type' : 'VOID',
     'file_type' : 'WAVEFRONT',
     'material' : {
-        'diffuse' : [ 1, 0.314814814814815, 0.373456790123457, 1 ],
+        'diffuse' : [ 1, 0.365853658536585, 0.365853658536585, 1 ],
         'face_culling' : 0
       },
     'object_type' : 'Segments'
