@@ -246,6 +246,17 @@ Altitude maps can be retreived from BDAlti: https://geoservices.ign.fr/documenta
 Then maps have to be converted using tools in :mod:`catamap.altitude.bdalti`.
 The ``altitude`` directory should be located in the same directory as the SVG map file.
 
+Example
+-------
+
+See the map: :download:`example map <static/example_map.svg>`
+The result in 2D is:
+
+.. image:: static/example_map_imprimable.jpg
+    :height: 800
+
+In 3D: `here <_static/example_3d/index.html>`_
+
 
 map_to_meshes module
 ====================
