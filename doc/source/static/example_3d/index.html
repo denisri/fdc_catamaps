@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>GRS 14 2021</title>
+        <style>
+            body {
+                margin: 0;
+                background: #000;
+                text-align: center;
+                color: #fff;
+                overflow-y: hidden;
+                touch-action: none;
+/*                 font-size: 20px; */
+            }
+            canvas {
+              width: 100%;
+              height: 100%;
+              z-index: 2;
+              top: 300px;
+            }
+            .right_col {
+                align-content: right;
+                align-items: right;
+                position: absolute;
+                font-size: 18px;
+            }
+            .button_bar {
+                width: 100%;
+                align-content: right;
+                position: absolute;
+                top: 0%;
+                right: 0%;
+                background: #60606080;
+            }
+            fieldset {
+                border: 1px solid #888;
+                align-content: left;
+                text-align: left;
+                width: 25%;
+/*                 display: inline-block; */
+                float: right;
+                right: 0%;
+                z-index: 10;
+            }
+            .mesh_button {
+                background: #50505080;
+                border: 1px;
+                border-color: #80808080;
+                color: #d0d0d0;
+                width: 100%;
+                z-index: 10;
+                font-size: 18px;
+            }
+            .mesh_checkbox {
+                background: #50505080;
+                border: 1px;
+                border-color: #80808080;
+                color: #d0d0d0;
+                z-index: 10;
+            }
+            .top_row {
+                position: absolute;
+                top: 0%;
+                width: 100%;
+                text-align: center;
+                color: #a0a0a0;
+                z-index: 10;
+            }
+            .bottom_row {
+                position: absolute;
+/*                 top: 90%; */
+                bottom: 0%;
+                width: 100%;
+                text-align: center;
+                color: #a0a0a0;
+                z-index: 0;
+            }
+            .help {
+                display: none;
+                z-index: 3;
+                position: absolute;
+                top: 20%;
+                left: 20%;
+            }
+            .control_help {
+                text-align: left;
+            }
+            #debug_win {
+                position: absolute;
+                top: 20%;
+                left: 20%;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+
+
+      <div class="top_row">
+        <h1 id="title_0">GRAND RÉSEAU SUD</h1>
+        <h3 id="title_1">LE FOND DU CREW 2021</h3>
+        <h3 id="title_2"></h3>
+      </div>
+
+      <div class="button_bar">
+        <fieldset id="mesh_fields" class="right_col">
+          <legend>Charger/voir:</legend>
+          <div id="mesh_buttons">
+            <button id="all" class="mesh_button">Tous</button><br/>
+            <input type="checkbox" id="main_corridors" class="mesh_checkbox">
+            <label>Couloirs ppaux</label></input><br/>
+            <input type="checkbox" id="oss_off" class="mesh_checkbox">
+            <label>Ossuaire officiel</label></input><br/>
+            <input type="checkbox" id="unreachable" class="mesh_checkbox">
+            <label>Inaccessibles</label></input><br/>
+            <input type="checkbox" id="text" class="mesh_checkbox">
+            <label>Textes</label></input><br/>
+            <input type="checkbox" id="parcels" class="mesh_checkbox">
+            <label>Parcelles</label></input><br/>
+            <input type="checkbox" id="gtech" class="mesh_checkbox">
+            <label>G. techniques</label></input><br/>
+            <input type="checkbox" id="backfill" class="mesh_checkbox">
+            <label>Remblai</label></input><br/>
+            <input type="checkbox" id="limestone" class="mesh_checkbox">
+            <label>Calcaire</label></input><br/>
+            <input type="checkbox" id="ground" class="mesh_checkbox">
+            <label>Surface</label></input><br/>
+            <br/>
+            <input type="checkbox" id="map_mode" class="mesh_checkbox">
+              <label>Mode 2D</label></input><br/>
+            <button id="help" class="mesh_button">Aide</button>
+          </div>
+        </fieldset>
+      </div>
+
+        <script>
+
+    function sha1 (str) {
+      //  discuss at: https://locutus.io/php/sha1/
+      // original by: Webtoolkit.info (https://www.webtoolkit.info/)
+      // improved by: Michael White (https://getsprink.com)
+      // improved by: Kevin van Zonneveld (https://kvz.io)
+      //    input by: Brett Zamir (https://brett-zamir.me)
+      //      note 1: Keep in mind that in accordance with PHP, the whole string is buffered and then
+      //      note 1: hashed. If available, we'd recommend using Node's native crypto modules directly
+      //      note 1: in a steaming fashion for faster and more efficient hashing
+      //   example 1: sha1('Kevin van Zonneveld')
+      //   returns 1: '54916d2e62f65b3afa6e192e6a601cdbe5cb5897'
+      let hash
+      try {
+        const crypto = require('crypto')
+        const sha1sum = crypto.createHash('sha1')
+        sha1sum.update(str)
+        hash = sha1sum.digest('hex')
+      } catch (e) {
+        hash = undefined
+      }
+      if (hash !== undefined) {
+        return hash
+      }
+      const _rotLeft = function (n, s) {
+        const t4 = (n << s) | (n >>> (32 - s))
+        return t4
+      }
+      const _cvtHex = function (val) {
+        let str = ''
+        let i
+        let v
+        for (i = 7; i >= 0; i--) {
+          v = (val >>> (i * 4)) & 0x0f
+          str += v.toString(16)
+        }
+        return str
+      }
+      let blockstart
+      let i, j
+      const W = new Array(80)
+      let H0 = 0x67452301
+      let H1 = 0xEFCDAB89
+      let H2 = 0x98BADCFE
+      let H3 = 0x10325476
+      let H4 = 0xC3D2E1F0
+      let A, B, C, D, E
+      let temp
+      // utf8_encode
+      str = unescape(encodeURIComponent(str))
+      const strLen = str.length
+      const wordArray = []
+      for (i = 0; i < strLen - 3; i += 4) {
+        j = str.charCodeAt(i) << 24 |
+          str.charCodeAt(i + 1) << 16 |
+          str.charCodeAt(i + 2) << 8 |
+          str.charCodeAt(i + 3)
+        wordArray.push(j)
+      }
+      switch (strLen % 4) {
+        case 0:
+          i = 0x080000000
+          break
+        case 1:
+          i = str.charCodeAt(strLen - 1) << 24 | 0x0800000
+          break
+        case 2:
+          i = str.charCodeAt(strLen - 2) << 24 | str.charCodeAt(strLen - 1) << 16 | 0x08000
+          break
+        case 3:
+          i = str.charCodeAt(strLen - 3) << 24 |
+            str.charCodeAt(strLen - 2) << 16 |
+            str.charCodeAt(strLen - 1) <<
+          8 | 0x80
+          break
+      }
+      wordArray.push(i)
+      while ((wordArray.length % 16) !== 14) {
+        wordArray.push(0)
+      }
+      wordArray.push(strLen >>> 29)
+      wordArray.push((strLen << 3) & 0x0ffffffff)
+      for (blockstart = 0; blockstart < wordArray.length; blockstart += 16) {
+        for (i = 0; i < 16; i++) {
+          W[i] = wordArray[blockstart + i]
+        }
+        for (i = 16; i <= 79; i++) {
+          W[i] = _rotLeft(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1)
+        }
+        A = H0
+        B = H1
+        C = H2
+        D = H3
+        E = H4
+        for (i = 0; i <= 19; i++) {
+          temp = (_rotLeft(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff
+          E = D
+          D = C
+          C = _rotLeft(B, 30)
+          B = A
+          A = temp
+        }
+        for (i = 20; i <= 39; i++) {
+          temp = (_rotLeft(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff
+          E = D
+          D = C
+          C = _rotLeft(B, 30)
+          B = A
+          A = temp
+        }
+        for (i = 40; i <= 59; i++) {
+          temp = (_rotLeft(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff
+          E = D
+          D = C
+          C = _rotLeft(B, 30)
+          B = A
+          A = temp
+        }
+        for (i = 60; i <= 79; i++) {
+          temp = (_rotLeft(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff
+          E = D
+          D = C
+          C = _rotLeft(B, 30)
+          B = A
+          A = temp
+        }
+        H0 = (H0 + A) & 0x0ffffffff
+        H1 = (H1 + B) & 0x0ffffffff
+        H2 = (H2 + C) & 0x0ffffffff
+        H3 = (H3 + D) & 0x0ffffffff
+        H4 = (H4 + E) & 0x0ffffffff
+      }
+      temp = _cvtHex(H0) + _cvtHex(H1) + _cvtHex(H2) + _cvtHex(H3) + _cvtHex(H4)
+      return temp.toLowerCase()
+    }
+
+
+
+    function all_clicked(event)
+    {
+        console.debug('ALL clicked.');
+
+        var i = 0;
+
+        for( i=0; i!=mesh_buttons.length; i++ )
+            document.getElementById( mesh_buttons[i] ).checked = true;
+        for( i=0; i!=mesh_buttons.length; i++ )
+            btn_func[i]( document.getElementById( mesh_buttons[i] ) );
+    }
+
+    function main_corridors_changed(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('main_corridors:', display);
+        if( display )
+            load_meshes( 0 );
+        else
+            unload_meshes( 0 );
+    }
+
+    function unreachable_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('unreachable clicked.', display);
+        if( display )
+            load_meshes( 1 );
+        else
+            unload_meshes( 1 );
+    }
+
+    function text_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('text clicked.', display);
+        if( display )
+            load_meshes( 2 );
+        else
+            unload_meshes( 2 );
+    }
+
+    function parcels_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('parcels clicked.', display);
+        if( display )
+            load_meshes( 3 );
+        else
+            unload_meshes( 3 );
+    }
+
+    function oss_off_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('oss_off clicked.', display);
+        if( display )
+            load_meshes( 4 );
+        else
+            unload_meshes( 4 );
+    }
+
+    function gtech_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('gtech clicked.', display);
+        if( display )
+            load_meshes( 5 );
+        else
+            unload_meshes( 5 );
+    }
+
+    function backfill_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('lbackfill clicked.', display);
+        if( display )
+            load_meshes( 6 );
+        else
+            unload_meshes( 6 );
+    }
+
+    function limestone_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('limestone clicked.', display);
+        if( display )
+            load_meshes( 7 );
+        else
+            unload_meshes( 7 );
+    }
+
+    function ground_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('ground clicked.', display);
+        if( display )
+            load_meshes( 9 );
+        else
+            unload_meshes( 9 );
+    }
+
+    function map_mode_clicked(event)
+    {
+        var display = this.checked;
+        if( display == undefined )
+            display = event.checked;
+        console.debug('map_mode clicked.', display);
+        controls.mode_2d = display;
+        if( display )
+            set_map_2d_mode();
+    }
+
+    function set_font_sizes()
+    {
+        if( window.innerWidth > 700 )
+        {
+            var font_size = Math.round( window.innerWidth * 0.01 );
+            document.getElementById( 'mesh_fields' ).style['font-size']
+                = '2.5vw';
+//                 = font_size + 'px';
+            document.getElementById( 'all' ).style['font-size']
+                = '2.5vw';
+//                 = font_size + 'px';
+            document.getElementById( 'help' ).style['font-size']
+                = '2.5vw';
+//                 = font_size + 'px';
+        }
+    }
+
+    function query_string( url )
+    {
+      var q_url = url.split('?');
+      if( q_url.length < 2 )
+        return {};
+      q_url = q_url[1];
+      var qArr = q_url.split('&')
+          ,qObj = {}
+          ,i =-1;
+      while(++i<qArr.length) {
+              qfrag = qArr[i].split('=');
+              qObj[qfrag[0]] = qfrag[1];
+      }
+      return qObj;
+    }
+
+
+    var query = query_string( document.URL );
+
+    set_font_sizes();
+
+    var mesh_buttons = ['main_corridors', 'oss_off', 'unreachable', 'text',
+                        'parcels', 'gtech', 'backfill', 'limestone', 'ground',
+                        'map_mode'];
+    var btn_func = [main_corridors_changed, oss_off_clicked,
+                    unreachable_clicked, text_clicked, parcels_clicked,
+                    gtech_clicked, backfill_clicked, limestone_clicked,
+                    ground_clicked, map_mode_clicked];
+    var mouse;
+    var rayCaster;
+    var listener;
+    var current_sound;
+
+    document.getElementById( 'all' ).addEventListener( 'click', all_clicked );
+
+    for( i=0; i!=mesh_buttons.length; i++ )
+    {
+        var btn = document.getElementById( mesh_buttons[i] );
+        btn.addEventListener( 'click', btn_func[i] );
+        btn.checked = false;
+    }
+
+    document.getElementById( 'main_corridors' ).checked = true;
+    document.getElementById( 'oss_off' ).checked = true;
+
+        </script>
+
+
+
+        <script src="three.js"></script>
+        <script src="OBJLoader.js"></script>
+        <script src="MTLLoader.js"></script>
+        <script src="OrbitControls2.js"></script>
+        <script src="jquery.js"></script>
+
+        <script>
+
+    // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
+    function fillTextMultiLine(ctx, text, x, y, hratio) {
+      var lineHeight = ctx.measureText("M").width * hratio;
+      var lines = text.split("\n");
+      for (var i = 0; i < lines.length; ++i) {
+        ctx.fillText(lines[i], x, y);
+        y += lineHeight;
+      }
+    }
+
+    function strokeTextMultiLine(ctx, text, x, y, hratio) {
+      var lineHeight = ctx.measureText("M").width * hratio;
+      var lines = text.split("\n");
+      for (var i = 0; i < lines.length; ++i) {
+        ctx.strokeText(lines[i], x, y);
+        y += lineHeight;
+      }
+    }
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    // SOUND
+    listener = new THREE.AudioListener();
+    camera.add( listener );
+    current_sound = new THREE.Audio( listener );
+
+//     var light = new THREE.AmbientLight(0xffffff);
+    var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
+    light.position.z = 1;
+    light.target.z = 0;
+    scene.add( light );
+    scene.add( camera );
+
+    var light2 = new THREE.AmbientLight( 0xffffff, 0.3 );
+    scene.add( light2 );
+
+    var controls = new THREE.OrbitControls( scene, camera );
+
+//     camera.position.x = -450;
+    camera.position.x = -600;
+    camera.position.y = 600;
+    camera.position.z = 200;
+    var q0 = new THREE.Quaternion( 1, 0, 1, 0 );
+    q0.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), Math.PI );
+    camera.quaternion.multiply( q0 );
+    q0.setFromAxisAngle( new THREE.Vector3( 1, 0, 0 ), Math.PI / 4 );
+    camera.quaternion.multiply( q0 );
+
+    controls.update();
+    var compass = new THREE.Group();
+    var wratio = window.innerWidth / window.innerHeight;
+    compass.position.x = -20.;
+    compass.position.x *= wratio;
+    compass.position.y = -20.;
+    compass.position.z = -30;
+    compass.scale.copy( new THREE.Vector3( 0.2, 0.2, 0.2 ) );
+    camera.add( compass );
+//     compass.scale.x = 10.;
+//     compass.scale.y = 10.;
+//     compass.scale.z = 10.;
+//     scene.add( compass );
+
+    function read_compass( url, filenames )
+    {
+        var i = 0;
+        var ext = '.obj';
+
+        for( i=0; i<filenames.length; i++ )
+        {
+            var fname = url + '/' + filenames[i] + '.mtl';
+            // console.log('read_compass:', fname);
+
+            var mtl_loader = new THREE.MTLLoader();
+            mtl_loader.load(
+                // resource URL
+                fname,
+                // called when resource is loaded
+                function ( materials )
+                {
+                    materials.preload();
+
+                    var objLoader = new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    var mlist = [];
+                    for( m in materials.materials )
+                    {
+                        mlist.push( m.substr( 0, m.length - 2 ) );
+                        if( m == 'sphere_0' )
+                        {
+                            materials.materials[m].opacity = 0.5;
+                            materials.materials[m].transparent = true;
+                        }
+                    }
+
+                    var fname = url + '/' + mlist[0] + ext;
+                    // console.log('subload:', fname);
+                    objLoader.load( fname,
+                        function (object)
+                        {
+                            object.traverse( function ( child )
+                            {
+//                                 if ( child instanceof THREE.Mesh )
+//                                 {
+//                                     child.material.side = THREE.DoubleSide;
+//                                 }
+                                if ( child instanceof THREE.LineSegments )
+                                {
+                                    child.material.lights = false;
+                                }
+                            } );
+
+                            object.scale.set( -1., 1., 1. );
+
+                            compass.add(object);
+                            render();
+
+                        },
+                        // called when loading is in progresses
+                        function ( xhr ) {
+
+//                             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                        },
+                        // called when loading has errors
+                        function ( error ) {
+
+                                console.log( 'An error happened:', this.url, error );
+
+                        });
+
+
+                },
+                // called when loading is in progresses
+                function ( xhr ) {
+
+//                         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                },
+                // called when loading has errors
+                function ( error ) {
+                        console.log( 'An error happened:', this.url, error );
+                }
+            );
+        }
+    }
+
+    read_compass( 'compass', ['sphere', 'north', 'sew', 'up', 'down',
+        'semi', 'belt', 'wbelt'] );
+
+    // load all objects list (meshes, texts, sounds)
+    var map_objects;
+    var obj_res = $.ajax({
+      url: 'map_objects.json',
+      async: false,
+      dataType: 'json',
+      success: function( json )
+      {
+        map_objects = json;
+      }
+    })
+    console.log('map_objects:', map_objects)
+    // console.log( 'map_objects:', map_objects );
+    var allow_private = false;
+    var filenames = map_objects.meshes;
+    var texts = map_objects.texts;
+    var sounds = map_objects.sounds;
+    var categories = map_objects.categories;
+    var private_code = map_objects['code'];
+    if( private_code == null )
+      private_code = '776f707e19f39e6b830856a6cdf3aa605a5a283e'
+
+    if( sha1(query['code']) == private_code )
+    {
+      console.log('ALLOW PRIVATE MODE');
+      allow_private = true;
+    }
+    if( allow_private )
+    {
+      filenames = filenames.concat( map_objects.meshes_private );
+      texts = texts.concat( map_objects.texts_private );
+    }
+
+    var meshes = {};
+
+    var url = 'meshes_obj/';
+    /* code:
+        0: main_corridors
+        1: unreachable
+        2: text
+        3: parcels
+        4: oss_off
+        5: tech
+        6: legend
+    */
+
+    function load_meshes( category )
+    {
+
+        console.debug('load meshes category', category );
+        if( meshes[category] == null )
+            meshes[category] = {};
+
+        var mesh_cat = meshes[category];
+        var i = 0;
+
+        for( i=0; i<filenames.length; i++ )
+        {
+            var cat = filenames[i][0];
+            if( cat != category )
+                continue; // wrong group
+
+            var fname = url + filenames[i][1] + '.mtl';
+            var mname = url + filenames[i][1] + '.obj';
+            // console.debug('fname:', fname);
+
+            if( mesh_cat[mname] == null )
+                mesh_cat[mname] = [0, null]; // not loaded
+
+            if( mesh_cat[mname][0] == 2 )
+            {
+                scene.add( mesh_cat[mname][1] ); // loaded: add it in scene
+                // console.log('display object', mname);
+            }
+            if( mesh_cat[mname][0] != 0 )
+                continue; // loaded or loading: don't do it again
+
+            var mtl_loader = new THREE.MTLLoader();
+            mesh_cat[mname] = [1, null]; // loading
+            mtl_loader.load(
+                // resource URL
+                fname,
+                // called when resource is loaded
+                function ( materials )
+                {
+                    materials.preload();
+
+                    var objLoader = new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    var mlist = [];
+                    for( m in materials.materials )
+                    {
+                      mlist.push( m.substr( 0, m.length - 2 ) );
+                    }
+
+                    var fname = url + mlist[0] + '.obj';
+                    objLoader.load( fname,
+                        function (object)
+                        {
+                            mesh_cat[fname] = [2, object]; // loaded
+                            object.traverse( function ( child )
+                            {
+                                if ( child instanceof THREE.Mesh )
+                                {
+                                    child.material.side = THREE.DoubleSide;
+                                }
+                                if ( child instanceof THREE.LineSegments )
+                                {
+                                    child.material.lights = false;
+                                }
+                            } );
+
+                            object.scale.set( -1., 1., 1. );
+
+                            // console.log('display object', fname);
+                            scene.add(object);
+                            render();
+
+                        },
+                        // called when loading is in progress
+                        function ( xhr ) {
+
+//                             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                        },
+                        // called when loading has errors
+                        function ( error ) {
+
+                                console.log( 'An error happened:', this.url,
+                                             ':', error );
+
+                        });
+
+
+                },
+                // called when loading is in progresses
+                function ( xhr ) {
+
+//                         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                },
+                // called when loading has errors
+                function ( error ) {
+                        console.log( 'An error happened:', this.url );
+                        delete mesh_cat[fname];
+                }
+            );
+        }
+
+        function nextPow2( aSize ){
+          return Math.pow( 2, Math.ceil( Math.log( aSize ) / Math.log( 2 ) ) );
+        }
+
+        if( category == 2 ) // texts
+        {
+            for( i=0; i<texts.length; i++ )
+            {
+
+                var fname = url + texts[i][1];
+
+                if( mesh_cat[fname] == null )
+                    mesh_cat[fname] = [0, null]; // not loaded
+
+                if( mesh_cat[fname][0] == 2 )
+                    scene.add( mesh_cat[fname][1] ); // loaded: add it in scene
+                if( mesh_cat[fname][0] != 0 )
+                    continue; // loaded or loading: don't do it again
+
+//                 console.log('fname', i, ':', fname);
+                text_json = $.getJSON(fname,
+                    function(json)
+                    {
+                      var tobjs = json.objects;
+                      var group = new THREE.Group();
+
+                      for( i in tobjs )
+                      {
+                        var trobj = tobjs[i];
+                        var pos = trobj.properties.position;
+                        var tobj = trobj.objects[0];
+                        var scale = tobj.properties.scale;
+                        var fsize = tobj.properties.font_size;
+                        var ffamily = tobj.properties.font_family;
+                        var material = tobj.properties.material;
+                        var fillcol = 'white';
+                        if( material != null )
+                        {
+                            var col = material.diffuse;
+                            if( col != null )
+                            {
+//                                 // make texts ligher
+//                                 col[0] = Math.round( (1. - (1. - col[0]) / 2.)
+//                                                      * 255. );
+//                                 col[1] = Math.round( (1. - (1. - col[1]) / 2.)
+//                                                      * 255. );
+//                                 col[2] = Math.round( (1. - (1. - col[2]) / 2.)
+//                                                      * 255. );
+                                col[0] = Math.round( col[0] * 255. );
+                                col[1] = Math.round( col[1] * 255. );
+                                col[2] = Math.round( col[2] * 255. );
+                                col[3] = Math.round( col[3] * 255. );
+                                fillcol = '#'
+                                    + ('00' + col[0].toString(16)).substr(-2)
+                                    + ('00' + col[1].toString(16)).substr(-2)
+                                    + ('00' + col[2].toString(16)).substr(-2)
+                                    + ('00' + col[3].toString(16)).substr(-2);
+                            }
+                        }
+                        if( fsize == null || fsize == 0. )
+                        {
+                            fsize = 10;
+                        }
+                        if( ffamily == null )
+                        {
+            //                 ffamily = 'LMSansUltraCond10';
+                            ffamily = 'Arial';
+                        }
+                        if( scale == 0. )
+                        {
+                            scale = 1.;
+                        }
+                        var text = tobj.properties.text;
+        //                 console.debug('text:', text);
+
+                        // text in sprite
+
+                        var bitmap = document.createElement('canvas');
+                        var g = bitmap.getContext('2d');
+                        fsize *= 4;
+                        if( fsize < 20 )
+                        {
+                            scale *= fsize / 20.;
+                            fsize = 20;
+                        }
+                        g.font = 'Bold ' + fsize + 'px ' + ffamily;
+
+        //                 var w = g.measureText(text).width;
+                        var w = 0;
+                        var lines = text.split('\n');
+                        for( i=0; i!=lines.length; i++ )
+                        {
+                          w = Math.max( w, g.measureText( lines[i] ).width );
+                        }
+                        if( w < 16 )
+                            w = 16;
+                        var hratio = 1.6;
+                        var h = g.measureText('M').width * hratio * lines.length;
+                        bitmap.width = nextPow2( w + 5 );
+                        bitmap.height = nextPow2( h + 5 );
+        //                 console.debug('text size:', bitmap.width, bitmap.height );
+                        g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                        g.fillStyle = fillcol;
+        //                 g.fillText(text, 0, fsize);
+                        fillTextMultiLine( g, text, 0, fsize, hratio );
+                        g.strokeStyle = 'black';
+        //                 g.strokeText(text, 0, fsize);
+                        strokeTextMultiLine( g, text, 0, fsize, hratio );
+
+                        // canvas contents will be used for a texture
+                        var texture = new THREE.Texture(bitmap);
+                        texture.needsUpdate = true;
+                        var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
+                        var sprite = new THREE.Sprite( spritmat );
+                        sprite.scale.set( w * 0.1, h * 0.1 );
+            //             sprite.scale.x = sprite.scale.x * scale;
+            //             sprite.scale.y = sprite.scale.y * scale;
+            //             sprite.scale.z = sprite.scale.z * scale;
+//                         sprite.position.x = -pos[0]; // + bitmap.width / 2 * sprite.scale.x;
+                        // the svg position is under the 1st line of text
+                        var y_shift = 1.; // / lines.length;
+                        sprite.position.x = -pos[0] - sprite.scale.x / 4;
+                        sprite.position.y = pos[1] + sprite.scale.y * y_shift * 0.25;
+                        sprite.position.z = pos[2] + sprite.scale.y * y_shift * 0.5;
+
+                        // console.debug("lines:", lines.length, ", yshift:", y_shift);
+
+                        group.add( sprite );
+                      }
+
+                      scene.add( group );
+                      mesh_cat[this.url] = [2, group];
+                      console.log('loaded:', this.url);
+                    }
+                ).fail( function ()
+                {
+                  console.debug("text object load failed:", this.url);
+                  delete mesh_cat[fname];
+                }
+                );
+
+            }
+
+        }
+
+        render();
+
+    }
+
+    var title = map_objects.title;
+    if( title && title.length != 0 )
+    {
+      for( i=0; i<title.length; i++ )
+        $('#title_' + i).text(title[i]);
+    }
+
+    var def_categories = map_objects.default_categories;
+    var def_cat_num = [ 0, 4 ];
+    for( i=0; i<def_categories.length; i++ )
+    {
+      var category = categories.indexOf( def_categories[i] );
+      def_cat_num.push( category );
+    }
+
+    for( i=0; i<def_cat_num.length; i++ )
+    {
+      load_meshes( def_cat_num[i] );
+    }
+
+    mouse = new THREE.Vector2( 0, 0 );
+    rayCaster = new THREE.Raycaster();
+
+    controls.addEventListener( 'change', render ); // use if there is no animation loop
+    window.addEventListener( 'resize', onWindowResize, false );
+    document.addEventListener( 'mousedown', on_press_scene );
+    document.addEventListener( 'mouseup', on_release_scene );
+
+
+    function render() {
+        var dir = new THREE.Vector3( 0, 0, 0 );
+        dir = camera.getWorldDirection( dir );
+        light.position.x = -dir.x;
+        light.position.y = -dir.y;
+        light.position.z = -dir.z;
+        compass.quaternion.copy( camera.quaternion );
+        compass.quaternion.inverse();
+        renderer.render( scene, camera );
+    }
+
+
+    function onWindowResize()
+    {
+
+        set_font_sizes();
+
+        var wratio = window.innerWidth / window.innerHeight;
+        camera.aspect = wratio;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        // move compass to keep its corner position
+        compass.position.x = -20.;
+        compass.position.x *= wratio;
+
+        render();
+    }
+
+    function unload_meshes(category)
+    {
+        console.log('unload meshes category:', category);
+
+        mesh_cat = meshes[category];
+        if( mesh_cat == null )
+          return;
+        var fname = '';
+        for( fname in mesh_cat )
+        {
+          var obj_def = mesh_cat[fname];
+          if( obj_def[0] == 2 )
+              scene.remove( obj_def[1] );
+//           delete mesh_cat[fname];
+//           delete obj_def[1];
+        }
+
+        render();
+    }
+
+    function on_press_scene( event )
+    {
+      // I'm actually interested on clicks, not on press events...
+      // record press position
+      switch( event.which )
+      {
+      case 1: // left mouse click
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+      }
+    }
+
+    function on_release_scene( event )
+    {
+      // I'm actually interested on clicks, when release happens just after
+      // press. But I don't know how to get time so I just check that the
+      // position hasn't shifted much... FIXME...
+
+      event.preventDefault();
+
+      switch( event.which )
+      {
+      case 1: // left mouse click
+        if( ( event.clientX - mouse.x ) * ( event.clientX - mouse.x )
+            + ( event.clientY - mouse.y ) * ( event.clientY - mouse.y ) < 20 )
+        {
+          // let's say it's a click now.
+          mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+          mouse.y = - ( event.clientY / window.innerHeight )* 2 + 1;
+
+          rayCaster.setFromCamera( mouse, camera );
+          var intersects = rayCaster.intersectObjects( scene.children, true );
+
+          if( intersects.length > 0 )
+          {
+            console.log( 'intersects:', intersects );
+            console.log( 'point:', intersects[0].point );
+            if( check_compass_click( intersects ) )
+              north_up();
+            else
+              check_sounds( intersects[0].point );
+          }
+        }
+      }
+    }
+
+
+    function check_sounds( point )
+    {
+      var max_dist = 10;
+      var min_dist = 11;
+      var snd_filename = '';
+      for( i=0; i<sounds.length; i++ )
+      {
+        for( j=0; j<sounds[i][1].length; j++)
+        {
+          var spos = sounds[i][1][j];
+          // TODO: x is inverted, check why is it not in the mesh coords ?
+          var x = -spos[0][0];
+          var y = spos[0][1];
+          var z = spos[0][2];
+          max_dist = spos[1];
+          var fname = sounds[i][0];
+          // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
+          var snd_pos = new THREE.Vector3( x, y, z );
+          var dist = point.distanceTo( snd_pos );
+          // console.log( 'distance:', dist );
+          if( i == 0 )
+            min_dist = dist;
+          if( dist < min_dist && dist < max_dist )
+          {
+            min_dist = dist;
+            snd_filename = fname;
+          }
+        }
+      }
+
+      // stop any playing sound
+      if( current_sound.isPlaying )
+        current_sound.stop();
+
+      if( snd_filename != '' )
+      {
+        console.log('play:', snd_filename );
+
+        var audioloader = new THREE.AudioLoader();
+        audioloader.load( snd_filename, function( buffer )
+          {
+            current_sound.setBuffer( buffer );
+            current_sound.setLoop( false );
+            current_sound.setVolume( 0.5 );
+            current_sound.play();
+          }
+        );
+      }
+    }
+
+
+    function check_compass_click( intersects )
+    {
+      for( i=0; i<intersects.length; i++ )
+      {
+        var name = intersects[i].object.name;
+        if( name == "sphere_0" )
+          return true;
+      }
+      return false;
+    }
+
+
+    function north_up()
+    {
+      console.log('set north up');
+      console.log('current quaternion:', camera.quaternion);
+      var quat = new THREE.Quaternion();
+      var dir = new THREE.Vector3( 0, 0, 1 );
+      // angle of current axis around x
+      var cur_dir = new THREE.Vector2( camera.quaternion.x,
+                                       camera.quaternion.y );
+      cur_dir.normalize();
+      var angle = Math.acos( cur_dir.x );
+      console.log('angle:', angle);
+      quat.setFromAxisAngle( dir, Math.PI - angle );
+
+//       quat.setFromAxisAngle( dir, Math.PI / 2);
+//       var angle = camera.quaternion.angleTo(quat);
+//       console.log('angle:', angle);
+//       quat.setFromAxisAngle( dir, Math.PI / 2 - angle );
+
+      quat.multiply( camera.quaternion );
+      camera.quaternion.set( quat.x, quat.y, quat.z, quat.w );
+
+//       var dir = new THREE.Vector3( camera.quaternion.x, camera.quaternion.y, camera.quaternion.z );
+//       dir.normalize();
+//       console.log('axis:', dir);
+//       camera.quaternion.setFromAxisAngle( dir, Math.PI);
+      render();
+    }
+
+    function set_map_2d_mode()
+    {
+      console.log('set map mode');
+      var dir = new THREE.Vector3( 0, 0, 1 );
+      camera.quaternion.setFromAxisAngle( dir, Math.PI);
+      render();
+    }
+
+        </script>
+
+        <div class="bottom_row">
+            Thanks: Big, Nexus, ...
+        </div>
+
+        <div class="help" id="help_block">
+
+            <h2>Contrôles souris:</h2>
+
+            <div class="control_help">
+                Bouton gauche + gauche / droite: rotation de l'orientation<br/>
+                Bouton gauche + haut / bas: avance / recule (altitude constante)<br/>
+                Ctrl + bouton gauche + gauche / droite: rotation de l'orientation<br/>
+                Ctrl + bouton gauche + haut / bas: avance droit (altitude variable)<br/>
+                Bouton milieu + gauche / droite: rotation de l'orientation<br/>
+                Bouton milieu + haut / bas: changement d'inclinaison de la vue<br/>
+                Bouton droit + gauche / droite: déplacement en crabe<br/>
+                Bouton droit + haut / bas: changement d'altitude
+            </div>
+
+            <h2>Contrôles tactiles:</h2>
+
+            <div class="control_help">
+                1 doigt gauche + gauche / droite: rotation de l'orientation<br/>
+                1 doigt + haut / bas: avance / recule<br/>
+                2 doigts + gauche / droite: déplacement en crabe<br/>
+                2 doigts + haut / bas: changement d'altitude<br/>
+                2 doigts pincement ("échelle"): avance droit (altitude variable)<br/>
+                3 doigts + gauche / droite: rotation de l'orientation<br/>
+                3 doigts + haut / bas: changement d'inclinaison de la vue
+            </div>
+
+            <h2>Contrôles clavier:</h2>
+
+            <div class="control_help">
+                Gauche, droite: rotation de l'orientation<br/>
+                Haut, bas: avance / recule (altitude constante)<br/>
+                Ctrl + gauche, droite: déplacement en crabe<br/>
+                Ctrl + haut / bas: avance droit (altitude variable)<br/>
+                Shift + gauche, droite: rotation de l'orientation<br/>
+                Shift + Haut, bas: changement d'inclinaison de la vue<br/>
+            </div>
+
+            <button id="close_help" class="mesh_button">OK</button>
+        </div>
+
+<!--        <div id="debug_win">
+        </div>-->
+
+        <script>
+
+            function close_help_clicked()
+            {
+                document.getElementById( 'help_block' ).style.display = 'none';
+            }
+
+            function open_help_clicked()
+            {
+                if( document.getElementById( 'help_block' ).style.display == 'block' )
+                    document.getElementById( 'help_block' ).style.display = 'none';
+                else
+                    document.getElementById( 'help_block' ).style.display = 'block';
+            }
+
+            document.getElementById( 'help' ).addEventListener( 'click', open_help_clicked );
+            document.getElementById( 'close_help' ).addEventListener( 'click', close_help_clicked );
+
+        </script>
+
+    </body>
+</html>

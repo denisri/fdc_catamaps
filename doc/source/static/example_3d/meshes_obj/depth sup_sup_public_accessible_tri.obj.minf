@@ -1,0 +1,9 @@
+attributes = {
+    'data_type' : 'VOID',
+    'file_type' : 'WAVEFRONT',
+    'material' : {
+        'face_culling' : 0,
+        'diffuse' : [ 0, 0.6, 0, 1 ]
+      },
+    'object_type' : 'Mesh'
+  }

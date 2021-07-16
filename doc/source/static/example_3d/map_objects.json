@@ -1,0 +1,132 @@
+{
+    "version": 559,
+    "title": [
+        "EXAMPLE MAP"
+    ],
+    "date": "2021-07-16",
+    "map": "../example_map_imprimable_private.jpg",
+    "categories": [
+        "Couloirs",
+        "Inaccessible",
+        "Textes",
+        "Parcelles",
+        "Ossuaire officiel",
+        "Galeries Tech.",
+        "Remblai",
+        "Calcaire",
+        "Légende",
+        "Surface"
+    ],
+    "default_categories": [
+        "Couloirs",
+        "Ossuaire officiel"
+    ],
+    "meshes": [
+        [
+            0,
+            "colim_sup_public_accessible_tri",
+            35644,
+            "fbf689574ed16a304dc88a3e0dd5858e"
+        ],
+        [
+            0,
+            "corridors_inf_public_accessible_ceil_line",
+            1089,
+            "9dc26123c4ba157381bb25a6b6173f67"
+        ],
+        [
+            0,
+            "corridors_inf_public_accessible_floor_tri",
+            1852,
+            "c4072897170d8350f37dbabbd2ce8d21"
+        ],
+        [
+            0,
+            "corridors_inf_public_accessible_line",
+            1074,
+            "f559c206ae8d3f028260d0e4d8573af7"
+        ],
+        [
+            0,
+            "corridors_inf_public_accessible_wall_tri",
+            3558,
+            "666be3354f225385076091740f0094c8"
+        ],
+        [
+            0,
+            "corridors_sup_public_accessible_ceil_line",
+            949,
+            "4f391217ef973a258104e3edef34e0e2"
+        ],
+        [
+            0,
+            "corridors_sup_public_accessible_floor_tri",
+            1675,
+            "8282d8772fd7327e0457ee669a25a058"
+        ],
+        [
+            0,
+            "corridors_sup_public_accessible_line",
+            956,
+            "739d9b61f5a7df3410834fb9bea2d1a1"
+        ],
+        [
+            0,
+            "corridors_sup_public_accessible_wall_tri",
+            3120,
+            "56baae2e1c360f53d514823e2fbcd004"
+        ],
+        [
+            0,
+            "depth sup_sup_public_accessible_tri",
+            317,
+            "c313accbd9420f0c7f327e651b258c99"
+        ],
+        [
+            0,
+            "depth_inf_public_accessible_tri",
+            305,
+            "ed491dc8dbef51e09d3b7e45fb2245db"
+        ],
+        [
+            0,
+            "échelle_inf_public_accessible_tri",
+            21895,
+            "a6ef129d92c470173b827397e16ba5f9"
+        ],
+        [
+            9,
+            "grille surface_line",
+            50,
+            "443b8331548112a05d7712acf6e175e0"
+        ]
+    ],
+    "meshes_private": [],
+    "text_fnames": [
+        "colim_sup_public_accessible.aobj",
+        "title_sup_public_accessible_text.aobj",
+        "échelle_inf_public_accessible.aobj"
+    ],
+    "text_fnames_private": [],
+    "texts": [
+        [
+            0,
+            "colim_sup_public_accessible.aobj",
+            73,
+            "8f8a117e19f41965d82d4c60e44b3457"
+        ],
+        [
+            0,
+            "title_sup_public_accessible_text.aobj",
+            506,
+            "bfb97826f54c6242865a7a41881b08f2"
+        ],
+        [
+            0,
+            "échelle_inf_public_accessible.aobj",
+            74,
+            "9dd9b61ad66751c812f347e14615c4dc"
+        ]
+    ],
+    "texts_private": []
+}
