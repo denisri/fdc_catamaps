@@ -1,5 +1,5 @@
 {
-    "version": 571,
+    "version": 572,
     "title": [
         "EXAMPLE MAP"
     ],
@@ -227,7 +227,6 @@
         "colim_sup_public_accessible.aobj",
         "rooms_sup_public_accessible_text.aobj",
         "streets_sup_public_accessible_text.aobj",
-        "title_sup_public_accessible_text.aobj",
         "échelle_inf_public_accessible.aobj"
     ],
     "text_fnames_private": [],
@@ -249,12 +248,6 @@
             "streets_sup_public_accessible_text.aobj",
             5303,
             "01cce926e725976bffedb3c8b2fed0de"
-        ],
-        [
-            0,
-            "title_sup_public_accessible_text.aobj",
-            516,
-            "122428a44da6bfd8e2582b1168c749b5"
         ],
         [
             0,

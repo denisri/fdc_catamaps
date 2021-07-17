@@ -343,7 +343,8 @@ class ItemProperties(object):
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
-                  'alt_colors', 'category', 'layer', 'well_read_mode')
+                  'alt_colors', 'category', 'layer', 'well_read_mode',
+                  'grid_interval')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -374,6 +375,7 @@ class ItemProperties(object):
         self.category = None
         self.layer = False
         self.well_read_mode = None
+        self.grid_interval = None
 
     def __str__(self):
         d = ['{']
@@ -408,6 +410,7 @@ class ItemProperties(object):
                 'height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
                 'layer': ItemProperties.is_true,
+                'grid_interval': ItemProperties.float_value,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -459,7 +462,7 @@ class ItemProperties(object):
 
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
-                         'category', 'well_read_mode'):
+                         'category', 'well_read_mode', 'grid_interval'):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -1034,6 +1037,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
             title = [x.text for x in xml_element]
             self.title = getattr(self, 'title', []) + title
+            return (self.noop, clean_return, True)
 
         label = item_props.label
 
@@ -2848,7 +2852,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.main_group = label
         bounds = self.boundingbox(layer)
         # print('ground grid bounds:', bounds)
+        props = [y for x, y in self.group_properties.items()
+                 if y.label == label]
         interval = 5.
+        if props:
+            props = props[0]
+            if props.grid_interval:
+                interval = props.grid_interval
+
         grid = np.mgrid[bounds[0][0]:bounds[1][0]:interval,
                         bounds[0][1]:bounds[1][1]:interval].T
         grid_v = grid.reshape((grid.shape[0] * grid.shape[1], 2))
