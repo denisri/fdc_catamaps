@@ -200,6 +200,14 @@ Properties list
     in the map elements::
 
         glabel: colim
+**replace_children:** bool (**2D maps**)
+    should be set only in replacement symbols in the legend layer (wells signs,
+    etc) to indicate that children of matching elements should be parsed
+    recursively and their children may be replaced also.
+**legend:** bool (**2D maps**)
+    set on a layer, indicates that this layer contains the legend symbols and
+    can be searched for replacement symbols (wells, etc) which will replace
+    those in the map to enlarge them and ease view from a bit further.
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
 **date:** str (**2D maps**)
@@ -3332,7 +3340,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         symbols = [x for x in root
                    if x.get(
                       '{http://www.inkscape.org/namespaces/inkscape}label')
-                      == u'légende']
+                      == u'légende'
+                      or x.get('legend') in ('1', 'True', 'true', 'TRUE')]
         if symbols:
             symbols = symbols[0]
         else:
@@ -3348,8 +3357,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         ids = {}
-        rep_child = ['PE', 'PS', 'PSh', 'sans', 'PS sans',
-                      u'échelle', u'\xc3\xa9chelle', 'P ossements', ]
+        rep_child = ['PSh', 'sans', 'PS sans',
+                      u'échelle', u'\xc3\xa9chelle', ]
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:
             eid = child.get('id')
@@ -3377,7 +3386,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
                                   (bbox[0][1] + bbox[1][1]) / 2)
                 item['trans'] = trans
-                if ptype in rep_child:
+                replace_children = child.get('replace_children')
+                if replace_children:
+                    if replace_children in ('1', 'True', 'true', 'TRUE'):
+                        replace_children = True
+                    else:
+                        replace_children = False
+                elif ptype in rep_child:
+                    replace_children = True
+                if replace_children:
                     item['children'] = True
                 pmap[ptype] = item
 

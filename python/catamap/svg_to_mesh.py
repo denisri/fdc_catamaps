@@ -1292,8 +1292,8 @@ class SvgToMesh(object):
 
     def replace_filter_element(self, xml):
         '''
-        Inside replace_elements, this funciton is called for each xml element,
-        and shoild return either the element itself (no replacement), or None
+        Inside replace_elements, this function is called for each xml element,
+        and should return either the element itself (no replacement), or None
         (element is discarded), or a replaced XML element.
 
         The default method always returns the input element.
