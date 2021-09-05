@@ -252,9 +252,19 @@ class SvgToMesh(object):
         if color:
             material = {'diffuse': color}
 
-        x = float(xml_path.get('cx'))
-        y = float(xml_path.get('cy'))
-        r = float(xml_path.get('r'))
+        x = xml_path.get('cx')
+        if x is None:
+            x = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx')
+            print('x:', x)
+        x = float(x)
+        y = xml_path.get('cy')
+        if y is None:
+            y = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cy')
+        y = float(y)
+        r = xml_path.get('r')
+        if r is None:
+            r = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}rx')
+        r = float(r)
         angle_s = xml_path.get('sodipodi:start')
         if angle_s:
             angle_s = float(angle_s)
