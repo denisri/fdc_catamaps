@@ -789,20 +789,6 @@ class DefaultItemProperties(object):
         'stair_symbol',
     }
 
-    arrow_labels = {
-        u'salles v1 flèches', 'salles v1 fleches',
-        u'salles vdg flèches',
-        u'rues v1 flèches', 'rues v1 fleches',
-        u'rues flèches dessus',
-        u'curiosités flèches', 'curiosites fleches',
-        u'historiques flèches',
-        u'plaques de puits flèches',
-        u'curiosités flèches dessus',
-        u'inscriptions flèches',
-        u'inscriptions conso flèches',
-        u'plaques de puits GTech flèches',
-    }
-
     depth_map_labels = {
         'profondeurs esc',
         'profondeurs galeries',
@@ -2140,6 +2126,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def apply_arrow_depth(self, mesh, props):
+        alt_color = self.get_alt_color(props)
+        if alt_color:
+            mesh.header()['material']['diffuse'] = alt_color
+
         arrow_type = props.label
         level = props.level
         tz_level = props.upper_level
