@@ -530,9 +530,9 @@ class SvgToMesh(object):
                 if previous is not None:
                     mat = previous * mat
                     if trans3d is None and hasattr(previous, 'transform_3d'):
-                        trans3d = previous.transform_3d
-                if trans3d is not None:
-                    mat.transform_3d = trans3d
+                        mat3d = previous.transform_3d
+                if mat3d is not None:
+                    mat.transform_3d = mat3d
                 return mat
 
         else:
