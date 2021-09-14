@@ -5005,7 +5005,7 @@ The program allows to produce:
         map2d_join.write(out_filename.replace('.svg', '_joined.svg'))
 
     time_len = time.time() - time_start
-    print('execution time: %d:%02.2f min:sec.'
+    print('execution time: %d:%05.2f min:sec.'
           % (int(time_len / 60.), time_len - int(time_len / 60.) * 60))
 
 if __name__ == '__main__':
