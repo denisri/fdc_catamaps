@@ -66,7 +66,7 @@ Usage
   (it can be set in a ``.bash_profile`` or ``.bashrc`` init file)
 
 * get or make the source SVG file with codes inside, for instance ``plan_14_fdc_2021_04_29.svg``
-
+main
 * go to the directory containing it
 * run the module ``catamap`` as a program::
 
@@ -318,6 +318,7 @@ import sys
 import subprocess
 import distutils.spawn
 import imp
+import time  # just for exec time stats
 from argparse import ArgumentParser
 try:
     import PIL.Image
@@ -1950,11 +1951,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   'does not exist' % filename)
 
 
-    def ground_altitude(self, pos):
+    def ground_altitude(self, pos, use_scale=True):
         if hasattr(self, 'bdalti_map') and hasattr(self, 'lambert_coords'):
-            return self.ground_altitude_bdalti(pos)
+            alt = self.ground_altitude_bdalti(pos)
         else:
-            return self.ground_altitude_topomap(pos)
+            alt = self.ground_altitude_topomap(pos)
+        if use_scale:
+            # scale ground altitude the same way as depths in the map
+            alt *= self.z_scale
+        return alt
 
 
     def ground_altitude_topomap(self, pos):
@@ -4760,6 +4765,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
 
 def main():
 
+    time_start = time.time()
     do_2d = False
     do_3d = False
     do_igc = False
@@ -4784,7 +4790,7 @@ def main():
 
 The program allows to produce:
 
-* 2D "readable" maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
+* 2D "readable" maps with symbolsmain changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
 
 * 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
 ''')
@@ -4817,7 +4823,7 @@ The program allows to produce:
         'may specify resolutions for several output maps: '
         '"--dpi 200,igc:360,private:280"')
     parser.add_argument(
-        '--clip',
+        '--clip',main
         help='clip using this rectangle ID in the inkscape SVG')
     parser.add_argument(
         '--join', action='store_true',
@@ -4937,7 +4943,7 @@ The program allows to produce:
                 'filters': ['remove_private', 'remove_gtech',
                             'printable_map_public'] + col_filter,
                 'clip_rect': 'grs_clip',
-                'shadows': True,
+                'shadows': True,main
                 'do_pdf': True,
             },
             'igc': {
@@ -4997,6 +5003,10 @@ The program allows to produce:
         map2d_join = svg2d.build_2d_map(
             None, filters=['join_layers="%s"' % out_filename])
         map2d_join.write(out_filename.replace('.svg', '_joined.svg'))
+
+    time_len = time.time() - time_start
+    print('execution time: %d:%02.2f min:sec.'
+          % (int(time_len / 60.), time_len - int(time_len / 60.) * 60))
 
 if __name__ == '__main__':
     main()
