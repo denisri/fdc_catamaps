@@ -446,7 +446,7 @@ class ItemProperties(object):
         self.layer = False  # this one does not propagate to children
 
         if element is not None:
-            eid, props = self.get_id(element, get_props=True)
+            eid, props = self.get_id(element, get_props=True, use_suffix=False)
             if eid and props:
                 # properties as layer name suffixes
                 for prop, value in props.items():
@@ -456,17 +456,6 @@ class ItemProperties(object):
                 self.eid = eid
                 if not self.name:
                     self.name = self.eid
-
-            label, props = self.get_label(element, get_props=True)
-            if label and props:
-                # properties as layer name suffixes
-                for prop, value in props.items():
-                    value = ItemProperties.get_typed_prop(prop, value)
-                    if value is not None:
-                        setattr(self, prop, value)
-            if label:
-                self.label = label
-                self.name = label
 
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
@@ -497,6 +486,24 @@ class ItemProperties(object):
 
             self.height = self.get_height(element)
             self.height_shift = self.get_height_shift(element)
+
+            # label suffixes are an old, ambiguous, system. We must disable it
+            # in some cases
+            use_suffix = True
+            if self.depth_map:
+                use_suffix = False
+
+            label, props = self.get_label(element, get_props=True,
+                                          use_suffix=use_suffix)
+            if label and props:
+                # properties as layer name suffixes
+                for prop, value in props.items():
+                    value = ItemProperties.get_typed_prop(prop, value)
+                    if value is not None:
+                        setattr(self, prop, value)
+            if label:
+                self.label = label
+                self.name = label
 
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
@@ -554,37 +561,38 @@ class ItemProperties(object):
         return label
 
     @staticmethod
-    def remove_label_suffix(label, get_props):
+    def remove_label_suffix(label, get_props, use_suffix=True):
         props = {}
         if label is None:
             if get_props:
                 return None, None
             return
-        for suffix, prop in DefaultItemProperties.layer_suffixes.items():
-            new_label = ItemProperties.remove_word(label, suffix)
-            if new_label != label and get_props or new_label == suffix:
-                props[prop] = DefaultItemProperties.layers_aliases.get(
-                    suffix, suffix)
-            label = new_label
+        if use_suffix:
+            for suffix, prop in DefaultItemProperties.layer_suffixes.items():
+                new_label = ItemProperties.remove_word(label, suffix)
+                if new_label != label and get_props or new_label == suffix:
+                    props[prop] = DefaultItemProperties.layers_aliases.get(
+                        suffix, suffix)
+                label = new_label
         if get_props:
             return label, props
         return label
 
     @staticmethod
-    def get_label(element, get_props=False):
+    def get_label(element, get_props=False, use_suffix=True):
         label = element.get('label')
         if label is None:
             label = element.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-        return ItemProperties.remove_label_suffix(label, get_props)
+        return ItemProperties.remove_label_suffix(label, get_props, use_suffix)
 
     @staticmethod
-    def get_id(element, get_props=False):
+    def get_id(element, get_props=False, use_suffix=True):
         label = element.get('id')
         if label is None:
             label = element.get(
                 '{http://www.inkscape.org/namespaces/inkscape}id')
-        return ItemProperties.remove_label_suffix(label, get_props)
+        return ItemProperties.remove_label_suffix(label, get_props, use_suffix)
 
     @staticmethod
     def is_corridor(element):
@@ -991,12 +999,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     'parse layer', xml_element.get('id'),
                     xml_element.get(
                         '{http://www.inkscape.org/namespaces/inkscape}label'))
+                if xml_element.tag.endswith('}metadata'):
+                    z_scale = xml_element.get('z_scale')
+                    if z_scale:
+                        z_scale = float(z_scale)
+                        print(z_scale)
+                        self.z_scale = z_scale
 
         item_props = ItemProperties()
         item_props.fill_properties(xml_element, self.props_stack, style=style)
 
         if len(self.props_stack) == 1:
             self.explicitly_show.append(item_props.label)
+
 
         if is_group:
             # maintain the stack of parent properties to allow inheritance
@@ -1038,7 +1053,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if label is not None:
             # depths are taken into account even when hidden (because they
             # are normally hidden in the svg file)
-            if item_props.depth_map or label.startswith('profondeurs'):
+            if item_props.depth_map:
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
             if item_props.sound:
@@ -1617,7 +1632,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                               'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
         self.depth_meshes_def[level] = (depth_mesh, self.item_props)
-        # print('start_depth_rect', self.main_group, level)
+        # print('start_depth_rect', self.main_group, '///', level)
+        # print('level:', level)
+        # print(self.item_props)
 
     def clean_depth(self):
         self.depth_maps.pop()
@@ -1690,8 +1707,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def read_depth_rect(self, rect_xml, trans, style=None):
         props = self.item_props  # self.group_properties.get(self.main_group)
-        if not props.depth_map \
-                and not self.main_group.startswith('profondeurs'):
+        if not props.depth_map:
             # skip non-depth rects
             return
         depth_mesh = self.mesh_dict[self.main_group]
@@ -1968,10 +1984,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return z
 
 
-    def add_ground_alt(self, mesh):
+    def add_ground_alt(self, mesh, verbose=False):
         print('add_ground_alt on:', mesh)
         for v in mesh.vertex():
+            if verbose: print(v[2], end=' ')
             v[2] += self.ground_altitude(v[:2])
+            if verbose: print('->', v[2])
 
 
     def build_depth_wins(self, size=(1000, 1000),
