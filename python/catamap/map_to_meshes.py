@@ -4823,7 +4823,7 @@ The program allows to produce:
         'may specify resolutions for several output maps: '
         '"--dpi 200,igc:360,private:280"')
     parser.add_argument(
-        '--clip',main
+        '--clip',
         help='clip using this rectangle ID in the inkscape SVG')
     parser.add_argument(
         '--join', action='store_true',
@@ -4943,7 +4943,7 @@ The program allows to produce:
                 'filters': ['remove_private', 'remove_gtech',
                             'printable_map_public'] + col_filter,
                 'clip_rect': 'grs_clip',
-                'shadows': True,main
+                'shadows': True,
                 'do_pdf': True,
             },
             'igc': {
