@@ -1324,6 +1324,8 @@ class SvgToMesh(object):
         rid = replace_dict.get('id', {})
         rlabel = replace_dict.get('label', {})
 
+        # print('replace_dict:', replace_dict)
+
         while todo:
             element, trans, parent, current_id, current_label = todo.pop(0)
             element2 = self.replace_filter_element(element)

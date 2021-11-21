@@ -3370,8 +3370,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         ids = {}
-        rep_child = ['PSh', 'sans', 'PS sans',
-                      u'échelle', u'\xc3\xa9chelle', ]
+        rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS',
+                      u'échelle', u'\xc3\xa9chelle', 'colim', ]
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:
             eid = child.get('id')
@@ -3957,7 +3957,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def remove_non_printable1(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
-             'chatieres old',
+             'chatieres old', 'photos',
              #'bord_sud', 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93',
              'bord'])
@@ -3975,7 +3975,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def remove_non_printable1_main(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
-             'chatieres old',
+             'chatieres old', 'photos',
              'bord_sud', 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93',])
         for layer in xml.getroot():
@@ -3992,7 +3992,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def remove_non_printable1_pub(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
-             'chatieres old',
+             'chatieres old', 'photos',
              'bord_sud', 'bord', # 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93',])
         for layer in xml.getroot():
@@ -4017,7 +4017,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def remove_non_printable_igc_private(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
-             'chatieres old',
+             'chatieres old', 'photos',
              'bord',
              #'bord_sud', 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93'])
