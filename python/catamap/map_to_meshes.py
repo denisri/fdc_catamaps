@@ -3370,8 +3370,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         ids = {}
-        rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS',
-                      u'échelle', u'\xc3\xa9chelle', 'colim', ]
+        rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS', 'P ossements',
+                      u'échelle', u'\xc3\xa9chelle', 'colim', 'PE', ]
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:
             eid = child.get('id')
@@ -3949,7 +3949,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
 
     def remove_igc(self, xml):
-        self.removed_labels.update(('planches', 'planches fond',
+        self.removed_labels.update(('planches', 'planches fond', 'planches IGC',
         ))
         self.do_remove_layers(xml)
 
@@ -4355,6 +4355,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                  'couleur_fond sud',
                  'planches',
                  'planches fond',
+                 'planches IGC',
                 ],
             ]
         }
@@ -4546,14 +4547,16 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
                     'show_all', 'add_shadow', 'date', 'recolor="igc"',
-                    'layer_opacity=["planches fond", "0.44"]'],
+                    'layer_opacity=["planches fond", "0.44"]',
+                    'layer_opacity=["planches IGC", "0.44"]'],
             'igc_private': ['remove_wip', 'remove_non_printable_igc_private',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
                     'show_all', 'add_shadow', 'date', 'recolor="igc"',
-                    'layer_opacity=["planches fond", "0.44"]'],
+                    'layer_opacity=["planches fond", "0.44"]',
+                    'layer_opacity=["planches IGC", "0.44"]'],
         }
 
         map_2d = copy.deepcopy(xml)
