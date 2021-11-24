@@ -3899,15 +3899,17 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         u'inscriptions flèches',
                         u'inscriptions flèches inaccessibles',
                         u'inscriptions conso flèches',
-                        u'maçonneries private', 'private', ]
+                        u'maçonneries private', 'private', 'calcaire 2010',
+                        'work done calc']
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
-            if label in priv_labels or label.endswith(' private') \
-                    or 'tech' in label \
-                    or label in ('calcaire 2010', 'work done calc'):
+            if ItemProperties.is_true(layer.get('private')) \
+                    or label in priv_labels \
+                    or label.endswith(' private') \
+                    or 'tech' in label:
                 self.removed_labels.add(label)
         self.keep_private = False
         self.remove_wip(xml)
