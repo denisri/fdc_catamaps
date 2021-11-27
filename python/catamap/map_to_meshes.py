@@ -3370,8 +3370,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         ids = {}
-        rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS', 'P ossements',
-                      u'échelle', u'\xc3\xa9chelle', 'colim', 'PE', ]
+        #rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS', 'P ossements',
+                      #u'échelle', u'\xc3\xa9chelle', 'colim', 'PE', ]
+        rep_child = []
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:
             eid = child.get('id')

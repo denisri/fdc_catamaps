@@ -1363,6 +1363,12 @@ class SvgToMesh(object):
                 replace_children = relem.get('children', False)
                 center = relem.get('center')
                 # print('replace element:', eid, label, relem)
+                if element.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}'
+                        'groupmode') == 'layer':
+                    # it's a layer: process children
+                    # TODO: we need a better (recursive) way to handle this.
+                    replace_children = True
                 if replace_children:
                     trans = self.get_transform(element, trans)
 
