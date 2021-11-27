@@ -3920,7 +3920,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             print('todo:', len(todo))
             while todo:
                 parent, element = todo.pop(0)
-                if element.get('visibility') == 'private':
+                if element.get('visibility') == 'private' \
+                        or ItemProperties.is_true(element.get('private')):
                     print('remove:', element)
                     parent.remove(element)
                 else:
