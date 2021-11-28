@@ -3908,6 +3908,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if label is None:
                 continue
             if ItemProperties.is_true(layer.get('private')) \
+                    or layer.get('visibility') == 'private' \
                     or label in priv_labels \
                     or label.endswith(' private') \
                     or 'tech' in label:
@@ -4042,7 +4043,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
-            if label.startswith('calcaire'):
+            if label.startswith('calcaire') or 'masses' in label:
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
 
@@ -4531,15 +4532,18 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'printable_map': ['remove_non_printable1', 'show_all',
                               #'add_shadow',
                               'shift_inf_level', 'replace_symbols', 'date',
-                              'zooms', 'remove_non_printable2', 'remove_igc'],
+                              'zooms', 'remove_non_printable2', 'remove_igc',
+                              'layer_opacity=["XIII masses", "0.31"]'],
             'poster_map': ['remove_non_printable1_main', 'show_all',
                            #'add_shadow',
                            'shift_inf_level', 'replace_symbols', 'date',
-                           'zooms', 'remove_non_printable2', 'remove_igc'],
+                           'zooms', 'remove_non_printable2', 'remove_igc',
+                           'layer_opacity=["XIII masses", "0.31"]'],
             'printable_map_public': ['remove_non_printable1_pub', 'show_all',
                               #'add_shadow',
                               'shift_inf_level', 'replace_symbols', 'date',
-                              'zooms', 'remove_non_printable2', 'remove_igc'],
+                              'zooms', 'remove_non_printable2', 'remove_igc',
+                              'layer_opacity=["XIII masses", "0.31"]'],
             #'igc': ['remove_private', 'remove_non_printable',
                     #'remove_background', 'remove_limestone', 'remove_zooms',
                     #'remove_other=["raccords plan 2D", "parcelles", '
