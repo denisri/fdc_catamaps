@@ -1,20 +1,52 @@
 import xml.etree.cElementTree as ET
 import sys
+import yaml
 
+size_limit = 1000
 
 def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
     diff_d = {}
     ch1 = set([child.get('id') for child in el1])
     ch2 = set([child.get('id') for child in el2])
-    if el1.items() != el2.items() or ch1 != ch2:
-        diff_d['id1'] = el1.get('id')
-        diff_d['id2'] = el1.get('id')
+
+    # properties (tags)
+    if el1.items() != el2.items():
+        keys1 = set(el1.keys())
+        keys2 = set(el2.keys())
+        only_k1 = keys1.difference(keys2)
+        only_k2 = keys1.difference(keys2)
+        inter_k = keys1.intersection(keys2)
+        props = {}
+        if only_k1:
+            props['only_in_1'] = sorted(only_k1)
+        if only_k2:
+            props['only_in_2'] = sorted(only_k2)
+        dval = {}
+        for prop in inter_k:
+            v1 = el1.get(prop)
+            if len(v1) > size_limit:
+                v1 = '<value too large, size: %d>' % len(v1)
+            v2 = el2.get(prop)
+            if len(v2) > size_limit:
+                v2 = '<value too large, size: %d>' % len(v2)
+            if v1 != v2:
+                dval[prop] = {'in_1': v1, 'in_2': v2}
+        if dval:
+            props['differing_values'] = dval
+        if props:
+            diff_d['id'] = el1.get('id')
+            diff_d['props_diffs'] = props
+
+    # children
+    if ch1 != ch2:
+        diff_d['id'] = el1.get('id')
+
     only_1 = ch1.difference(ch2)
     if only_1:
-        diff_d['only_in_1'] = only_1
+        diff_d['only_in_1'] = sorted(only_1)
     only_2 = ch2.difference(ch1)
     if only_2:
-        diff_d['only_in_2'] = only_2
+        diff_d['only_in_2'] = sorted(only_2)
 
     inters = ch1.intersection(ch2)
     ch_diffs = {}
@@ -36,6 +68,9 @@ def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
 
 svg1 = sys.argv[1]
 svg2 = sys.argv[2]
+out = None
+if len(sys.argv) >= 4:
+    out = sys.argv[3]
 
 print('read', svg1, '...')
 xml1 = ET.parse(svg1)
@@ -46,5 +81,9 @@ print('compare...')
 diff_d = diff_element(xml1.getroot(), xml2.getroot())
 
 print('diff:')
-print(diff_d)
+if out:
+    with open(out, 'w') as f:
+        print(yaml.dump(diff_d), file=f)
+else:
+    print(yaml.dump(diff_d), file=f)
 
