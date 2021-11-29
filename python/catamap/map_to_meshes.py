@@ -4796,8 +4796,9 @@ def main():
     }
     all_maps = 'public,private,wip,poster,igc,igc_private'
 
-    parser = ArgumentParser(prog='catamap',
-      description='''Catacombs maps using SVG source map with codes inside it.
+    parser = ArgumentParser(
+        prog='catamap',
+        description='''Catacombs maps using SVG source map with codes inside it.
 
 The program allows to produce:
 
