@@ -1,10 +1,18 @@
 import xml.etree.cElementTree as ET
 import sys
 import yaml
+import argparse
 
 size_limit = 1000
 
+
 def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
+
+    '''
+    Compare two SVG XML trees, record differences in both properties and
+    children in a readable dictionary.
+    '''
+
     diff_d = {}
     ch1 = set([child.get('id') for child in el1])
     ch2 = set([child.get('id') for child in el2])
@@ -66,24 +74,45 @@ def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
     return diff_d
 
 
-svg1 = sys.argv[1]
-svg2 = sys.argv[2]
-out = None
-if len(sys.argv) >= 4:
-    out = sys.argv[3]
+if __name__ == '__main__':
 
-print('read', svg1, '...')
-xml1 = ET.parse(svg1)
-print('read', svg2, '...')
-xml2 = ET.parse(svg2)
+    parser = argparse.ArgumentParser(
+        prog='diff_svg',
+        description='Print differences between two SVG maps.')
+    parser.add_argument('-i', '--svg1', help='1st SVG file to be compared')
+    parser.add_argument('-j', '--svg2', help='2nd SVG file to be compared')
+    parser.add_argument(
+        '-o', '--output', help='output YAML file (default: use stdout)')
+    parser.add_argument('other', nargs='*')
+    options = parser.parse_args()
 
-print('compare...')
-diff_d = diff_element(xml1.getroot(), xml2.getroot())
+    svg1 = options.svg1
+    svg2 = options.svg2
+    out = options.output
+    other = options.other
+    if svg1 is None and other:
+        svg1 = other.pop(0)
+    if svg2 is None and other:
+        svg2 = other.pop(0)
+    if out is None and other:
+        out = other.pop(0)
+    if other:
+        print('unrecognized arguments:', other, file=sys.stderr, end='\n\n')
+        parser.parse_args([sys.argv[0], '-h'])
+        sys.exit(1)
 
-print('diff:')
-if out:
-    with open(out, 'w') as f:
+    print('read', svg1, '...')
+    xml1 = ET.parse(svg1)
+    print('read', svg2, '...')
+    xml2 = ET.parse(svg2)
+
+    print('compare...')
+    diff_d = diff_element(xml1.getroot(), xml2.getroot())
+
+    print('diff:')
+    if out:
+        with open(out, 'w') as f:
+            print(yaml.dump(diff_d), file=f)
+    else:
         print(yaml.dump(diff_d), file=f)
-else:
-    print(yaml.dump(diff_d), file=f)
 
