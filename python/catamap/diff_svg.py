@@ -1,3 +1,28 @@
+#!/usr/bin/env python
+# coding: UTF-8
+
+'''
+diff_svg module
+===============
+
+This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.
+
+Print differences between two SVG maps.
+
+The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their "id" property, which should be unique in the files, and are displayed hierarchically.
+
+Used as a program, the output is in YAML format (mostly human readable)
+
+To use it, try::
+
+    python -m catamap.diff_svg --h
+
+It will print the command doc and parameters.
+
+diff_svg module API
+-------------------
+'''
+
 import xml.etree.cElementTree as ET
 import sys
 import yaml
