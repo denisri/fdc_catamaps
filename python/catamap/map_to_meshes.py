@@ -2051,17 +2051,31 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     @staticmethod
-    def get_alt_color(props, colorset='map_3d'):
+    def get_alt_color(props, colorset='map_3d', conv=True):
         if not props or not props.alt_colors:
             return None
         color = props.alt_colors.get(colorset)
+
+        def convert_color(color):
+            if isinstance(color, str) and color.startswith('#'):
+                c1 = color[1::2]
+                c2 = color[2::2]
+                col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in
+                      zip(c1, c2)]
+                #print('alt color:', props.main_group, col)
+                return col
+            try:
+                return float(color)
+            except Exception:
+                return color
+
         if color:
-            c1 = color[1::2]
-            c2 = color[2::2]
-            col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in
-                   zip(c1, c2)]
-            #print('alt color:', props.main_group, col)
-            return col
+            if not conv:
+                return color
+            if isinstance(color, str):
+                return convert_color(color)
+            elif isinstance(color, dict):
+                return {k: convert_color(v) for k, v in color.items()}
 
 
     def apply_depths(self, meshes):
@@ -4170,13 +4184,20 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                   'galeries inf': 'inf'}
         legend_layer = None
         for layer in xml.getroot():
+            props = ItemProperties()
+            props.fill_properties(layer)
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            corridor_colors = colors.get(label)
+            corridor_colors = CataSvgToMesh.get_alt_color(props, colorset,
+                                                          conv=False)
+            if not corridor_colors:
+                corridor_colors = colors.get(label)
             if not corridor_colors:
                 if label == u'légende':
                     legend_layer = layer
+                print('skip recolor', label)
                 continue
+            print('recolor', label)
             bg = corridor_colors.get('bg')
             op = 1.
             fill_op = 1.
