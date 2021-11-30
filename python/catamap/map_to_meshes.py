@@ -320,6 +320,8 @@ import distutils.spawn
 import imp
 import time  # just for exec time stats
 from argparse import ArgumentParser
+import textwrap as _textwrap
+import argparse
 try:
     import PIL.Image
 except ImportError:
@@ -4796,6 +4798,19 @@ def main():
     }
     all_maps = 'public,private,wip,poster,igc,igc_private'
 
+    class MultilineFormatter(argparse.HelpFormatter):
+        def _fill_text(self, text, width, indent):
+            text = text.replace('\n\n* ', '|n |n * ')
+            text = text.replace('\n* ', '|n * ')
+            text = text.replace('\n\n', '|n |n ')
+            text = self._whitespace_matcher.sub(' ', text).strip()
+            paragraphs = text.split('|n')
+            multiline_text = ''
+            for paragraph in paragraphs:
+                formatted_paragraph = _textwrap.fill(paragraph, width, initial_indent=indent, subsequent_indent=indent) + '\n\n'
+                multiline_text = multiline_text + formatted_paragraph
+            return multiline_text
+
     parser = ArgumentParser(
         prog='catamap',
         description='''Catacombs maps using SVG source map with codes inside it.
@@ -4805,7 +4820,8 @@ The program allows to produce:
 * 2D "readable" maps with symbolsmain changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.
 
 * 3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.
-''')
+''',
+        formatter_class=MultilineFormatter)
     parser.add_argument(
         '--2d', action='store_true', dest='do_2d',
         help='Build 2D maps (several maps). the maps list is given via the '
