@@ -42,6 +42,7 @@ jobs:
       - name: "Build Sphinx Doc"
         run: |
           export PYTHONPATH=$CWD/python
+          cd doc
           python -m sphinx -b html source build/html
           touch build/html/.nojekyll
           cd ..
