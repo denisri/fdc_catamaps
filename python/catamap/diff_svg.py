@@ -5,9 +5,9 @@
 diff_svg module
 ===============
 
-This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.
-
 Print differences between two SVG maps.
+
+Uses the yaml module (``pip install pyyaml``).
 
 The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their "id" property, which should be unique in the files, and are displayed hierarchically.
 
@@ -42,7 +42,7 @@ def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
     ch1 = set([child.get('id') for child in el1])
     ch2 = set([child.get('id') for child in el2])
 
-    # properties (tags)
+    # properties (tags)9536d8a6740e0ae758e20faad947a7ca14500354
     if el1.items() != el2.items():
         keys1 = set(el1.keys())
         keys2 = set(el2.keys())
