@@ -41,7 +41,7 @@ jobs:
 
       - name: "Build Sphinx Doc"
         run: |
-          export PYTHONPATH=$CWD/python
+          export PYTHONPATH=$PWD/python
           cd doc
           echo $PYTHONPATH
           python -c 'import catamap; print(catamap.__file__)'
