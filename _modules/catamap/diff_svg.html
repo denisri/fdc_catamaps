@@ -46,9 +46,9 @@
 <span class="sd">diff_svg module</span>
 <span class="sd">===============</span>
 
-<span class="sd">This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.</span>
-
 <span class="sd">Print differences between two SVG maps.</span>
+
+<span class="sd">Uses the yaml module (``pip install pyyaml``).</span>
 
 <span class="sd">The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their &quot;id&quot; property, which should be unique in the files, and are displayed hierarchically.</span>
 
@@ -83,7 +83,7 @@
     <span class="n">ch1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">el1</span><span class="p">])</span>
     <span class="n">ch2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">el2</span><span class="p">])</span>
 
-    <span class="c1"># properties (tags)</span>
+    <span class="c1"># properties (tags)9536d8a6740e0ae758e20faad947a7ca14500354</span>
     <span class="k">if</span> <span class="n">el1</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">!=</span> <span class="n">el2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">keys1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">el1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">keys2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">el2</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>

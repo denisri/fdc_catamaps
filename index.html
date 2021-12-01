@@ -611,8 +611,8 @@ otrans: transform in the output subtree. default=in_trans</p>
 </section>
 <span class="target" id="module-catamap.diff_svg"></span><section id="diff-svg-module">
 <h2>diff_svg module<a class="headerlink" href="#diff-svg-module" title="Permalink to this headline">¶</a></h2>
-<p>This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.</p>
 <p>Print differences between two SVG maps.</p>
+<p>Uses the yaml module (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyyaml</span></code>).</p>
 <p>The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their “id” property, which should be unique in the files, and are displayed hierarchically.</p>
 <p>Used as a program, the output is in YAML format (mostly human readable)</p>
 <p>To use it, try:</p>
