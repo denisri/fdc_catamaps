@@ -41,6 +41,8 @@ jobs:
 
       - name: "Build Sphinx Doc"
         run: |
+          pwd
+          ls
           export PYTHONPATH=$CWD/python
           cd doc
           python -m sphinx -b html build/html source
