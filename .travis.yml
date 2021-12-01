@@ -19,7 +19,7 @@ install:
     - if [[ -n "$GITHUB_ACCESS_TOKEN" ]]; then export PUSH_DOC_TO_GH_PAGES=yes; fi
 
 script:
-    - if [[  "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then cd doc && python -m sphinx -b html build/html source && touch build/html/.nojekyll && cd ..; fi
+    - if [[  "$TRAVIS_OS_NAME" = "linux" && "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then cd doc && python -m sphinx -b html source build/html && touch build/html/.nojekyll && cd ..; fi
 
 deploy:
   provider: pages
