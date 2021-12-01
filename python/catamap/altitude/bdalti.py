@@ -16,7 +16,11 @@ from __future__ import print_function
 import numpy as np
 import os
 import glob
-from soma import aims
+try:
+    from soma import aims
+except ImportError:
+    # allow toi generate docs without aims
+    aims = None
 import json
 import math
 

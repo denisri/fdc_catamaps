@@ -33,7 +33,7 @@ jobs:
       - name: "Install Python dependencies"
         run: |
           pip3 install setuptools
-          pip3 install numpy 'six>=1.13' scipy Pillow
+          pip3 install numpy 'six>=1.13' scipy Pillow yaml
           # for docs only
           sudo apt-get install -y pandoc graphviz
           pip install sphinx sphinx-gallery pandoc
