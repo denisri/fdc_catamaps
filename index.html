@@ -38,10 +38,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="catamap">
-<h1>CataMap<a class="headerlink" href="#catamap" title="Permalink to this headline">¶</a></h1>
-<p>new test text</p>
-<span class="target" id="module-catamap.map_to_meshes"></span><p>Catacombs maps using SVG source map with codes inside it.</p>
+  <section id="module-catamap.map_to_meshes">
+<span id="catamap"></span><h1>CataMap<a class="headerlink" href="#module-catamap.map_to_meshes" title="Permalink to this headline">¶</a></h1>
+<p>Catacombs maps using SVG source map with codes inside it.</p>
 <p>The program allows to produce:</p>
 <ul class="simple">
 <li><p>2D “readable” maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.</p></li>
@@ -278,7 +277,7 @@ those in the map to enlarge them and ease view from a bit further.</p>
 <section id="id3">
 <h4>Altitude maps<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
-<p>Then maps have to be converted using tools in <code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code>.
+<p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
 <p class="rubric">Example</p>
 <p>See the map: <a class="reference download internal" download="" href="_downloads/f7d0dcd037969d9801fd77f4de6636b1/example_map.svg"><code class="xref download docutils literal notranslate"><span class="pre">example</span> <span class="pre">map</span></code></a>
@@ -610,8 +609,73 @@ otrans: transform in the output subtree. default=in_trans</p>
 
 </section>
 </section>
-<p><strong>DIFF</strong></p>
-<span class="target" id="module-catamap.altitude"></span></section>
+<span class="target" id="module-catamap.diff_svg"></span><section id="diff-svg-module">
+<h2>diff_svg module<a class="headerlink" href="#diff-svg-module" title="Permalink to this headline">¶</a></h2>
+<p>This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.</p>
+<p>Print differences between two SVG maps.</p>
+<p>The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their “id” property, which should be unique in the files, and are displayed hierarchically.</p>
+<p>Used as a program, the output is in YAML format (mostly human readable)</p>
+<p>To use it, try:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span><span class="o">.</span><span class="n">diff_svg</span> <span class="o">--</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>It will print the command doc and parameters.</p>
+<section id="diff-svg-module-api">
+<h3>diff_svg module API<a class="headerlink" href="#diff-svg-module-api" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.diff_svg.diff_element">
+<span class="sig-prename descclassname"><span class="pre">catamap.diff_svg.</span></span><span class="sig-name descname"><span class="pre">diff_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose_depth_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/diff_svg.html#diff_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.diff_svg.diff_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare two SVG XML trees, record differences in both properties and
+children in a readable dictionary.</p>
+</dd></dl>
+
+</section>
+</section>
+<span class="target" id="module-catamap.altitude"></span><span class="target" id="module-catamap.altitude.bdalti"></span><section id="bdalti-maps-module">
+<h2>BDAlti maps module<a class="headerlink" href="#bdalti-maps-module" title="Permalink to this headline">¶</a></h2>
+<p>Convertion tools for BDAlti maps (<a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a>) and their use in <code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap</span></code>.</p>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.altitude.bdalti.build_meta_table">
+<span class="sig-prename descclassname"><span class="pre">catamap.altitude.bdalti.</span></span><span class="sig-name descname"><span class="pre">build_meta_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ima_fnames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/altitude/bdalti.html#build_meta_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.altitude.bdalti.build_meta_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>build the metadata table from converted .ima files</p>
+<p>ima_fnames: pattern with a “%s”, same as out_fnames in convert_raw_maps()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.altitude.bdalti.convert_raw_map">
+<span class="sig-prename descclassname"><span class="pre">catamap.altitude.bdalti.</span></span><span class="sig-name descname"><span class="pre">convert_raw_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/altitude/bdalti.html#convert_raw_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.altitude.bdalti.convert_raw_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert one raw map from bdalti (.asc) to .ima format</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.altitude.bdalti.convert_raw_maps">
+<span class="sig-prename descclassname"><span class="pre">catamap.altitude.bdalti.</span></span><span class="sig-name descname"><span class="pre">convert_raw_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_fnames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/altitude/bdalti.html#convert_raw_maps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.altitude.bdalti.convert_raw_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert all raw data files from bdalti (.asc) to .ima format</p>
+<dl class="simple">
+<dt>fnames:</dt><dd><p>input files pattern (used with glob.glob())</p>
+</dd>
+<dt>out_fnames:</dt><dd><p>output files pattern, should contain a “%s” pattern</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.altitude.bdalti.get_map_image">
+<span class="sig-prename descclassname"><span class="pre">catamap.altitude.bdalti.</span></span><span class="sig-name descname"><span class="pre">get_map_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/altitude/bdalti.html#get_map_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.altitude.bdalti.get_map_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>get image at coords xi, yi in the map table. Lazy load and cache it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.altitude.bdalti.get_z">
+<span class="sig-prename descclassname"><span class="pre">catamap.altitude.bdalti.</span></span><span class="sig-name descname"><span class="pre">get_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">99999.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/altitude/bdalti.html#get_z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.altitude.bdalti.get_z" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the altitude from (x, y) coords in Lambert93 coords</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -641,6 +705,14 @@ otrans: transform in the output subtree. default=in_trans</p>
 </li>
 <li><a class="reference internal" href="#svg-to-mesh-module">svg_to_mesh module</a><ul>
 <li><a class="reference internal" href="#svg-to-mesh-module-api">svg_to_mesh module API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#diff-svg-module">diff_svg module</a><ul>
+<li><a class="reference internal" href="#diff-svg-module-api">diff_svg module API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bdalti-maps-module">BDAlti maps module</a><ul>
+<li><a class="reference internal" href="#api">API</a></li>
 </ul>
 </li>
 </ul>

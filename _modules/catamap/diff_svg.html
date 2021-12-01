@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>catamap.diff_svg &#8212; CataMap 2.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/default.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">CataMap 2.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">catamap.diff_svg</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for catamap.diff_svg</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># coding: UTF-8</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">diff_svg module</span>
+<span class="sd">===============</span>
+
+<span class="sd">This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.</span>
+
+<span class="sd">Print differences between two SVG maps.</span>
+
+<span class="sd">The output is a hierarchical dictionary of differences between the two maps. Differences in tags (properties) and children are recorded. Item keys are their &quot;id&quot; property, which should be unique in the files, and are displayed hierarchically.</span>
+
+<span class="sd">Used as a program, the output is in YAML format (mostly human readable)</span>
+
+<span class="sd">To use it, try::</span>
+
+<span class="sd">    python -m catamap.diff_svg --h</span>
+
+<span class="sd">It will print the command doc and parameters.</span>
+
+<span class="sd">diff_svg module API</span>
+<span class="sd">-------------------</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="n">size_limit</span> <span class="o">=</span> <span class="mi">1000</span>
+
+
+<div class="viewcode-block" id="diff_element"><a class="viewcode-back" href="../../index.html#catamap.diff_svg.diff_element">[docs]</a><span class="k">def</span> <span class="nf">diff_element</span><span class="p">(</span><span class="n">el1</span><span class="p">,</span> <span class="n">el2</span><span class="p">,</span> <span class="n">verbose_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose_depth_max</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Compare two SVG XML trees, record differences in both properties and</span>
+<span class="sd">    children in a readable dictionary.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">diff_d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">ch1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">el1</span><span class="p">])</span>
+    <span class="n">ch2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">el2</span><span class="p">])</span>
+
+    <span class="c1"># properties (tags)</span>
+    <span class="k">if</span> <span class="n">el1</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">!=</span> <span class="n">el2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">keys1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">el1</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">keys2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">el2</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">only_k1</span> <span class="o">=</span> <span class="n">keys1</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">keys2</span><span class="p">)</span>
+        <span class="n">only_k2</span> <span class="o">=</span> <span class="n">keys1</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">keys2</span><span class="p">)</span>
+        <span class="n">inter_k</span> <span class="o">=</span> <span class="n">keys1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">keys2</span><span class="p">)</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">only_k1</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;only_in_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">only_k1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">only_k2</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;only_in_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">only_k2</span><span class="p">)</span>
+        <span class="n">dval</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">inter_k</span><span class="p">:</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="n">el1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">size_limit</span><span class="p">:</span>
+                <span class="n">v1</span> <span class="o">=</span> <span class="s1">&#39;&lt;value too large, size: </span><span class="si">%d</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="n">el2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">size_limit</span><span class="p">:</span>
+                <span class="n">v2</span> <span class="o">=</span> <span class="s1">&#39;&lt;value too large, size: </span><span class="si">%d</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v1</span> <span class="o">!=</span> <span class="n">v2</span><span class="p">:</span>
+                <span class="n">dval</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;in_1&#39;</span><span class="p">:</span> <span class="n">v1</span><span class="p">,</span> <span class="s1">&#39;in_2&#39;</span><span class="p">:</span> <span class="n">v2</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">dval</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s1">&#39;differing_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dval</span>
+        <span class="k">if</span> <span class="n">props</span><span class="p">:</span>
+            <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">el1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;props_diffs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
+
+    <span class="c1"># children</span>
+    <span class="k">if</span> <span class="n">ch1</span> <span class="o">!=</span> <span class="n">ch2</span><span class="p">:</span>
+        <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">el1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+
+    <span class="n">only_1</span> <span class="o">=</span> <span class="n">ch1</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">ch2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">only_1</span><span class="p">:</span>
+        <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;only_in_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">only_1</span><span class="p">)</span>
+    <span class="n">only_2</span> <span class="o">=</span> <span class="n">ch2</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">ch1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">only_2</span><span class="p">:</span>
+        <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;only_in_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">only_2</span><span class="p">)</span>
+
+    <span class="n">inters</span> <span class="o">=</span> <span class="n">ch1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ch2</span><span class="p">)</span>
+    <span class="n">ch_diffs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">verbose_depth</span> <span class="o">&lt;=</span> <span class="n">verbose_depth_max</span> <span class="ow">and</span> <span class="n">diff_d</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="n">el1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="s1">&#39;differs&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">inters</span><span class="p">:</span>
+        <span class="n">ch1</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">el1</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">ch</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ch2</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">el2</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">ch</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ch_diff</span> <span class="o">=</span> <span class="n">diff_element</span><span class="p">(</span><span class="n">ch1</span><span class="p">,</span> <span class="n">ch2</span><span class="p">,</span> <span class="n">verbose_depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">verbose_depth_max</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ch_diff</span><span class="p">:</span>
+            <span class="n">ch_diffs</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">ch_diff</span>
+            <span class="k">if</span> <span class="n">verbose_depth</span> <span class="o">&lt;=</span> <span class="n">verbose_depth_max</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;child element&#39;</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="s1">&#39;differs&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ch_diffs</span><span class="p">:</span>
+        <span class="n">diff_d</span><span class="p">[</span><span class="s1">&#39;children_diff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ch_diffs</span>
+
+    <span class="k">return</span> <span class="n">diff_d</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;diff_svg&#39;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Print differences between two SVG maps.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--svg1&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;1st SVG file to be compared&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-j&#39;</span><span class="p">,</span> <span class="s1">&#39;--svg2&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;2nd SVG file to be compared&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--output&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;output YAML file (default: use stdout)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">svg1</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">svg1</span>
+    <span class="n">svg2</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">svg2</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">output</span>
+    <span class="n">other</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">other</span>
+    <span class="k">if</span> <span class="n">svg1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">other</span><span class="p">:</span>
+        <span class="n">svg1</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">svg2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">other</span><span class="p">:</span>
+        <span class="n">svg2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">other</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">other</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unrecognized arguments:&#39;</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-h&#39;</span><span class="p">])</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="n">svg1</span><span class="p">,</span> <span class="s1">&#39;...&#39;</span><span class="p">)</span>
+    <span class="n">xml1</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">svg1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="n">svg2</span><span class="p">,</span> <span class="s1">&#39;...&#39;</span><span class="p">)</span>
+    <span class="n">xml2</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">svg2</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;compare...&#39;</span><span class="p">)</span>
+    <span class="n">diff_d</span> <span class="o">=</span> <span class="n">diff_element</span><span class="p">(</span><span class="n">xml1</span><span class="o">.</span><span class="n">getroot</span><span class="p">(),</span> <span class="n">xml2</span><span class="o">.</span><span class="n">getroot</span><span class="p">())</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;diff:&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">diff_d</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">diff_d</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">CataMap 2.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">catamap.diff_svg</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, FDC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+    </div>
+  </body>
+</html>
