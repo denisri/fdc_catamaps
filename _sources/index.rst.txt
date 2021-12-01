@@ -8,6 +8,9 @@ CataMap
 .. automodule:: catamap.svg_to_mesh
     :members:
 
+.. automodule:: catamap.diff_svg
+    :members:
+
 .. automodule:: catamap.altitude
     :members:
 
