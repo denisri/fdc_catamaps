@@ -43,8 +43,6 @@ jobs:
         run: |
           export PYTHONPATH=$PWD/python
           cd doc
-          echo $PYTHONPATH
-          python -c 'import catamap; print(catamap.__file__)'
           python -m sphinx -b html source build/html
           touch build/html/.nojekyll
           cd ..
