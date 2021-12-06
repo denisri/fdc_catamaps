@@ -56,6 +56,10 @@ The 3D part has additional requirements:
   https://github.com/brainvisa/anatomist-gpl)
 * json
 
+The maps differences tool (:mod:`~catamap.diff_svg`) also needs:
+
+* yaml (pip module ``pyyaml``)
+
 Usage
 =====
 
@@ -4188,32 +4192,40 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             props.fill_properties(layer)
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            corridor_colors = CataSvgToMesh.get_alt_color(props, colorset,
-                                                          conv=False)
-            if not corridor_colors:
-                corridor_colors = colors.get(label)
-            if not corridor_colors:
-                if label == u'légende':
-                    legend_layer = layer
-                print('skip recolor', label)
-                continue
             print('recolor', label)
-            bg = corridor_colors.get('bg')
-            op = 1.
-            fill_op = 1.
-            if bg and len(bg) >= 7:
-                fill_op = float(eval('0x%s' % bg[-2:])) / 256.
-                bg = bg[:-2]
-            fg = corridor_colors.get('fg')
-            if fg and len(fg) >= 7:
-                op = float(eval('0x%s' % fg[-2:])) / 256.
-                fg = fg[:-2]
 
-            todo = layer[:]
+            todo = [(x, [props]) for x in layer]
             while todo:
-                item = todo.pop()
+                item, parents = todo.pop()
+                props = ItemProperties()
+                props.fill_properties(item, parents)
                 if len(item) != 0:
-                    todo += item[:]
+                    todo += [(x, parents + [props]) for x in item]
+
+                corridor_colors = CataSvgToMesh.get_alt_color(props, colorset,
+                                                              conv=False)
+                if not corridor_colors:
+                    corridor_colors = colors.get(label)
+                if not corridor_colors:
+                    if label == u'légende':
+                        legend_layer = layer
+                    # print('skip recolor', label)
+                    continue
+                # allow legend to match labels found in map
+                # however all items with this label will be affected...
+                #if label not in colors:
+                    #colors[label] = corridor_colors
+                bg = corridor_colors.get('bg')
+                op = 1.
+                fill_op = 1.
+                if bg and len(bg) >= 7:
+                    fill_op = float(eval('0x%s' % bg[-2:])) / 256.
+                    bg = bg[:-2]
+                fg = corridor_colors.get('fg')
+                if fg and len(fg) >= 7:
+                    op = float(eval('0x%s' % fg[-2:])) / 256.
+                    fg = fg[:-2]
+
                 style = self.get_style(item)
                 if style:
                     if bg and 'fill' in style:
