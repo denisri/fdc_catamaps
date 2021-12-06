@@ -97,6 +97,10 @@
 <span class="sd">  https://github.com/brainvisa/anatomist-gpl)</span>
 <span class="sd">* json</span>
 
+<span class="sd">The maps differences tool (:mod:`~catamap.diff_svg`) also needs:</span>
+
+<span class="sd">* yaml (pip module ``pyyaml``)</span>
+
 <span class="sd">Usage</span>
 <span class="sd">=====</span>
 
@@ -4229,32 +4233,40 @@
             <span class="n">props</span><span class="o">.</span><span class="n">fill_properties</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-            <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span>
-                                                          <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
-                <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">:</span>
-                    <span class="n">legend_layer</span> <span class="o">=</span> <span class="n">layer</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;skip recolor&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
-                <span class="k">continue</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;recolor&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
-            <span class="n">bg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">)</span>
-            <span class="n">op</span> <span class="o">=</span> <span class="mf">1.</span>
-            <span class="n">fill_op</span> <span class="o">=</span> <span class="mf">1.</span>
-            <span class="k">if</span> <span class="n">bg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
-                <span class="n">fill_op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">256.</span>
-                <span class="n">bg</span> <span class="o">=</span> <span class="n">bg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="n">fg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">fg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
-                <span class="n">op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">256.</span>
-                <span class="n">fg</span> <span class="o">=</span> <span class="n">fg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
 
-            <span class="n">todo</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[:]</span>
+            <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">props</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">]</span>
             <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
-                <span class="n">item</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="n">item</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
+                <span class="n">props</span><span class="o">.</span><span class="n">fill_properties</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">todo</span> <span class="o">+=</span> <span class="n">item</span><span class="p">[:]</span>
+                    <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">parents</span> <span class="o">+</span> <span class="p">[</span><span class="n">props</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+
+                <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span>
+                                                              <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
+                    <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">:</span>
+                        <span class="n">legend_layer</span> <span class="o">=</span> <span class="n">layer</span>
+                    <span class="c1"># print(&#39;skip recolor&#39;, label)</span>
+                    <span class="k">continue</span>
+                <span class="c1"># allow legend to match labels found in map</span>
+                <span class="c1"># however all items with this label will be affected...</span>
+                <span class="c1">#if label not in colors:</span>
+                    <span class="c1">#colors[label] = corridor_colors</span>
+                <span class="n">bg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">)</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="n">fill_op</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="k">if</span> <span class="n">bg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                    <span class="n">fill_op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">256.</span>
+                    <span class="n">bg</span> <span class="o">=</span> <span class="n">bg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">fg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">fg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                    <span class="n">op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">256.</span>
+                    <span class="n">fg</span> <span class="o">=</span> <span class="n">fg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
                 <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">style</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">bg</span> <span class="ow">and</span> <span class="s1">&#39;fill&#39;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
