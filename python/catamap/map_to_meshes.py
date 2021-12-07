@@ -540,7 +540,11 @@ class ItemProperties(object):
 
             alt_colors = element.get('alt_colors')
             if alt_colors is not None:
-                self.alt_colors = json.loads(alt_colors)
+                try:
+                    self.alt_colors = json.loads(alt_colors)
+                except:
+                    print('error reading JSON in alt_colors of', eid, label)
+                    raise
 
             if self.well and self.well_read_mode is None:
                 well_read_mode = DefaultItemProperties.well_read_modes.get(
@@ -4161,11 +4165,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                                          'fg': '#ffffffff'},
                 'calcaire 2010': {'bg': '#50505000',
                                   'fg': '#60606000'},
-                'calcaire ciel ouvert': {'bg': '#50505000',
+                'calcaire ciel ouvert': {'bg': '#50505020',
                                          'fg': '#60606000'},
-                'calcaire masse2': {'bg': '#50505000',
+                'calcaire masse2': {'bg': '#000000ff',
                                     'fg': '#60606000'},
-                'calcaire masse': {'bg': '#50505000',
+                'calcaire masse': {'bg': '#000000ff',
                                    'fg': '#60606000'},
                 'calcaire med': {'bg': '#50505000',
                                  'fg': '#60606000'},
@@ -4207,10 +4211,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if not corridor_colors:
                     corridor_colors = colors.get(label)
                 if not corridor_colors:
-                    if label == u'légende':
-                        legend_layer = layer
                     # print('skip recolor', label)
                     continue
+                if label == u'légende':
+                    legend_layer = layer
                 # allow legend to match labels found in map
                 # however all items with this label will be affected...
                 #if label not in colors:
