@@ -581,7 +581,11 @@
 
             <span class="n">alt_colors</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt_colors&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">alt_colors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">alt_colors</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">alt_colors</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">alt_colors</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">alt_colors</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error reading JSON in alt_colors of&#39;</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+                    <span class="k">raise</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">well</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">well_read_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">well_read_mode</span> <span class="o">=</span> <span class="n">DefaultItemProperties</span><span class="o">.</span><span class="n">well_read_modes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -4202,11 +4206,11 @@
                                          <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">},</span>
                 <span class="s1">&#39;calcaire 2010&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire ciel ouvert&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;calcaire ciel ouvert&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505020&#39;</span><span class="p">,</span>
                                          <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire masse2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;calcaire masse2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">,</span>
                                     <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire masse&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;calcaire masse&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">,</span>
                                    <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
                 <span class="s1">&#39;calcaire med&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
                                  <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
@@ -4248,10 +4252,10 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
                     <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">:</span>
-                        <span class="n">legend_layer</span> <span class="o">=</span> <span class="n">layer</span>
                     <span class="c1"># print(&#39;skip recolor&#39;, label)</span>
                     <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">:</span>
+                    <span class="n">legend_layer</span> <span class="o">=</span> <span class="n">layer</span>
                 <span class="c1"># allow legend to match labels found in map</span>
                 <span class="c1"># however all items with this label will be affected...</span>
                 <span class="c1">#if label not in colors:</span>
