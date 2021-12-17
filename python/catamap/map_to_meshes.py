@@ -4223,11 +4223,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 op = 1.
                 fill_op = 1.
                 if bg and len(bg) >= 7:
-                    fill_op = float(eval('0x%s' % bg[-2:])) / 256.
+                    fill_op = float(eval('0x%s' % bg[-2:])) / 255.
                     bg = bg[:-2]
                 fg = corridor_colors.get('fg')
                 if fg and len(fg) >= 7:
-                    op = float(eval('0x%s' % fg[-2:])) / 256.
+                    op = float(eval('0x%s' % fg[-2:])) / 255.
                     fg = fg[:-2]
 
                 style = self.get_style(item)
@@ -4237,7 +4237,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     style['fill-opacity'] = str(fill_op)
                     if fg and 'stroke' in style:
                         style['stroke'] = fg
-                    style['opacity'] = str(op)
+                    style['stroke-opacity'] = str(op)
                     self.set_style(item, style)
                     # allow to replace other style elements
                     for k, style_item in corridor_colors.items():
