@@ -179,6 +179,13 @@ Properties list
 
         ``{"map_3d": "#cccccc4c"}``
 
+**label_alt_colors:** JSON dict (**3D maps**)
+    Like alt_colors, except that the dict has an upper-level which keys area
+    object labels. The dict can be applied hierarchically, thus put in a layer.
+    Ex::
+
+        {"repetiteur": {"black": {"bg": "#cccccc4c"}}}
+
 **catrgory:** str (**3D maps**)
     the category string the element will be associated in the 3D views.
     Categories can be displayed/hidden using buttons or menus in 3D views.
@@ -358,8 +365,8 @@ class ItemProperties(object):
                   'private', 'inaccessible', 'corridor', 'block', 'wall',
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
-                  'alt_colors', 'category', 'layer', 'well_read_mode',
-                  'grid_interval')
+                  'alt_colors', 'label_alt_colors', 'category', 'layer',
+                  'well_read_mode', 'grid_interval')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -387,6 +394,7 @@ class ItemProperties(object):
         self.border = False
         self.sound = False
         self.alt_colors = None
+        self.label_alt_colors = None
         self.category = None
         self.layer = False
         self.well_read_mode = None
@@ -537,6 +545,15 @@ class ItemProperties(object):
                     '{http://www.inkscape.org/namespaces/inkscape}'
                     'groupmode') == 'layer':
                 self.layer = True
+
+            label_alt_colors = element.get('label_alt_colors')
+            if label_alt_colors is not None:
+                try:
+                    self.label_alt_colors = json.loads(label_alt_colors)
+                except:
+                    print('error reading JSON in label_alt_colors of', eid,
+                          label)
+                    raise
 
             alt_colors = element.get('alt_colors')
             if alt_colors is not None:
@@ -1137,6 +1154,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_paths(self, xml):
+        print('### read_paths')
         if self.skull_mesh is None:
             self.skull_mesh = self.make_skull_model(xml)
         if self.water_scale_model is None:
@@ -1149,7 +1167,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if self.lily_mesh is None:
             self.lily_mesh = self.make_lily_model(xml)
         if self.large_sign_mesh is None:
+            print('### make_large_sign_model')
             self.large_sign_mesh = self.make_large_sign_model(xml)
+            print('### large_sign_mesh:', self.large_sign_mesh)
         res = super(CataSvgToMesh, self).read_paths(xml)
 
         #print('======= read_path done =======')
@@ -1319,7 +1339,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   0.]
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
-        lily_mesh = aims.AimsTimeSurface(self.large_sign_mesh)
+        try:
+            lily_mesh = aims.AimsTimeSurface(self.large_sign_mesh)
+        except:
+            print('Mesh error:', type(self.large_sign_mesh))
+            return
+            #raise
         aims.SurfaceManip.meshTransform(lily_mesh, tr)
         aims.SurfaceManip.meshMerge(mesh, lily_mesh)
         if 'material' not in mesh.header():
@@ -2060,9 +2085,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     @staticmethod
     def get_alt_color(props, colorset='map_3d', conv=True):
-        if not props or not props.alt_colors:
+        if not props:
             return None
-        color = props.alt_colors.get(colorset)
+        color = None
+        if props.label_alt_colors:
+            color = props.label_alt_colors.get(props.label, {}).get(colorset)
+        if not color:
+            if not props.alt_colors:
+                return None
+            color = props.alt_colors.get(colorset)
 
         def convert_color(color):
             if isinstance(color, str) and color.startswith('#'):
