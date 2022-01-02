@@ -220,6 +220,13 @@
 
 <span class="sd">        ``{&quot;map_3d&quot;: &quot;#cccccc4c&quot;}``</span>
 
+<span class="sd">**label_alt_colors:** JSON dict (**3D maps**)</span>
+<span class="sd">    Like alt_colors, except that the dict has an upper-level which keys area</span>
+<span class="sd">    object labels. The dict can be applied hierarchically, thus put in a layer.</span>
+<span class="sd">    Ex::</span>
+
+<span class="sd">        {&quot;repetiteur&quot;: {&quot;black&quot;: {&quot;bg&quot;: &quot;#cccccc4c&quot;}}}</span>
+
 <span class="sd">**catrgory:** str (**3D maps**)</span>
 <span class="sd">    the category string the element will be associated in the 3D views.</span>
 <span class="sd">    Categories can be displayed/hidden using buttons or menus in 3D views.</span>
@@ -399,8 +406,8 @@
                   <span class="s1">&#39;private&#39;</span><span class="p">,</span> <span class="s1">&#39;inaccessible&#39;</span><span class="p">,</span> <span class="s1">&#39;corridor&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;symbol&#39;</span><span class="p">,</span> <span class="s1">&#39;arrow&#39;</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;well&#39;</span><span class="p">,</span> <span class="s1">&#39;catflap&#39;</span><span class="p">,</span> <span class="s1">&#39;hidden&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;depth_map&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;border&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;grid_interval&#39;</span><span class="p">)</span>
+                  <span class="s1">&#39;alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;label_alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">)</span>
 
     <span class="n">prop_types</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># will be initialized when used in get_typed_prop()</span>
 
@@ -428,6 +435,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sound</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alt_colors</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_alt_colors</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">well_read_mode</span> <span class="o">=</span> <span class="kc">None</span>
@@ -578,6 +586,15 @@
                     <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}&#39;</span>
                     <span class="s1">&#39;groupmode&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;layer&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">label_alt_colors</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label_alt_colors&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label_alt_colors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">label_alt_colors</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">label_alt_colors</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error reading JSON in label_alt_colors of&#39;</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span>
+                          <span class="n">label</span><span class="p">)</span>
+                    <span class="k">raise</span>
 
             <span class="n">alt_colors</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt_colors&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">alt_colors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1178,6 +1195,7 @@
 
 
 <div class="viewcode-block" id="CataSvgToMesh.read_paths"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.read_paths">[docs]</a>    <span class="k">def</span> <span class="nf">read_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;### read_paths&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">skull_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">skull_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_skull_model</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">water_scale_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1190,7 +1208,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lily_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lily_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_lily_model</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;### make_large_sign_model&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_large_sign_model</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;### large_sign_mesh:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CataSvgToMesh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">read_paths</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
         <span class="c1">#print(&#39;======= read_path done =======&#39;)</span>
@@ -1360,7 +1380,12 @@
                   <span class="mf">0.</span><span class="p">]</span>
         <span class="n">tr</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
         <span class="n">tr</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
-        <span class="n">lily_mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lily_mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh error:&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">))</span>
+            <span class="k">return</span>
+            <span class="c1">#raise</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">lily_mesh</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">lily_mesh</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
@@ -2101,9 +2126,15 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="s1">&#39;map_3d&#39;</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">props</span><span class="o">.</span><span class="n">alt_colors</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">alt_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colorset</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">label_alt_colors</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">label_alt_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">props</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colorset</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span><span class="o">.</span><span class="n">alt_colors</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">alt_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colorset</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">convert_color</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">color</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
@@ -5154,7 +5185,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
     </div>
   </body>
 </html>

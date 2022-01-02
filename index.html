@@ -210,6 +210,13 @@ level it maps. See <a class="reference internal" href="#depth-maps"><span class=
 </pre></div>
 </div>
 </dd>
+<dt><strong>label_alt_colors:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
+object labels. The dict can be applied hierarchically, thus put in a layer.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
+</dd>
 <dt><strong>catrgory:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
 Categories can be displayed/hidden using buttons or menus in 3D views.</p>
 </dd>
@@ -759,7 +766,7 @@ children in a readable dictionary.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
     </div>
   </body>
 </html>
