@@ -553,6 +553,7 @@ class ItemProperties(object):
                 except:
                     print('error reading JSON in label_alt_colors of', eid,
                           label)
+                    print('json code:', label_alt_colors)
                     raise
 
             alt_colors = element.get('alt_colors')
@@ -561,6 +562,7 @@ class ItemProperties(object):
                     self.alt_colors = json.loads(alt_colors)
                 except:
                     print('error reading JSON in alt_colors of', eid, label)
+                    print('json code:', alt_colors)
                     raise
 
             if self.well and self.well_read_mode is None:
@@ -4134,7 +4136,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            if label == u'l\xe9gende':
+            if label and label.startswith(u'légende'):
                 for child in layer:
                     if child.get('date') is not None:
                         # set date in appropriate field
