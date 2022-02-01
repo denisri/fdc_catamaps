@@ -2804,12 +2804,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         catflap_col = {'bas': [0.85, 0.56, 0.16, 0.8],
                        u'injecté': [0.66, 0.61, 0.63, 0.8]}
         for main_group in list(meshes.keys()):
-            prop = self.group_properties.get(main_group)
-            if not prop or not prop.catflap:
+            props = self.group_properties.get(main_group)
+            if not props or not props.catflap:
                 continue
             mesh = meshes[main_group]
             if mesh is not None:
-                color = catflap_col.get(prop.label)
+                color = catflap_col.get(props.label)
                 if color is None:
                     color = mesh.header().get('material', {}).get('diffuse')
                     if not color:
@@ -3267,14 +3267,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             "Ossuaire officiel",
         ]
         json_obj['default_categories'] = def_categories
-        # json_obj['code'] = 1664  # code for private things
 
+        # print('summary:', summary, '\n')
         if 'meshes' in summary:
             jmeshes = []
             pmeshes = []
             for filename, mesh in six.iteritems(summary['meshes']):
                 filename = os.path.basename(filename)
                 group = mesh
+                # print('mesh:', mesh)
                 if group.endswith('_tri'):
                     group = group[:-4]
                 elif group.endswith('_line'):
@@ -3324,13 +3325,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         layer = 8
                     elif 'grille surface' in filename:
                         layer = 9
+                # print('mesh:', layer, ':', filename, props)
                 size = os.stat(os.path.join(dirname,
                                             filename + '.obj')).st_size
                 # hash
                 md5 = hashlib.md5(open(os.path.join(dirname,
                                                     filename + '.obj'),
                                        'rb').read()).hexdigest()
-                if 'private' in filename:
+                if 'private' in filename or (props and props.private):
                     pmeshes.append([layer, filename, size, md5])
                 else:
                     jmeshes.append([layer, filename, size, md5])

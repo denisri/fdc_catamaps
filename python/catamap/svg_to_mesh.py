@@ -1620,15 +1620,19 @@ class SvgToMesh(object):
                 # dict object (text...), save as .aobj
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + '.aobj')
-                print('saving:', filename)
+                print('saving:', filename, '(', key, ')')
                 import json
                 #open(filename, 'w').write(repr(mesh) + '\n')
                 try:
                     json.dump(mesh, open(filename, 'w'))
+                    summary.setdefault('text_fnames', {})[filename] = key
                 except Exception as e:
                     print(e)
                     print('while saving object:', mesh)
-                summary.setdefault('text_fnames', {})[filename] = key
+                    try:
+                        os.unlink(filename)
+                    except Exception:
+                        pass
             else:
                 if isinstance(mesh, aims.AimsTimeSurface_2):
                     ext = mesh_wf_format
@@ -1640,7 +1644,7 @@ class SvgToMesh(object):
                     format = None
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + ext)
-                print('saving:', filename)
+                print('saving:', filename, '(', key, ')')
                 aims.write(mesh, filename, format=format)
                 summary.setdefault("meshes", {})[filename] = key
         return summary
