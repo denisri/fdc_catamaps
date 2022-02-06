@@ -98,11 +98,9 @@ Properties are inherited from parent (group/layer) to children. Thus if a layer 
 
 In the program, elements are grouped into meshes: a mesh will be the concatenation of all elements of the same kind, to avoid having dozens of thousands of mesh files to load. An object "kind" (a group making a single mesh) is identified by several of its properties, but not all. Namely the identifier is::
 
-    <label>_<level>_<public/private>_<accessible/inaccessible>
+    <label>_<level>_<public/private>_<accessible/inaccessible>[_<category>]
 
-Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property ``block``, it will be part of the same mesh group anyway, and the ``block`` property will not be retained.
-
-An important illustration to this, is the ``category`` property: ``category`` is not part of the group identifier, thus items of this group cannot be split into several display categories: they must also use different labels, for instance, to be dissociated.
+Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property ``block``, it will be part of the same mesh group anyway, and the ``block`` property will be ignored.
 
 Properties list
 ---------------
@@ -499,9 +497,6 @@ class ItemProperties(object):
             if element.tag == 'text' or element.tag.endswith('text'):
                 self.text =  True
 
-            self.height = self.get_height(element)
-            self.height_shift = self.get_height_shift(element)
-
             # label suffixes are an old, ambiguous, system. We must disable it
             # in some cases
             use_suffix = True
@@ -520,6 +515,9 @@ class ItemProperties(object):
                 self.label = label
                 self.name = label
 
+            self.height = self.get_height(element)
+            self.height_shift = self.get_height_shift(element)
+
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
                     if getattr(self, prop) is None:
@@ -537,6 +535,8 @@ class ItemProperties(object):
                 print('level None in', self)
                 self.level = 'undefined'
             tags = [self.label, self.level, priv_str, access_str]
+            if self.category:
+                tags.append(self.category)
             if self.text:
                 tags.append('text')
             self.main_group = '_'.join(tags)
@@ -953,6 +953,7 @@ class DefaultItemProperties(object):
         'PSh sans': 1.5,
         'PE': 10.5,
         'PE anciennes galeries big': -10.,
+        'mur': 2.,
     }
 
     well_read_modes = {
@@ -4926,6 +4927,9 @@ The program allows to produce:
         '--clip',
         help='clip using this rectangle ID in the inkscape SVG')
     parser.add_argument(
+        '--no-pdf', action='store_true',
+        help='do not generate PDF versions of the map')
+    parser.add_argument(
         '--join', action='store_true',
         help='reverse the --split operation: concatenate layers from several '
         'files')
@@ -4955,6 +4959,7 @@ The program allows to produce:
     do_3d = options.do_3d
     do_split = options.split
     do_join = options.join
+    do_pdf = not options.do_pdf
     out_filename = options.output_filename
     if options.color:
         do_recolor = True
@@ -5080,6 +5085,8 @@ The program allows to produce:
             map_def = dict(maps_def[map_type])
             if clip_rect:
                 map_def['clip_rect'] = clip_rect
+            if no_pdf:
+                map_def['do_pdf'] = False
             print('clip:', map_def['clip_rect'])
             build_2d_map(
                 xml_et,

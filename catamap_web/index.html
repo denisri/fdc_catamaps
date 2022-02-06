@@ -503,6 +503,7 @@
       console.log( 'Disabling files cache' );
       // 1. in THREE.objLoader
       THREE.Cache.enabled = false;
+      // console.log('cached files:', THREE.Cache.files);
       // 2. in .getJSON
       $(document).ready(function() {
         $.ajaxSetup({ cache: false });
