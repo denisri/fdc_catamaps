@@ -4338,10 +4338,20 @@
                 <span class="k">if</span> <span class="n">style</span><span class="p">:</span>
                     <span class="n">bg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">)</span>
                     <span class="n">fg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg&#39;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">bg</span> <span class="ow">and</span> <span class="s1">&#39;fill&#39;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+                    <span class="n">op</span> <span class="o">=</span> <span class="mf">1.</span>
+                    <span class="n">fill_op</span> <span class="o">=</span> <span class="mf">1.</span>
+                    <span class="k">if</span> <span class="n">bg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                        <span class="n">fill_op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">255.</span>
+                        <span class="n">bg</span> <span class="o">=</span> <span class="n">bg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">fg</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                        <span class="n">op</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;0x</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fg</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]))</span> <span class="o">/</span> <span class="mf">255.</span>
+                        <span class="n">fg</span> <span class="o">=</span> <span class="n">fg</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">bg</span><span class="p">:</span>
                         <span class="n">style</span><span class="p">[</span><span class="s1">&#39;fill&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bg</span>
-                    <span class="k">if</span> <span class="n">fg</span> <span class="ow">and</span> <span class="s1">&#39;stroke&#39;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+                        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;fill-opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fill_op</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">fg</span><span class="p">:</span>
                         <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fg</span>
+                        <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke-opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
 
 
@@ -4968,7 +4978,7 @@
         <span class="s1">&#39;--clip&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clip using this rectangle ID in the inkscape SVG&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--no-pdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--no-pdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;do not generate PDF versions of the map&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--join&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
@@ -5000,7 +5010,9 @@
     <span class="n">do_3d</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">do_3d</span>
     <span class="n">do_split</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span>
     <span class="n">do_join</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">join</span>
-    <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">do_pdf</span>
+    <span class="n">do_pdf</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span>
     <span class="n">out_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">output_filename</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
         <span class="n">do_recolor</span> <span class="o">=</span> <span class="kc">True</span>
@@ -5126,8 +5138,8 @@
             <span class="n">map_def</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">maps_def</span><span class="p">[</span><span class="n">map_type</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">clip_rect</span>
-            <span class="k">if</span> <span class="n">no_pdf</span><span class="p">:</span>
-                <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">do_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">do_pdf</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip:&#39;</span><span class="p">,</span> <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">])</span>
             <span class="n">build_2d_map</span><span class="p">(</span>
                 <span class="n">xml_et</span><span class="p">,</span>
