@@ -139,11 +139,9 @@
 
 <span class="sd">In the program, elements are grouped into meshes: a mesh will be the concatenation of all elements of the same kind, to avoid having dozens of thousands of mesh files to load. An object &quot;kind&quot; (a group making a single mesh) is identified by several of its properties, but not all. Namely the identifier is::</span>
 
-<span class="sd">    &lt;label&gt;_&lt;level&gt;_&lt;public/private&gt;_&lt;accessible/inaccessible&gt;</span>
+<span class="sd">    &lt;label&gt;_&lt;level&gt;_&lt;public/private&gt;_&lt;accessible/inaccessible&gt;[_&lt;category&gt;]</span>
 
-<span class="sd">Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property ``block``, it will be part of the same mesh group anyway, and the ``block`` property will not be retained.</span>
-
-<span class="sd">An important illustration to this, is the ``category`` property: ``category`` is not part of the group identifier, thus items of this group cannot be split into several display categories: they must also use different labels, for instance, to be dissociated.</span>
+<span class="sd">Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property ``block``, it will be part of the same mesh group anyway, and the ``block`` property will be ignored.</span>
 
 <span class="sd">Properties list</span>
 <span class="sd">---------------</span>
@@ -540,9 +538,6 @@
             <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span> <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span>  <span class="kc">True</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">height_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height_shift</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
-
             <span class="c1"># label suffixes are an old, ambiguous, system. We must disable it</span>
             <span class="c1"># in some cases</span>
             <span class="n">use_suffix</span> <span class="o">=</span> <span class="kc">True</span>
@@ -561,6 +556,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">label</span>
 
+            <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">height_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height_shift</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">set_defaults</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;upper_level&#39;</span><span class="p">,</span> <span class="p">):</span>
                     <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -578,6 +576,8 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;level None in&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;undefined&#39;</span>
             <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">,</span> <span class="n">priv_str</span><span class="p">,</span> <span class="n">access_str</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">category</span><span class="p">:</span>
+                <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">category</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
                 <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
@@ -994,6 +994,7 @@
         <span class="s1">&#39;PSh sans&#39;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
         <span class="s1">&#39;PE&#39;</span><span class="p">:</span> <span class="mf">10.5</span><span class="p">,</span>
         <span class="s1">&#39;PE anciennes galeries big&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.</span><span class="p">,</span>
+        <span class="s1">&#39;mur&#39;</span><span class="p">:</span> <span class="mf">2.</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">well_read_modes</span> <span class="o">=</span> <span class="p">{</span>
@@ -4967,6 +4968,9 @@
         <span class="s1">&#39;--clip&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;clip using this rectangle ID in the inkscape SVG&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--no-pdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;do not generate PDF versions of the map&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--join&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;reverse the --split operation: concatenate layers from several &#39;</span>
         <span class="s1">&#39;files&#39;</span><span class="p">)</span>
@@ -4996,6 +5000,7 @@
     <span class="n">do_3d</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">do_3d</span>
     <span class="n">do_split</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span>
     <span class="n">do_join</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">join</span>
+    <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">do_pdf</span>
     <span class="n">out_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">output_filename</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
         <span class="n">do_recolor</span> <span class="o">=</span> <span class="kc">True</span>
@@ -5121,6 +5126,8 @@
             <span class="n">map_def</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">maps_def</span><span class="p">[</span><span class="n">map_type</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">clip_rect</span>
+            <span class="k">if</span> <span class="n">no_pdf</span><span class="p">:</span>
+                <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip:&#39;</span><span class="p">,</span> <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">])</span>
             <span class="n">build_2d_map</span><span class="p">(</span>
                 <span class="n">xml_et</span><span class="p">,</span>
