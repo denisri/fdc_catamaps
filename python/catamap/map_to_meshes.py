@@ -4297,10 +4297,20 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if style:
                     bg = corridor_colors.get('bg')
                     fg = corridor_colors.get('fg')
-                    if bg and 'fill' in style:
+                    op = 1.
+                    fill_op = 1.
+                    if bg and len(bg) >= 7:
+                        fill_op = float(eval('0x%s' % bg[-2:])) / 255.
+                        bg = bg[:-2]
+                    if fg and len(fg) >= 7:
+                        op = float(eval('0x%s' % fg[-2:])) / 255.
+                        fg = fg[:-2]
+                    if bg:
                         style['fill'] = bg
-                    if fg and 'stroke' in style:
+                        style['fill-opacity'] = str(fill_op)
+                    if fg:
                         style['stroke'] = fg
+                        style['stroke-opacity'] = str(op)
                     self.set_style(item, style)
 
 
@@ -4927,7 +4937,7 @@ The program allows to produce:
         '--clip',
         help='clip using this rectangle ID in the inkscape SVG')
     parser.add_argument(
-        '--no-pdf', action='store_true',
+        '--no-pdf', action='store_true', default=None,
         help='do not generate PDF versions of the map')
     parser.add_argument(
         '--join', action='store_true',
@@ -4959,7 +4969,9 @@ The program allows to produce:
     do_3d = options.do_3d
     do_split = options.split
     do_join = options.join
-    do_pdf = not options.do_pdf
+    do_pdf = None
+    if options.no_pdf is not None:
+        do_pdf = not options.no_pdf
     out_filename = options.output_filename
     if options.color:
         do_recolor = True
@@ -5085,8 +5097,8 @@ The program allows to produce:
             map_def = dict(maps_def[map_type])
             if clip_rect:
                 map_def['clip_rect'] = clip_rect
-            if no_pdf:
-                map_def['do_pdf'] = False
+            if do_pdf is not None:
+                map_def['do_pdf'] = do_pdf
             print('clip:', map_def['clip_rect'])
             build_2d_map(
                 xml_et,
