@@ -1358,6 +1358,12 @@ class SvgToMesh(object):
                         relem = None
                 else:
                     relem = rlabel.get(label)
+
+            if relem is None and current_label:
+                relem = rlabel.get(current_label)
+            if relem is None and current_id:
+                relem = rid.get(current_id)
+
             if relem is not None:
                 item = relem['element']
                 replace_children = relem.get('children', False)
@@ -1365,51 +1371,17 @@ class SvgToMesh(object):
                 # print('replace element:', eid, label, relem)
                 if element.get(
                         '{http://www.inkscape.org/namespaces/inkscape}'
-                        'groupmode') == 'layer':
-                    # it's a layer: process children
-                    # TODO: we need a better (recursive) way to handle this.
+                        'groupmode') == 'layer' \
+                          or element.get('groupmode') == 'layer':
+                    # it's a layer (or group marked as 'groupmode=layer'):
+                    # process children
                     replace_children = True
                 if replace_children:
                     trans = self.get_transform(element, trans)
 
-                    tr_items = []
-                    for child in element:
-                        # allow per-element specific replacement
-                        child2 = self.replace_filter_element(child)
-                        if child2 is None:
-                            continue
-                        child = child2
-                        label = child.get('label')
-                        ritem = item
-                        rcenter = center
-                        if label is not None:
-                            new_relem = rlabel.get(label)
-                            if new_relem is None:
-                                new_relem = rid.get(label)
-                            if new_relem is not None:
-                                ritem = new_relem['element']
-                                rcenter = new_relem['center']
-                        bbox = self.boundingbox(child, trans)
-                        ecent = ((bbox[0][0] + bbox[1][0]) / 2,
-                                 (bbox[0][1] + bbox[1][1]) / 2)
-                        tr = np.matrix(np.eye(3))
-                        tr[0, 2] = ecent[0] - rcenter[0]
-                        tr[1, 2] = ecent[1] - rcenter[1]
-                        tr_items.append((ritem, tr, child))
-                    while len(element) != 0:
-                        element.remove(element[0])
-                    for ritem, tr, orig in tr_items:
-                        new_item = self.copy_svg(ritem)
-                        eid = new_item.get('id')
-                        if '-' in eid:
-                            eid = '-'.join(eid.split('-')[:-1])
-                        eid += '-%d' % self.id_count
-                        new_item.set('id', eid)
-                        self.copy_item_properties(orig, new_item)
-                        self.id_count += 1
-                        self.transform_subtree(new_item, relem.get('trans'),
-                                               tr, trans)
-                        element.append(new_item)
+                    added = [(child, trans, element, current_id, current_label)
+                            for child in element]
+                    todo = added + todo
                 else:
                     bbox = self.boundingbox(element, trans)
                     ecent = ((bbox[0][0] + bbox[1][0]) / 2,
