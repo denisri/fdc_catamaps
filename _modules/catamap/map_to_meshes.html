@@ -2635,71 +2635,67 @@
 
     <span class="k">def</span> <span class="nf">postprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">):</span>
         <span class="c1"># use custom colors for some things</span>
-        <span class="c1">#for main_group, mesh in meshes.items():</span>
-            <span class="c1">#props = self.group_properties.get(main_group)</span>
-            <span class="c1">#if props and hasattr(mesh, &#39;header&#39;):</span>
-                <span class="c1">#color = self.get_alt_color(main_group</span>
 
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;grille surface&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles_tech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles gtech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">0.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles gtech_tech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">0.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles_inf&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">0.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles private&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">0.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symboles private_inf&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.43</span><span class="p">,</span> <span class="mf">0.74</span><span class="p">,</span> <span class="mf">.67</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repetiteur&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.3</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repetiteur_tech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.3</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bassin&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.73</span><span class="p">,</span> <span class="mf">.88</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">.7</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bassin_recouvert&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">.88</span><span class="p">,</span> <span class="mf">.73</span><span class="p">,</span> <span class="mf">.7</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bassin_tech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.73</span><span class="p">,</span> <span class="mf">.88</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">.7</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calcaire sup&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.54</span><span class="p">,</span> <span class="mf">0.47</span><span class="p">,</span> <span class="mf">.42</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calcaire med&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.54</span><span class="p">,</span> <span class="mf">0.46</span><span class="p">,</span> <span class="mf">.21</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calcaire inf&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.55</span><span class="p">,</span> <span class="mf">0.38</span><span class="p">,</span> <span class="mf">.27</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calcaire ciel ouvert&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.57</span><span class="p">,</span> <span class="mf">0.57</span><span class="p">,</span> <span class="mf">.42</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calcaire 2010&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.95</span><span class="p">,</span> <span class="mf">0.93</span><span class="p">,</span> <span class="mf">.85</span><span class="p">,</span> <span class="mf">.4</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;grille-porte_tech&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;porte_esc&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">.3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;grille surface&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [0.9, 0.9, 0.9, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, .74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles_tech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, .74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles gtech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, 0.74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles gtech_tech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, 0.74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles_inf&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, 0.74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles private&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, 0.74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;symboles private_inf&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.43, 0.74, .67, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;repetiteur&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.3, .3, .3, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;repetiteur_tech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.3, .3, .3, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;bassin&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.73, .88, 1., .7]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;bassin_recouvert&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [1., .88, .73, .7]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;bassin_tech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.73, .88, 1., .7]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;calcaire sup&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.54, 0.47, .42, .4]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;calcaire med&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.54, 0.46, .21, .4]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;calcaire inf&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.55, 0.38, .27, .4]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;calcaire ciel ouvert&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.57, 0.57, .42, .4]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;calcaire 2010&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.95, 0.93, .85, .4]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;grille-porte_tech&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.6, 0.3, .3, 1.]}</span>
+        <span class="c1">#mesh = meshes.get(&#39;porte_esc&#39;)</span>
+        <span class="c1">#if mesh is not None and len(mesh) != 0:</span>
+            <span class="c1">#mesh[0].header()[&#39;material&#39;] = {&#39;diffuse&#39;: [.6, 0.6, .3, 1.]}</span>
 
         <span class="c1"># lighen texts for black background</span>
         <span class="n">tspec</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotations_text&#39;</span><span class="p">)</span>
@@ -4196,77 +4192,74 @@
 
     <span class="k">def</span> <span class="nf">recolor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="s1">&#39;igc&#39;</span><span class="p">):</span>
         <span class="n">colorsets</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;galeries&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5dd400ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries big sud&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5dd400ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5dd400ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries inf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#076552ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries inf private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#076552ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries techniques&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5c99d976&#39;</span><span class="p">,</span>
-                                        <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#4f5eaaff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;plaques de puits&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;plaques de puits inaccessibles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;plaques de puits GTech&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;annotations metro&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;zones&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;rues sans plaques&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#424242ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;rues inf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#3a3c68ff&#39;</span><span class="p">},</span>
-                <span class="sa">u</span><span class="s1">&#39;curiosités inf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#8c620dff&#39;</span><span class="p">},</span>
-                <span class="sa">u</span><span class="s1">&#39;curiosités vdg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5b601fff&#39;</span><span class="p">},</span>
-                <span class="sa">u</span><span class="s1">&#39;curiosités vdg private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5b601fff&#39;</span><span class="p">},</span>
-                <span class="sa">u</span><span class="s1">&#39;curiosités&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#5b601fff&#39;</span><span class="p">},</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;bator&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;galeries&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff9e00ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries big sud&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff9e00ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ff9e00ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries techniques&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ece84976&#39;</span><span class="p">,</span>
-                                        <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#aa9f4fff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;metro&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#9bc06e64&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#94be55ff&#39;</span><span class="p">},</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;couleur_fond&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;couleur_fond sud&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#0f50ffff&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;stroke-width&#39;</span><span class="p">:</span> <span class="s1">&#39;0.2&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries big sud&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#0f50ffff&#39;</span><span class="p">,</span>
-                                     <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#0f50ffff&#39;</span><span class="p">,</span>
-                                     <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries inf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#9abde7ff&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;galeries inf private&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#9abde7ff&#39;</span><span class="p">,</span>
-                                         <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffffffff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire 2010&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire ciel ouvert&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505020&#39;</span><span class="p">,</span>
-                                         <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire masse2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire masse&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#000000ff&#39;</span><span class="p">,</span>
-                                   <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire med&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire sup&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;calcaire inf&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#50505000&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#60606000&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;agrandissements fond&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#01202bff&#39;</span><span class="p">,</span>
-                                 <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#88b0caff&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;parcelles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#bee0e65d&#39;</span><span class="p">},</span>
-                <span class="s1">&#39;salles v1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#c5c5c5ff&#39;</span><span class="p">},</span>
-            <span class="p">},</span>
+            <span class="c1">#&#39;igc&#39;: {</span>
+                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
+                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
+                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
+                <span class="c1">##&#39;galeries inf&#39;: {&#39;bg&#39;: &#39;#076552ff&#39;},</span>
+                <span class="c1">##&#39;galeries inf private&#39;: {&#39;bg&#39;: &#39;#076552ff&#39;},</span>
+                <span class="c1">##&#39;galeries techniques&#39;: {&#39;bg&#39;: &#39;#5c99d976&#39;,</span>
+                                        <span class="c1">##&#39;fg&#39;: &#39;#4f5eaaff&#39;},</span>
+                <span class="c1">##&#39;plaques de puits&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;plaques de puits inaccessibles&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;plaques de puits GTech&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;annotations&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;annotations metro&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;zones&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;rues sans plaques&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
+                <span class="c1">##&#39;rues inf&#39;: {&#39;bg&#39;: &#39;#3a3c68ff&#39;},</span>
+                <span class="c1">##u&#39;curiosités inf&#39;: {&#39;bg&#39;: &#39;#8c620dff&#39;},</span>
+                <span class="c1">##u&#39;curiosités vdg&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
+                <span class="c1">##u&#39;curiosités vdg private&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
+                <span class="c1">##u&#39;curiosités&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
+            <span class="c1">#},</span>
+            <span class="c1">#&#39;bator&#39;: {</span>
+                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
+                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
+                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
+                <span class="c1">##&#39;galeries techniques&#39;: {&#39;bg&#39;: &#39;#ece84976&#39;,</span>
+                                        <span class="c1">##&#39;fg&#39;: &#39;#aa9f4fff&#39;},</span>
+                <span class="c1">##&#39;metro&#39;: {&#39;bg&#39;: &#39;#9bc06e64&#39;,</span>
+                          <span class="c1">##&#39;fg&#39;: &#39;#94be55ff&#39;},</span>
+            <span class="c1">#},</span>
+            <span class="c1">#&#39;black&#39;: {</span>
+                <span class="c1">##&#39;couleur_fond&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;},</span>
+                <span class="c1">##&#39;couleur_fond sud&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;},</span>
+                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
+                             <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;,</span>
+                             <span class="c1">##&#39;stroke-width&#39;: &#39;0.2&#39;},</span>
+                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
+                                     <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
+                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
+                                     <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
+                <span class="c1">##&#39;galeries inf&#39;: {&#39;bg&#39;: &#39;#9abde7ff&#39;,</span>
+                                 <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
+                <span class="c1">##&#39;galeries inf private&#39;: {&#39;bg&#39;: &#39;#9abde7ff&#39;,</span>
+                                         <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
+                <span class="c1">##&#39;calcaire 2010&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
+                                  <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire ciel ouvert&#39;: {&#39;bg&#39;: &#39;#50505020&#39;,</span>
+                                         <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire masse2&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;,</span>
+                                    <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire masse&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;,</span>
+                                   <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire med&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
+                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire sup&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
+                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;calcaire inf&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
+                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
+                <span class="c1">##&#39;agrandissements fond&#39;: {&#39;bg&#39;: &#39;#01202bff&#39;,</span>
+                                 <span class="c1">##&#39;fg&#39;: &#39;#88b0caff&#39;},</span>
+                <span class="c1">##&#39;parcelles&#39;: {&#39;fg&#39;: &#39;#bee0e65d&#39;},</span>
+                <span class="c1">##&#39;salles v1&#39;: {&#39;bg&#39;: &#39;#c5c5c5ff&#39;},</span>
+            <span class="c1">#},</span>
         <span class="p">}</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">colorsets</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-            <span class="n">v</span><span class="p">[</span><span class="s1">&#39;galeries big sud&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="s1">&#39;galeries&#39;</span><span class="p">]</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="n">colorsets</span><span class="p">[</span><span class="n">colorset</span><span class="p">]</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;galeries&#39;</span><span class="p">:</span> <span class="s1">&#39;sup&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;galeries big sud&#39;</span><span class="p">:</span> <span class="s1">&#39;sup&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;galeries inf&#39;</span><span class="p">:</span> <span class="s1">&#39;inf&#39;</span><span class="p">}</span>
+        <span class="c1">#for k, v in six.iteritems(colorsets):</span>
+            <span class="c1">#print(k, v)</span>
+            <span class="c1">#v[&#39;galeries big sud&#39;] = v[&#39;galeries&#39;]</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">colorsets</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">colorset</span><span class="p">,</span> <span class="p">{})</span>
         <span class="n">legend_layer</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
@@ -4353,6 +4346,35 @@
                         <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fg</span>
                         <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke-opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">list_colorsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="n">colorsets</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()]</span>
+        <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">alt_col</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt_colors&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">alt_col</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">alt_col</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">alt_col</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="n">colorsets</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">alt_col</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">label_alt_col</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label_alt_colors&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label_alt_col</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">label_alt_col</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">label_alt_col</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">label_alt_col</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="n">colorsets</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+            <span class="n">todo</span> <span class="o">+=</span> <span class="n">item</span><span class="p">[:]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;available colorsets:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">colorsets</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">col</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">colorsets</span>
 
 
     <span class="k">def</span> <span class="nf">split_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
@@ -4963,7 +4985,11 @@
         <span class="s1">&#39;--color&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;recolor the maps using a color model. Available models are &#39;</span>
         <span class="s1">&#39;(currently): igc, bator, black (igc is used automatically in the &#39;</span>
-        <span class="s1">&#39;--igc options)&#39;</span><span class="p">)</span>
+        <span class="s1">&#39;--igc options). The list of available colorsets for a SVG map can be &#39;</span>
+        <span class="s1">&#39;obtained using the option --list-colorsets.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--list-colorsets&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available colorsets in this map&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--split&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;split the SVG file into 4 smaller ones, each containing a &#39;</span>
@@ -5011,6 +5037,7 @@
     <span class="n">do_split</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span>
     <span class="n">do_join</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">join</span>
     <span class="n">do_pdf</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">do_list_colorsets</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_colorsets</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span>
     <span class="n">out_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">output_filename</span>
@@ -5052,9 +5079,13 @@
         <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
     <span class="c1">#svg_mesh.debug = True</span>
 
-    <span class="k">if</span> <span class="n">do_3d</span> <span class="ow">or</span> <span class="n">do_2d</span> <span class="ow">or</span> <span class="n">do_split</span> <span class="ow">or</span> <span class="n">do_recolor</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">do_3d</span> <span class="ow">or</span> <span class="n">do_2d</span> <span class="ow">or</span> <span class="n">do_split</span> <span class="ow">or</span> <span class="n">do_recolor</span> <span class="ow">or</span> <span class="n">do_list_colorsets</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;reading SVG...&#39;</span><span class="p">)</span>
         <span class="n">xml_et</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_xml</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_list_colorsets</span><span class="p">:</span>
+        <span class="n">svg_mesh</span><span class="o">.</span><span class="n">list_colorsets</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extracting meshes...&#39;</span><span class="p">)</span>
         <span class="n">meshes</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_paths</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
