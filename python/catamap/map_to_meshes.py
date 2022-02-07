@@ -2594,71 +2594,67 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def postprocess(self, meshes):
         # use custom colors for some things
-        #for main_group, mesh in meshes.items():
-            #props = self.group_properties.get(main_group)
-            #if props and hasattr(mesh, 'header'):
-                #color = self.get_alt_color(main_group
 
-        mesh = meshes.get('grille surface')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
-        mesh = meshes.get('symboles')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
-        mesh = meshes.get('symboles_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
-        mesh = meshes.get('symboles gtech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        mesh = meshes.get('symboles gtech_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        mesh = meshes.get('symboles_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        mesh = meshes.get('symboles private')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        mesh = meshes.get('symboles private_inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        mesh = meshes.get('repetiteur')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
-        mesh = meshes.get('repetiteur_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
-        mesh = meshes.get('bassin')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
-        mesh = meshes.get('bassin_recouvert')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [1., .88, .73, .7]}
-        mesh = meshes.get('bassin_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
-        mesh = meshes.get('calcaire sup')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.54, 0.47, .42, .4]}
-        mesh = meshes.get('calcaire med')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.54, 0.46, .21, .4]}
-        mesh = meshes.get('calcaire inf')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.55, 0.38, .27, .4]}
-        mesh = meshes.get('calcaire ciel ouvert')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.57, 0.57, .42, .4]}
-        mesh = meshes.get('calcaire 2010')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.95, 0.93, .85, .4]}
-        mesh = meshes.get('grille-porte_tech')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.6, 0.3, .3, 1.]}
-        mesh = meshes.get('porte_esc')
-        if mesh is not None and len(mesh) != 0:
-            mesh[0].header()['material'] = {'diffuse': [.6, 0.6, .3, 1.]}
+        #mesh = meshes.get('grille surface')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
+        #mesh = meshes.get('symboles')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
+        #mesh = meshes.get('symboles_tech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
+        #mesh = meshes.get('symboles gtech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
+        #mesh = meshes.get('symboles gtech_tech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
+        #mesh = meshes.get('symboles_inf')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
+        #mesh = meshes.get('symboles private')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
+        #mesh = meshes.get('symboles private_inf')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
+        #mesh = meshes.get('repetiteur')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
+        #mesh = meshes.get('repetiteur_tech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
+        #mesh = meshes.get('bassin')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
+        #mesh = meshes.get('bassin_recouvert')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [1., .88, .73, .7]}
+        #mesh = meshes.get('bassin_tech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
+        #mesh = meshes.get('calcaire sup')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.54, 0.47, .42, .4]}
+        #mesh = meshes.get('calcaire med')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.54, 0.46, .21, .4]}
+        #mesh = meshes.get('calcaire inf')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.55, 0.38, .27, .4]}
+        #mesh = meshes.get('calcaire ciel ouvert')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.57, 0.57, .42, .4]}
+        #mesh = meshes.get('calcaire 2010')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.95, 0.93, .85, .4]}
+        #mesh = meshes.get('grille-porte_tech')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.6, 0.3, .3, 1.]}
+        #mesh = meshes.get('porte_esc')
+        #if mesh is not None and len(mesh) != 0:
+            #mesh[0].header()['material'] = {'diffuse': [.6, 0.6, .3, 1.]}
 
         # lighen texts for black background
         tspec = meshes.get('annotations_text')
@@ -4155,77 +4151,74 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
     def recolor(self, xml, colorset='igc'):
         colorsets = {
-            'igc': {
-                'galeries': {'bg': '#5dd400ff'},
-                'galeries big sud': {'bg': '#5dd400ff'},
-                'galeries private': {'bg': '#5dd400ff'},
-                'galeries inf': {'bg': '#076552ff'},
-                'galeries inf private': {'bg': '#076552ff'},
-                'galeries techniques': {'bg': '#5c99d976',
-                                        'fg': '#4f5eaaff'},
-                'plaques de puits': {'bg': '#424242ff'},
-                'plaques de puits inaccessibles': {'bg': '#424242ff'},
-                'plaques de puits GTech': {'bg': '#424242ff'},
-                'annotations': {'bg': '#424242ff'},
-                'annotations metro': {'bg': '#424242ff'},
-                'zones': {'bg': '#424242ff'},
-                'rues sans plaques': {'bg': '#424242ff'},
-                'rues inf': {'bg': '#3a3c68ff'},
-                u'curiosités inf': {'bg': '#8c620dff'},
-                u'curiosités vdg': {'bg': '#5b601fff'},
-                u'curiosités vdg private': {'bg': '#5b601fff'},
-                u'curiosités': {'bg': '#5b601fff'},
-            },
-            'bator': {
-                'galeries': {'bg': '#ff9e00ff'},
-                'galeries big sud': {'bg': '#ff9e00ff'},
-                'galeries private': {'bg': '#ff9e00ff'},
-                'galeries techniques': {'bg': '#ece84976',
-                                        'fg': '#aa9f4fff'},
-                'metro': {'bg': '#9bc06e64',
-                          'fg': '#94be55ff'},
-            },
-            'black': {
-                'couleur_fond': {'bg': '#000000ff'},
-                'couleur_fond sud': {'bg': '#000000ff'},
-                'galeries': {'bg': '#0f50ffff',
-                             'fg': '#ffffffff',
-                             'stroke-width': '0.2'},
-                'galeries big sud': {'bg': '#0f50ffff',
-                                     'fg': '#ffffffff'},
-                'galeries private': {'bg': '#0f50ffff',
-                                     'fg': '#ffffffff'},
-                'galeries inf': {'bg': '#9abde7ff',
-                                 'fg': '#ffffffff'},
-                'galeries inf private': {'bg': '#9abde7ff',
-                                         'fg': '#ffffffff'},
-                'calcaire 2010': {'bg': '#50505000',
-                                  'fg': '#60606000'},
-                'calcaire ciel ouvert': {'bg': '#50505020',
-                                         'fg': '#60606000'},
-                'calcaire masse2': {'bg': '#000000ff',
-                                    'fg': '#60606000'},
-                'calcaire masse': {'bg': '#000000ff',
-                                   'fg': '#60606000'},
-                'calcaire med': {'bg': '#50505000',
-                                 'fg': '#60606000'},
-                'calcaire sup': {'bg': '#50505000',
-                                 'fg': '#60606000'},
-                'calcaire inf': {'bg': '#50505000',
-                                 'fg': '#60606000'},
-                'agrandissements fond': {'bg': '#01202bff',
-                                 'fg': '#88b0caff'},
-                'parcelles': {'fg': '#bee0e65d'},
-                'salles v1': {'bg': '#c5c5c5ff'},
-            },
+            #'igc': {
+                ##'galeries': {'bg': '#5dd400ff'},
+                ##'galeries big sud': {'bg': '#5dd400ff'},
+                ##'galeries private': {'bg': '#5dd400ff'},
+                ##'galeries inf': {'bg': '#076552ff'},
+                ##'galeries inf private': {'bg': '#076552ff'},
+                ##'galeries techniques': {'bg': '#5c99d976',
+                                        ##'fg': '#4f5eaaff'},
+                ##'plaques de puits': {'bg': '#424242ff'},
+                ##'plaques de puits inaccessibles': {'bg': '#424242ff'},
+                ##'plaques de puits GTech': {'bg': '#424242ff'},
+                ##'annotations': {'bg': '#424242ff'},
+                ##'annotations metro': {'bg': '#424242ff'},
+                ##'zones': {'bg': '#424242ff'},
+                ##'rues sans plaques': {'bg': '#424242ff'},
+                ##'rues inf': {'bg': '#3a3c68ff'},
+                ##u'curiosités inf': {'bg': '#8c620dff'},
+                ##u'curiosités vdg': {'bg': '#5b601fff'},
+                ##u'curiosités vdg private': {'bg': '#5b601fff'},
+                ##u'curiosités': {'bg': '#5b601fff'},
+            #},
+            #'bator': {
+                ##'galeries': {'bg': '#ff9e00ff'},
+                ##'galeries big sud': {'bg': '#ff9e00ff'},
+                ##'galeries private': {'bg': '#ff9e00ff'},
+                ##'galeries techniques': {'bg': '#ece84976',
+                                        ##'fg': '#aa9f4fff'},
+                ##'metro': {'bg': '#9bc06e64',
+                          ##'fg': '#94be55ff'},
+            #},
+            #'black': {
+                ##'couleur_fond': {'bg': '#000000ff'},
+                ##'couleur_fond sud': {'bg': '#000000ff'},
+                ##'galeries': {'bg': '#0f50ffff',
+                             ##'fg': '#ffffffff',
+                             ##'stroke-width': '0.2'},
+                ##'galeries big sud': {'bg': '#0f50ffff',
+                                     ##'fg': '#ffffffff'},
+                ##'galeries private': {'bg': '#0f50ffff',
+                                     ##'fg': '#ffffffff'},
+                ##'galeries inf': {'bg': '#9abde7ff',
+                                 ##'fg': '#ffffffff'},
+                ##'galeries inf private': {'bg': '#9abde7ff',
+                                         ##'fg': '#ffffffff'},
+                ##'calcaire 2010': {'bg': '#50505000',
+                                  ##'fg': '#60606000'},
+                ##'calcaire ciel ouvert': {'bg': '#50505020',
+                                         ##'fg': '#60606000'},
+                ##'calcaire masse2': {'bg': '#000000ff',
+                                    ##'fg': '#60606000'},
+                ##'calcaire masse': {'bg': '#000000ff',
+                                   ##'fg': '#60606000'},
+                ##'calcaire med': {'bg': '#50505000',
+                                 ##'fg': '#60606000'},
+                ##'calcaire sup': {'bg': '#50505000',
+                                 ##'fg': '#60606000'},
+                ##'calcaire inf': {'bg': '#50505000',
+                                 ##'fg': '#60606000'},
+                ##'agrandissements fond': {'bg': '#01202bff',
+                                 ##'fg': '#88b0caff'},
+                ##'parcelles': {'fg': '#bee0e65d'},
+                ##'salles v1': {'bg': '#c5c5c5ff'},
+            #},
         }
-        for k, v in six.iteritems(colorsets):
-            print(k, v)
-            v['galeries big sud'] = v['galeries']
-        colors = colorsets[colorset]
-        layers = {'galeries': 'sup',
-                  'galeries big sud': 'sup',
-                  'galeries inf': 'inf'}
+        #for k, v in six.iteritems(colorsets):
+            #print(k, v)
+            #v['galeries big sud'] = v['galeries']
+        colors = colorsets.setdefault(colorset, {})
         legend_layer = None
         for layer in xml.getroot():
             props = ItemProperties()
@@ -4312,6 +4305,35 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         style['stroke'] = fg
                         style['stroke-opacity'] = str(op)
                     self.set_style(item, style)
+
+    def list_colorsets(self, xml):
+        colorsets = set()
+        todo = [xml.getroot()]
+        while todo:
+            item = todo.pop()
+            alt_col = item.get('alt_colors')
+            if alt_col:
+                try:
+                    alt_col = json.loads(alt_col)
+                except:
+                    raise
+                colorsets.update(alt_col.keys())
+            label_alt_col = item.get('label_alt_colors')
+            if label_alt_col:
+                try:
+                    label_alt_col = json.loads(label_alt_col)
+                except:
+                    raise
+                for c in label_alt_col.values():
+                    colorsets.update(c.keys())
+
+            todo += item[:]
+
+        print('available colorsets:')
+        for col in sorted(colorsets):
+            print('    %s' % col)
+        print()
+        return colorsets
 
 
     def split_layers(self, xml, style='default'):
@@ -4922,7 +4944,11 @@ The program allows to produce:
         '--color',
         help='recolor the maps using a color model. Available models are '
         '(currently): igc, bator, black (igc is used automatically in the '
-        '--igc options)')
+        '--igc options). The list of available colorsets for a SVG map can be '
+        'obtained using the option --list-colorsets.')
+    parser.add_argument(
+        '--list-colorsets', action='store_true',
+        help='list available colorsets in this map')
     parser.add_argument(
         '--split', action='store_true',
         help='split the SVG file into 4 smaller ones, each containing a '
@@ -4970,6 +4996,7 @@ The program allows to produce:
     do_split = options.split
     do_join = options.join
     do_pdf = None
+    do_list_colorsets = options.list_colorsets
     if options.no_pdf is not None:
         do_pdf = not options.no_pdf
     out_filename = options.output_filename
@@ -5011,9 +5038,13 @@ The program allows to produce:
         svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True
 
-    if do_3d or do_2d or do_split or do_recolor:
+    if do_3d or do_2d or do_split or do_recolor or do_list_colorsets:
         print('reading SVG...')
         xml_et = svg_mesh.read_xml(svg_filename)
+
+    if do_list_colorsets:
+        svg_mesh.list_colorsets(xml_et)
+
     if do_3d:
         print('extracting meshes...')
         meshes = svg_mesh.read_paths(xml_et)
