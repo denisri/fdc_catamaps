@@ -99,7 +99,7 @@
 
       <div class="top_row">
         <h1 id="title_0">GRAND RÉSEAU SUD</h1>
-        <h3 id="title_1">LE FOND DU CREW 2021</h3>
+        <h3 id="title_1">LE FOND DU CREW 2022</h3>
         <h3 id="title_2"></h3>
       </div>
 
@@ -108,25 +108,7 @@
           <legend>Charger/voir:</legend>
           <div id="mesh_buttons">
             <button id="all" class="mesh_button">Tous</button><br/>
-            <input type="checkbox" id="main_corridors" class="mesh_checkbox">
-            <label>Couloirs ppaux</label></input><br/>
-            <input type="checkbox" id="oss_off" class="mesh_checkbox">
-            <label>Ossuaire officiel</label></input><br/>
-            <input type="checkbox" id="unreachable" class="mesh_checkbox">
-            <label>Inaccessibles</label></input><br/>
-            <input type="checkbox" id="text" class="mesh_checkbox">
-            <label>Textes</label></input><br/>
-            <input type="checkbox" id="parcels" class="mesh_checkbox">
-            <label>Parcelles</label></input><br/>
-            <input type="checkbox" id="gtech" class="mesh_checkbox">
-            <label>G. techniques</label></input><br/>
-            <input type="checkbox" id="backfill" class="mesh_checkbox">
-            <label>Remblai</label></input><br/>
-            <input type="checkbox" id="limestone" class="mesh_checkbox">
-            <label>Calcaire</label></input><br/>
-            <input type="checkbox" id="ground" class="mesh_checkbox">
-            <label>Surface</label></input><br/>
-            <br/>
+            <br id="categories_sep" />
             <input type="checkbox" id="map_mode" class="mesh_checkbox">
               <label>Mode 2D</label></input><br/>
             <button id="help" class="mesh_button">Aide</button>
@@ -279,118 +261,22 @@
 
         var i = 0;
 
-        for( i=0; i!=mesh_buttons.length; i++ )
-            document.getElementById( mesh_buttons[i] ).checked = true;
-        for( i=0; i!=mesh_buttons.length; i++ )
-            btn_func[i]( document.getElementById( mesh_buttons[i] ) );
+        for( i=0; i!=categories.length; i++ )
+            document.getElementById( categories[i] ).checked = true;
+        for( i=0; i!=categories.length; i++ )
+            category_clicked( i, document.getElementById( categories[i] ) );
     }
 
-    function main_corridors_changed(event)
+    function category_clicked(category, event)
     {
         var display = this.checked;
         if( display == undefined )
             display = event.checked;
-        console.debug('main_corridors:', display);
+        console.debug(categories[category], display);
         if( display )
-            load_meshes( 0 );
+            load_meshes( category );
         else
-            unload_meshes( 0 );
-    }
-
-    function unreachable_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('unreachable clicked.', display);
-        if( display )
-            load_meshes( 1 );
-        else
-            unload_meshes( 1 );
-    }
-
-    function text_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('text clicked.', display);
-        if( display )
-            load_meshes( 2 );
-        else
-            unload_meshes( 2 );
-    }
-
-    function parcels_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('parcels clicked.', display);
-        if( display )
-            load_meshes( 3 );
-        else
-            unload_meshes( 3 );
-    }
-
-    function oss_off_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('oss_off clicked.', display);
-        if( display )
-            load_meshes( 4 );
-        else
-            unload_meshes( 4 );
-    }
-
-    function gtech_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('gtech clicked.', display);
-        if( display )
-            load_meshes( 5 );
-        else
-            unload_meshes( 5 );
-    }
-
-    function backfill_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('lbackfill clicked.', display);
-        if( display )
-            load_meshes( 6 );
-        else
-            unload_meshes( 6 );
-    }
-
-    function limestone_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('limestone clicked.', display);
-        if( display )
-            load_meshes( 7 );
-        else
-            unload_meshes( 7 );
-    }
-
-    function ground_clicked(event)
-    {
-        var display = this.checked;
-        if( display == undefined )
-            display = event.checked;
-        console.debug('ground clicked.', display);
-        if( display )
-            load_meshes( 9 );
-        else
-            unload_meshes( 9 );
+            unload_meshes( category );
     }
 
     function map_mode_clicked(event)
@@ -442,29 +328,13 @@
 
     set_font_sizes();
 
-    var mesh_buttons = ['main_corridors', 'oss_off', 'unreachable', 'text',
-                        'parcels', 'gtech', 'backfill', 'limestone', 'ground',
-                        'map_mode'];
-    var btn_func = [main_corridors_changed, oss_off_clicked,
-                    unreachable_clicked, text_clicked, parcels_clicked,
-                    gtech_clicked, backfill_clicked, limestone_clicked,
-                    ground_clicked, map_mode_clicked];
     var mouse;
     var rayCaster;
     var listener;
     var current_sound;
 
     document.getElementById( 'all' ).addEventListener( 'click', all_clicked );
-
-    for( i=0; i!=mesh_buttons.length; i++ )
-    {
-        var btn = document.getElementById( mesh_buttons[i] );
-        btn.addEventListener( 'click', btn_func[i] );
-        btn.checked = false;
-    }
-
-    document.getElementById( 'main_corridors' ).checked = true;
-    document.getElementById( 'oss_off' ).checked = true;
+    document.getElementById( 'map_mode' ).addEventListener( 'click', map_mode_clicked );
 
         </script>
 
@@ -663,6 +533,7 @@
     var texts = map_objects.texts;
     var sounds = map_objects.sounds;
     var categories = map_objects.categories;
+    var def_categories = map_objects.default_categories;
     var private_code = map_objects['code'];
     if( private_code == null )
       private_code = '776f707e19f39e6b830856a6cdf3aa605a5a283e'
@@ -676,6 +547,44 @@
     {
       filenames = filenames.concat( map_objects.meshes_private );
       texts = texts.concat( map_objects.texts_private );
+    }
+
+    var mb = document.getElementById( 'mesh_buttons' );
+    var md2 = document.getElementById( 'categories_sep' );
+
+    for( i=0; i!=categories.length; i++ )
+    {
+      var item = document.createElement( 'input' );
+      item.type = 'checkbox';
+      item.class = 'mesh_checkbox';
+      item.id = categories[i];
+      mb.insertBefore(item, md2);
+      item = document.createElement( 'label' );
+      var text = document.createTextNode( categories[i] );
+      item.appendChild( text );
+      mb.insertBefore( item, md2 );
+      item = document.createElement( 'br' );
+      mb.insertBefore( item, md2 );
+    }
+
+    function createPartial(func /*, 0..n args */) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return function() {
+            var allArguments = args.concat(Array.prototype.slice.call(arguments));
+            return func.apply(this, allArguments);
+        };
+    }
+
+    for( i=0; i!=categories.length; i++ )
+    {
+        var btn = document.getElementById( categories[i] );
+        btn.addEventListener( 'click', createPartial( category_clicked, i ) );
+        btn.checked = false;
+    }
+
+    for (i=0; i != def_categories.length; ++i )
+    {
+      document.getElementById( categories[i] ).checked = true;
     }
 
     var meshes = {};
@@ -950,7 +859,6 @@
         $('#title_' + i).text(title[i]);
     }
 
-    var def_categories = map_objects.default_categories;
     var def_cat_num = [ 0, 4 ];
     for( i=0; i<def_categories.length; i++ )
     {

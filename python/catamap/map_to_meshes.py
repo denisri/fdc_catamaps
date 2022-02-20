@@ -364,7 +364,7 @@ class ItemProperties(object):
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
-                  'well_read_mode', 'grid_interval')
+                  'well_read_mode', 'grid_interval', 'sound', 'photo')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -391,6 +391,7 @@ class ItemProperties(object):
         self.height_shift = None
         self.border = False
         self.sound = False
+        self.photo = False
         self.alt_colors = None
         self.label_alt_colors = None
         self.category = None
@@ -427,6 +428,7 @@ class ItemProperties(object):
                 'hidden': ItemProperties.is_true,
                 'depth_map': ItemProperties.is_true,
                 'sound': ItemProperties.is_true,
+                'photo': ItemProperties.is_true,
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
@@ -472,7 +474,8 @@ class ItemProperties(object):
 
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
-                         'category', 'well_read_mode', 'grid_interval'):
+                         'category', 'well_read_mode', 'grid_interval',
+                         'sound', 'photo'):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -663,11 +666,6 @@ class ItemProperties(object):
     def is_border(element):
         return ItemProperties.is_listed_element_type(
             element, 'border', DefaultItemProperties.border_labels)
-
-    @staticmethod
-    def is_sound(element):
-        return ItemProperties.is_listed_element_type(
-            element, 'sound', DefaultItemProperties.sound_labels)
 
     @staticmethod
     def is_something(element, kind):
@@ -867,8 +865,6 @@ class DefaultItemProperties(object):
         u'injecté',
     }
 
-    sound_labels = {'sons', }
-
     hidden_labels = {
         'indications_big_2010', 'a_verifier', 'bord', 'bord_sud',
         u'légende_alt', u'découpage', 'raccords plan 2D',
@@ -880,9 +876,8 @@ class DefaultItemProperties(object):
         'planches', 'planches fond', 'calcaire sup',
         'calcaire limites', 'calcaire masse', 'calcaire masse2',
         'lambert93',
-        'légende',
+        #'légende',
     }
-    hidden_labels.update(sound_labels)
     hidden_labels.update(depth_map_names)
 
     types_height_shifts = {
@@ -999,9 +994,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.fontis_mesh = None
         self.lily_mesh = None
         self.large_sign_mesh = None
+        self.sound_marker_model = None
+        self.photo_marker_model = None
         self.level = ''
         self.sounds = {}
+        self.photos = {}
         self.group_properties = {}
+        self.colorset = 'map_3d'  # alt colors to translate to
+        self.colorset_inheritance = {}
 
         if headless:
             try:
@@ -1036,6 +1036,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         z_scale = float(z_scale)
                         print(z_scale)
                         self.z_scale = z_scale
+                    colorset_inheritance = xml_element.get(
+                        'colorset_inheritance')
+                    if colorset_inheritance:
+                        colorset_inheritance = json.loads(colorset_inheritance)
+                        self.colorset_inheritance = colorset_inheritance
+                        print('COLORSET INHERITANCE:', colorset_inheritance)
 
         item_props = ItemProperties()
         item_props.fill_properties(xml_element, self.props_stack, style=style)
@@ -1077,6 +1083,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
             title = [x.text for x in xml_element]
             self.title = getattr(self, 'title', []) + title
+            print('TITLE:', title)
             return (self.noop, clean_return, True)
 
         label = item_props.label
@@ -1089,10 +1096,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         [self.clean_depth] + clean_return, False)
             if item_props.sound:
                 print('SOUND:', xml_element.tag, xml_element)
-                self.read_sounds(xml_element)
+                self.read_markers(xml_element, 'sounds')
             elif label == 'lambert93':
                 print('LAMBERT93')
                 self.read_lambert93(xml_element)
+            if item_props.photo:
+                print('PHOTO:', xml_element.tag, xml_element)
+                self.read_markers(xml_element, 'photos')
 
         if hidden:
             # hidden layers are not rendered
@@ -1157,7 +1167,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def read_paths(self, xml):
-        print('### read_paths')
+        #print('### read_paths')
         if self.skull_mesh is None:
             self.skull_mesh = self.make_skull_model(xml)
         if self.water_scale_model is None:
@@ -1170,9 +1180,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if self.lily_mesh is None:
             self.lily_mesh = self.make_lily_model(xml)
         if self.large_sign_mesh is None:
-            print('### make_large_sign_model')
             self.large_sign_mesh = self.make_large_sign_model(xml)
-            print('### large_sign_mesh:', self.large_sign_mesh)
+        if self.sound_marker_model is None:
+            self.sound_marker_model = self.make_sound_marker_model()
+        if self.photo_marker_model is None:
+            self.photo_marker_model = self.make_photo_marker_model()
         res = super(CataSvgToMesh, self).read_paths(xml)
 
         #print('======= read_path done =======')
@@ -1761,15 +1773,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         depth_mesh.vertex().append((x, y, z * self.z_scale))
 
 
-    def read_sounds(self, xml, trans=None, style=None):
-        print('READ SOUNDS')
-        self.sounds = {}
+    def read_markers(self, xml, mtype='sounds', trans=None, style=None):
+        print('READ', mtype.upper())
+        markers = {}
+        setattr(self, mtype, markers)
         if trans is None:
             trans = np.matrix(np.eye(3))
         for xml_element in xml:
-            if xml_element.tag.split('}')[-1] != 'g':
-                raise ValueError('sound layer element is not a group:',
-                                 xml_element)
             level = self.item_props.level
             text = None
             pos = None
@@ -1781,12 +1791,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     trans_el = transm
                 else:
                     trans_el = trans * transm
+            if xml_element.tag.split('}')[-1] != 'g':
+                xml_element = [xml_element]
             for sub_el in xml_element:
                 tag = sub_el.tag.split('}')[-1]
                 if tag == 'text':
                     if pos is None:
                         pos = [float(sub_el.get('x')),
                                float(sub_el.get('y'))]
+                        x, y = trans_el.dot([[pos[0]], [pos[1]], [1]])[:2]
+                        pos = [x[0, 0], y[0, 0]]
                     text = sub_el[0].text
                 elif tag == 'path':
                     trans3 = sub_el.get('transform')
@@ -1801,7 +1815,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         try:
                             pos = mesh.vertex()[-1][:2]
                         except:
-                            print('failed sound arrow, vertices:')
+                            print('failed marker arrow in', mtype,
+                                  ', vertices:')
                             print(np.array(mesh.vertex()))
             radius = xml.get('radius')
             if radius is not None:
@@ -1809,8 +1824,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             else:
                 radius = 10.
             if text and pos:
-                self.sounds.setdefault(text, []).append((pos + [level], radius))
-                print('sound:', self.sounds[text])
+                markers.setdefault(text, []).append((pos + [level], radius))
+                # print('%s:' % mtype, markers[text])
 
 
     def read_lambert93(self, xml, trans=None):
@@ -2086,8 +2101,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return None
 
 
+    def get_alt_color(self, props, colorset=None, conv=True, get_bg=True):
+        if colorset is None:
+            colorset = self.colorset
+        col = None
+        while col is None and colorset:
+            col = self.get_alt_color_s(props, colorset, conv)
+            if col is None:
+                colorset = self.colorset_inheritance.get(colorset)
+        if isinstance(col, dict) and get_bg:
+            bg = col.get('bg')
+            if not bg:
+                bg = col.get('fg')
+            if bg is not None:
+                col = bg
+        return col
+
+
     @staticmethod
-    def get_alt_color(props, colorset='map_3d', conv=True):
+    def get_alt_color_s(props, colorset='map_3d', conv=True):
         if not props:
             return None
         color = None
@@ -2593,69 +2625,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def postprocess(self, meshes):
-        # use custom colors for some things
-
-        #mesh = meshes.get('grille surface')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
-        #mesh = meshes.get('symboles')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
-        #mesh = meshes.get('symboles_tech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, .74, .67, 1.]}
-        #mesh = meshes.get('symboles gtech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        #mesh = meshes.get('symboles gtech_tech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        #mesh = meshes.get('symboles_inf')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        #mesh = meshes.get('symboles private')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        #mesh = meshes.get('symboles private_inf')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.43, 0.74, .67, 1.]}
-        #mesh = meshes.get('repetiteur')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
-        #mesh = meshes.get('repetiteur_tech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.3, .3, .3, 1.]}
-        #mesh = meshes.get('bassin')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
-        #mesh = meshes.get('bassin_recouvert')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [1., .88, .73, .7]}
-        #mesh = meshes.get('bassin_tech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.73, .88, 1., .7]}
-        #mesh = meshes.get('calcaire sup')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.54, 0.47, .42, .4]}
-        #mesh = meshes.get('calcaire med')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.54, 0.46, .21, .4]}
-        #mesh = meshes.get('calcaire inf')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.55, 0.38, .27, .4]}
-        #mesh = meshes.get('calcaire ciel ouvert')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.57, 0.57, .42, .4]}
-        #mesh = meshes.get('calcaire 2010')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.95, 0.93, .85, .4]}
-        #mesh = meshes.get('grille-porte_tech')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.6, 0.3, .3, 1.]}
-        #mesh = meshes.get('porte_esc')
-        #if mesh is not None and len(mesh) != 0:
-            #mesh[0].header()['material'] = {'diffuse': [.6, 0.6, .3, 1.]}
-
         # lighen texts for black background
         tspec = meshes.get('annotations_text')
         if tspec is not None:
@@ -2818,14 +2787,44 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.group_properties['%s_1' % main_group] = props
                 del meshes[main_group]
 
-        # sounds depth
+        # sounds and photos depth + markers meshes
         object_win_size = [8, 8]
-        for sound, mpos in self.sounds.items():
-            for pos, radius in mpos:
-                level = pos[2]
-                win = self.depth_wins[level]
-                z = self.get_depth(pos[:2] + [0.], win.view(), object_win_size)
-                pos[2] = z
+
+        protos = {'sounds': 'sound_marker_model',
+                  'photos': 'photo_marker_model'}
+
+        for mtype in ('sounds', 'photos'):
+            mesh = None
+            mesh_proto = getattr(self, protos[mtype])
+            print(mtype, 'proto:', len(mesh_proto.vertex()))
+            for mpos in getattr(self, mtype).values():
+                for pos, radius in mpos:
+                    level = pos[2]
+                    win = self.depth_wins[level]
+                    z = self.get_depth(pos[:2] + [0.], win.view(),
+                                       object_win_size)
+                    if z is None:
+                        print('failed to get depth for:', mtype, pos, level)
+                        z = 0.
+                    pos[2] = z
+                    mmesh = type(mesh_proto)(mesh_proto)  # copy
+                    trans = aims.AffineTransformation3d()
+                    trans.setTranslation(pos)
+                    aims.SurfaceManip.meshTransform(mmesh, trans)
+                    if mesh is None:
+                        mesh = mmesh
+                    else:
+                        aims.SurfaceManip.meshMerge(mesh, mmesh)
+                    print('marker:', pos, len(mesh.vertex()))
+            if mesh is not None:
+                main_group = '%s_mesh' % mtype
+                self.mesh_dict[main_group] = mesh
+                meshes[main_group] = mesh
+                props = ItemProperties()
+                props.category = 'markers'
+                self.group_properties[main_group] = props
+                print('--- marker mesh:', main_group, len(mesh.vertex()), props)
+            else: print('NO MARKER MESH:', mtype)
 
 
     def attach_arrows_to_text(self, meshes, with_squares=False):
@@ -3182,6 +3181,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return self.make_spiral_stair([0, 0], 1., 0., 1.5)
 
 
+    def make_sound_marker_model(self):
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
+        cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1., 0., 2.6), 0.3, 12,
+                                          False, True)
+        aims.SurfaceManip.meshMerge(mesh, cone)
+        mesh.header()['material'] = {'diffuse': [0., 0., 1., 1.]}
+        return mesh
+
+
+    def make_photo_marker_model(self):
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
+        mesh.header()['material'] = {'diffuse': [1., 0., 0., 1.]}
+        return mesh
+
+
     def save_mesh_dict(self, meshes, dirname, mesh_format='.mesh',
                        mesh_wf_format='.mesh', json_filename=None,
                        map2d_filename=None):
@@ -3260,10 +3274,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         ]
         json_obj['categories'] = categories
         def_categories = [
-            "Couloirs",
-            "Ossuaire officiel",
         ]
         json_obj['default_categories'] = def_categories
+        used_layers = set()
 
         # print('summary:', summary, '\n')
         if 'meshes' in summary:
@@ -3334,8 +3347,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     jmeshes.append([layer, filename, size, md5])
 
+                used_layers.add(layer)
+
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
+
+        categories = [c for i, c in enumerate(categories) if i in used_layers]
+        json_obj['categories'] = categories
+        if 'Couloirs' in categories:
+            def_categories.append('Couloirs')
+        if 'Ossuaire officiel' in categories:
+            def_categories.append('Ossuaire officiel')
 
         # texts
         # TODO: separate them in different layers (hidden...)
@@ -3369,6 +3391,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if self.sounds:
             json_obj['sounds'] = [(os.path.join('sounds', s), self.sounds[s])
                                   for s in sorted(self.sounds.keys())]
+
+        # photos
+        if self.photos:
+            json_obj['photos'] = [(os.path.join('photos', s), self.photos[s])
+                                  for s in sorted(self.photos.keys())]
 
         if json_filename is not None:
             if six.PY3:
@@ -4235,8 +4262,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if len(item) != 0:
                     todo += [(x, parents + [props]) for x in item]
 
-                corridor_colors = CataSvgToMesh.get_alt_color(props, colorset,
-                                                              conv=False)
+                corridor_colors = CataSvgToMesh.get_alt_color_s(
+                    props, colorset, conv=False)
                 if not corridor_colors:
                     corridor_colors = colors.get(label)
                 if not corridor_colors:
@@ -5000,6 +5027,7 @@ The program allows to produce:
     if options.no_pdf is not None:
         do_pdf = not options.no_pdf
     out_filename = options.output_filename
+    colorset = None
     if options.color:
         do_recolor = True
         colorset = options.color
@@ -5038,6 +5066,9 @@ The program allows to produce:
         svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True
 
+    if colorset:
+        svg_mesh.colorset = colorset
+
     if do_3d or do_2d or do_split or do_recolor or do_list_colorsets:
         print('reading SVG...')
         xml_et = svg_mesh.read_xml(svg_filename)
@@ -5052,7 +5083,8 @@ The program allows to produce:
 
         print('saving meshes...')
         summary = svg_mesh.save_mesh_dict(
-            meshes, out_dirname, ('.obj', 'WAVEFRONT'), ('.obj', 'WAVEFRONT'),
+            meshes, out_dirname, ('.obj', 'WAVEFRONT'),
+            ('.obj', 'WAVEFRONT'),
             'map_objects.json',
             out_filename.replace('.svg', '_imprimable_private.jpg'))
 
