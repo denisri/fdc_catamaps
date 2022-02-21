@@ -2196,6 +2196,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # not a mesh: skip it
                         continue
                     if alt_color:
+                        if 'material' not in mesh.header():
+                            mesh.header()['material'] = {}
                         mesh.header()['material']['diffuse'] = alt_color
                     for v in mesh.vertex():
                         z = self.get_depth(v, view, object_win_size)
