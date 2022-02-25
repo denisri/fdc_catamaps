@@ -296,13 +296,13 @@
         {
             var font_size = Math.round( window.innerWidth * 0.01 );
             document.getElementById( 'mesh_fields' ).style['font-size']
-                = '2.5vw';
+                = '2.0vw';
 //                 = font_size + 'px';
             document.getElementById( 'all' ).style['font-size']
-                = '2.5vw';
+                = '2.0vw';
 //                 = font_size + 'px';
             document.getElementById( 'help' ).style['font-size']
-                = '2.5vw';
+                = '2.0vw';
 //                 = font_size + 'px';
         }
     }
@@ -532,6 +532,7 @@
     var filenames = map_objects.meshes;
     var texts = map_objects.texts;
     var sounds = map_objects.sounds;
+    var photos = map_objects.photos;
     var categories = map_objects.categories;
     var def_categories = map_objects.default_categories;
     var private_code = map_objects['code'];
@@ -970,7 +971,10 @@
             if( check_compass_click( intersects ) )
               north_up();
             else
+            {
               check_sounds( intersects[0].point );
+              check_photos( intersects[0].point );
+            }
           }
         }
       }
@@ -979,6 +983,9 @@
 
     function check_sounds( point )
     {
+      if( ! sounds )
+        return;
+
       var max_dist = 10;
       var min_dist = 11;
       var snd_filename = '';
@@ -993,13 +1000,13 @@
           var z = spos[0][2];
           max_dist = spos[1];
           var fname = sounds[i][0];
-          // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
+          console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
           var snd_pos = new THREE.Vector3( x, y, z );
           var dist = point.distanceTo( snd_pos );
-          // console.log( 'distance:', dist );
+          console.log( 'distance:', dist );
           if( i == 0 )
             min_dist = dist;
-          if( dist < min_dist && dist < max_dist )
+          if( dist <= min_dist && dist < max_dist )
           {
             min_dist = dist;
             snd_filename = fname;
@@ -1025,6 +1032,57 @@
           }
         );
       }
+    }
+
+
+    function check_photos( point )
+    {
+      if( ! photos )
+        return;
+
+      var max_dist = 10;
+      var min_dist = 11;
+      var photo_filename = '';
+      for( i=0; i<photos.length; i++ )
+      {
+        for( j=0; j<photos[i][1].length; j++)
+        {
+          var spos = photos[i][1][j];
+          // TODO: x is inverted, check why is it not in the mesh coords ?
+          var x = -spos[0][0];
+          var y = spos[0][1];
+          var z = spos[0][2];
+          max_dist = spos[1];
+          var fname = photos[i][0];
+          // console.log( 'photo:', x, y, z, fname, ', radius:', max_dist );
+          var photo_pos = new THREE.Vector3( x, y, z );
+          var dist = point.distanceTo( photo_pos );
+          // console.log( 'distance:', dist );
+          if( i == 0 )
+            min_dist = dist;
+          if( dist <= min_dist && dist < max_dist )
+          {
+            min_dist = dist;
+            photo_filename = fname;
+          }
+        }
+      }
+
+      if( photo_filename != '' )
+      {
+        console.log( 'display photo:', x, y, z, photo_filename, ', radius:', min_dist );
+        var ext = photo_filename.lastIndexOf( '/' );
+        var basename = photo_filename;
+        var photo_url = photo_filename;
+        if( ext >= 0 )
+          basename = photo_filename.substring( ext + 1 );
+        ext = basename.indexOf( '.' );
+        if( ext < 0 )
+          photo_url = photo_filename + '.jpg';
+        window.open(photo_url, '_blank').focus();
+
+      }
+
     }
 
 
