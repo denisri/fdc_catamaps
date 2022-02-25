@@ -204,19 +204,31 @@ ground, but above or below as specified.</p>
 <dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a level attribute to define the
 level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
 </dd>
-<dt><strong>alt_colors:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>color to be used in 3D maps. This is a string representing a JSON format dictionary. Keys are colorsets names, values are RGBA hex strings. The default colorset is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>. Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>``{&quot;map_3d&quot;: &quot;#cccccc4c&quot;}``
+<dt><strong>alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>color to be used alternatively in maps. This is a string representing a
+JSON format dictionary. Keys are colorsets names, values are a second level
+of dictionary which specifies color properties, a bit like for SVG elements
+style. The
+default colorset for 3D maps is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
 </dd>
-<dt><strong>label_alt_colors:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
+<dt><strong>label_alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
 object labels. The dict can be applied hierarchically, thus put in a layer.
 Ex:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
 </pre></div>
 </div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
 </dd>
-<dt><strong>catrgory:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
+<dt><strong>colorset_inheritance:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies colorsets
+which can inherit the colors defined by another, in order to minimally
+specialize it.</p>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>category:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
 Categories can be displayed/hidden using buttons or menus in 3D views.</p>
 </dd>
 <dt><strong>border:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not used if I remember…</p>
@@ -296,6 +308,44 @@ The result in 2D is (left: original map, right: result):</p>
 <a class="reference internal image-reference" href="_images/example_map_imprimable.jpg"><img alt="_images/example_map_imprimable.jpg" src="_images/example_map_imprimable.jpg" style="height: 400px;" /></a>
 <p>In 3D: <a class="reference external" href="_static/example_3d/index.html">here</a></p>
 <p>See for instance how wells indications are enlarged in the “printable” 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.</p>
+</section>
+</section>
+<section id="colorsets">
+<span id="id4"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this headline">¶</a></h3>
+<p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
+<p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
+<ul class="simple">
+<li><p>3D maps use by default the <code class="docutils literal notranslate"><span class="pre">map_3d</span></code> colorset.</p></li>
+<li><p>2D maps using “igc” mode (with ICC maps overlayed) use the <code class="docutils literal notranslate"><span class="pre">igc</span></code> colorset.</p></li>
+</ul>
+<section id="colorsets-inheritance">
+<h4>Colorsets inheritance<a class="headerlink" href="#colorsets-inheritance" title="Permalink to this headline">¶</a></h4>
+<p>Some colorsets may be slight variants to other existing ones. To avoid redefining every element color in the SVG file, it is possible to specify some “colorset inheritances”. This is done using the <code class="docutils literal notranslate"><span class="pre">colorset_inheritance</span></code> property in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer (a hidden layer made for SVG / inkscape). This property is a JSON dictionary, with a <code class="docutils literal notranslate"><span class="pre">{'child':</span> <span class="pre">'parent'}</span></code> shape. The meaning is that a child inherits all its parent colors, and then can override some.</p>
+</section>
+<section id="colors-specifications">
+<h4>Colors specifications<a class="headerlink" href="#colors-specifications" title="Permalink to this headline">¶</a></h4>
+<p>An <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property applies recursively to all its children. It is a JSON dictionary, whith the followin shape:</p>
+<ul class="simple">
+<li><p>primary keys are colorset names</p></li>
+<li><p>primary values are <cite>color specs</cite></p></li>
+</ul>
+<p>A <cite>color spec</cite> is normally also a dict, with the following shape:</p>
+<ul class="simple">
+<li><p>keys are like in SVG elements style, <code class="docutils literal notranslate"><span class="pre">fg</span></code> (foreground), <code class="docutils literal notranslate"><span class="pre">bg</span></code> (background), <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code></p></li>
+<li><p>values are strings, either containing the RGBA color, or a float value for <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code>.</p></li>
+<li><p>colorsets used only in 3D may shunt the second level and specify directly a single RGBA color string as colorspec value.</p></li>
+</ul>
+<p>Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ff0000ff&quot;</span><span class="p">},</span>
+ <span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ffffffff&quot;</span><span class="p">,</span> <span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0606060ff&quot;</span><span class="p">,</span> <span class="s2">&quot;stroke-width&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">label_alt_colors</span></code> property has an additional upper level whick key is the element label, and the primary value is like the <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> dict:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}},</span>
+ <span class="s2">&quot;marches&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -706,6 +756,11 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
 <li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
 <li><a class="reference internal" href="#id3">Altitude maps</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
+<li><a class="reference internal" href="#colorsets-inheritance">Colorsets inheritance</a></li>
+<li><a class="reference internal" href="#colors-specifications">Colors specifications</a></li>
 </ul>
 </li>
 </ul>
