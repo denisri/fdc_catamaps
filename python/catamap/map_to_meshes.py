@@ -172,19 +172,35 @@ Properties list
 **depth_map:** bool (**3D maps**)
     the layer is a depth map. It should contain a level attribute to define the
     level it maps. See :ref:`depth_maps` for details.
-**alt_colors:** JSON dict (**3D maps**)
-    color to be used in 3D maps. This is a string representing a JSON format dictionary. Keys are colorsets names, values are RGBA hex strings. The default colorset is ``map_3d``. Ex::
+**alt_colors:** JSON dict (**2D and 3D maps**)
+    color to be used alternatively in maps. This is a string representing a
+    JSON format dictionary. Keys are colorsets names, values are a second level
+    of dictionary which specifies color properties, a bit like for SVG elements
+    style. The
+    default colorset for 3D maps is ``map_3d``.
+    Ex::
 
-        ``{"map_3d": "#cccccc4c"}``
+        {"map_3d": "#cccccc4c"}
 
-**label_alt_colors:** JSON dict (**3D maps**)
+    see also: :ref:`colorsets`
+
+**label_alt_colors:** JSON dict (**2D and 3D maps**)
     Like alt_colors, except that the dict has an upper-level which keys area
     object labels. The dict can be applied hierarchically, thus put in a layer.
     Ex::
 
         {"repetiteur": {"black": {"bg": "#cccccc4c"}}}
 
-**catrgory:** str (**3D maps**)
+    see also: :ref:`colorsets`
+
+**colorset_inheritance:** JSON dict (**2D and 3D maps**)
+    used as a property of the ``metadata`` layer only, it specifies colorsets
+    which can inherit the colors defined by another, in order to minimally
+    specialize it.
+
+    see also: :ref:`colorsets`
+
+**category:** str (**3D maps**)
     the category string the element will be associated in the 3D views.
     Categories can be displayed/hidden using buttons or menus in 3D views.
 **border:** bool (**3D maps**)
@@ -285,6 +301,49 @@ The result in 2D is (left: original map, right: result):
 In 3D: `here <_static/example_3d/index.html>`_
 
 See for instance how wells indications are enlarged in the "printable" 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.
+
+
+.. _colorsets:
+
+Colorsets
+---------
+
+Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the ``--color`` option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a ``alt_colors`` property can both define colorsets and assign colors.
+
+A few "hard-coded" colorsets are expected to exist (even it it is not mandatory) and are used by default:
+
+* 3D maps use by default the ``map_3d`` colorset.
+* 2D maps using "igc" mode (with ICC maps overlayed) use the ``igc`` colorset.
+
+Colorsets inheritance
++++++++++++++++++++++
+
+Some colorsets may be slight variants to other existing ones. To avoid redefining every element color in the SVG file, it is possible to specify some "colorset inheritances". This is done using the ``colorset_inheritance`` property in the ``metadata`` layer (a hidden layer made for SVG / inkscape). This property is a JSON dictionary, with a ``{'child': 'parent'}`` shape. The meaning is that a child inherits all its parent colors, and then can override some.
+
+Colors specifications
++++++++++++++++++++++
+
+An ``alt_colors`` property applies recursively to all its children. It is a JSON dictionary, whith the followin shape:
+
+* primary keys are colorset names
+* primary values are `color specs`
+
+A `color spec` is normally also a dict, with the following shape:
+
+* keys are like in SVG elements style, ``fg`` (foreground), ``bg`` (background), ``stroke-width``
+* values are strings, either containing the RGBA color, or a float value for ``stroke-width``.
+* colorsets used only in 3D may shunt the second level and specify directly a single RGBA color string as colorspec value.
+
+Ex::
+
+    {"map_3d": "#c0c0c0ff",
+     "igc": {"bg": "#ff0000ff"},
+     "black": {"fg": "#ffffffff", "bg": "#c0606060ff", "stroke-width": "0.2"}}
+
+A ``label_alt_colors`` property has an additional upper level whick key is the element label, and the primary value is like the ``alt_colors`` dict::
+
+    {"repetiteur": {"black": {"bg": "#c0c0c0ff"}},
+     "marches": {"black": {"fg": "#c0c0c0ff"}}}
 
 
 map_to_meshes module
@@ -1097,12 +1156,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if item_props.sound:
                 print('SOUND:', xml_element.tag, xml_element)
                 self.read_markers(xml_element, 'sounds')
+                return (self.noop, clean_return, True)
             elif label == 'lambert93':
                 print('LAMBERT93')
                 self.read_lambert93(xml_element)
+                return (self.noop, clean_return, True)
             if item_props.photo:
                 print('PHOTO:', xml_element.tag, xml_element)
                 self.read_markers(xml_element, 'photos')
+                return (self.noop, clean_return, True)
 
         if hidden:
             # hidden layers are not rendered
@@ -1775,8 +1837,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def read_markers(self, xml, mtype='sounds', trans=None, style=None):
         print('READ', mtype.upper())
-        markers = {}
-        setattr(self, mtype, markers)
+        markers = getattr(self, mtype)
         if trans is None:
             trans = np.matrix(np.eye(3))
         for xml_element in xml:
@@ -1826,6 +1887,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if text and pos:
                 markers.setdefault(text, []).append((pos + [level], radius))
                 # print('%s:' % mtype, markers[text])
+        print('read', len(markers), mtype)
 
 
     def read_lambert93(self, xml, trans=None):
@@ -3188,7 +3250,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1., 0., 2.6), 0.3, 12,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
-        mesh.header()['material'] = {'diffuse': [0., 0., 1., 1.]}
+        mesh.header()['material'] = {'diffuse': [.8, 0.6, 0., 1.]}
         return mesh
 
 
