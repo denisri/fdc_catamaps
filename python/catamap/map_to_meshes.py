@@ -3484,7 +3484,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
 
+        new_nums = {l: i for i, l in enumerate(used_layers)}
         categories = [c for i, c in enumerate(categories) if i in used_layers]
+        # re-number all items
+        for item in jmeshes:
+            item[0] = new_nums[item[0]]
+        for item in pmeshes:
+            item[0] = new_nums[item[0]]
+
         json_obj['categories'] = categories
         if 'Couloirs' in categories:
             def_categories.append('Couloirs')
