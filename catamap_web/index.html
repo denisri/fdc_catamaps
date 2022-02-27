@@ -532,9 +532,14 @@
     var filenames = map_objects.meshes;
     var texts = map_objects.texts;
     var sounds = map_objects.sounds;
+    if ( !sounds )
+      sounds = [];
     var photos = map_objects.photos;
+    if ( !photos )
+      photos = [];
     var categories = map_objects.categories;
     var def_categories = map_objects.default_categories;
+    var def_cat_num = [];
     var private_code = map_objects['code'];
     if( private_code == null )
       private_code = '776f707e19f39e6b830856a6cdf3aa605a5a283e'
@@ -548,6 +553,10 @@
     {
       filenames = filenames.concat( map_objects.meshes_private );
       texts = texts.concat( map_objects.texts_private );
+      if( map_objects.sounds_private )
+        sounds = sounds.concat( map_objects.sounds_private );
+      if( map_objects.photos_private )
+        photos = photos.concat( map_objects.photos_private );
     }
 
     var mb = document.getElementById( 'mesh_buttons' );
@@ -585,7 +594,9 @@
 
     for (i=0; i != def_categories.length; ++i )
     {
-      document.getElementById( categories[i] ).checked = true;
+      var category = categories.indexOf( def_categories[i] );
+      document.getElementById( categories[category] ).checked = true;
+      def_cat_num.push( category );
     }
 
     var meshes = {};
@@ -860,12 +871,6 @@
         $('#title_' + i).text(title[i]);
     }
 
-    var def_cat_num = [ 0, 4 ];
-    for( i=0; i<def_categories.length; i++ )
-    {
-      var category = categories.indexOf( def_categories[i] );
-      def_cat_num.push( category );
-    }
 
     for( i=0; i<def_cat_num.length; i++ )
     {
@@ -1000,10 +1005,10 @@
           var z = spos[0][2];
           max_dist = spos[1];
           var fname = sounds[i][0];
-          console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
+          // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
           var snd_pos = new THREE.Vector3( x, y, z );
           var dist = point.distanceTo( snd_pos );
-          console.log( 'distance:', dist );
+          // console.log( 'distance:', dist );
           if( i == 0 )
             min_dist = dist;
           if( dist <= min_dist && dist < max_dist )
@@ -1077,7 +1082,7 @@
         if( ext >= 0 )
           basename = photo_filename.substring( ext + 1 );
         ext = basename.indexOf( '.' );
-        if( ext < 0 )
+        if( ext < 0 && basename != '' )
           photo_url = photo_filename + '.jpg';
         window.open(photo_url, '_blank').focus();
 

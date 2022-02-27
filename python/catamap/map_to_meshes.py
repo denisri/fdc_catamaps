@@ -105,8 +105,88 @@ Other properties are not discriminative, so in some conditions may not be taken 
 Properties list
 ---------------
 
+**alt_colors:** JSON dict (**2D and 3D maps**)
+    color to be used alternatively in maps. This is a string representing a
+    JSON format dictionary. Keys are colorsets names, values are a second level
+    of dictionary which specifies color properties, a bit like for SVG elements
+    style. The
+    default colorset for 3D maps is ``map_3d``.
+    Ex::
+
+        {"map_3d": "#cccccc4c"}
+
+    see also: :ref:`colorsets`
+
+**arrow:** bool (**3D maps**)
+    arrows join a text label to a location on map. They are filar meshes. Most
+    of them are just a segment (2 points) but they may contain more points.
+    Points orientation is important as the arrow goes from the text (above the
+    meshes) down to the pointed item below.
+**block:** bool (**3D maps**)
+    block elements have a ceiling and walls. Meshes are extruded and tesselated
+    to be filled.
+**border:** bool (**3D maps**)
+    not used if I remember...
+**category:** str (**3D maps**)
+    the category string the element will be associated in the 3D views.
+    Categories can be displayed/hidden using buttons or menus in 3D views.
+**catflap:** bool (**3D maps**)
+    In catflaps, paths are replaced with striped tubes.
+**colorset_inheritance:** JSON dict (**2D and 3D maps**)
+    used as a property of the ``metadata`` layer only, it specifies colorsets
+    which can inherit the colors defined by another, in order to minimally
+    specialize it.
+
+    see also: :ref:`colorsets`
+
+**corridor:** bool (**3D maps**)
+    corridors have a floor and walls. Meshes are extruded and tesselated to be
+    filled.
+**date:** str (**2D maps**)
+    the date text will be replaced with the date of the map build.
+**depth_map:** bool (**3D maps**)
+    the layer is a depth map. It should contain a ``level`` property to define
+    the level it maps. See :ref:`depth_maps` for details.
+**glabel:** str (**2D maps**)
+    "group label" used to replace elements with ones from the legends layer.
+    The ``glabel`` is associated to one legends element if the legends element
+    ``label`` property has the value of the ``glabel`` property of the element
+    plus the duffix ``_proto``. Ex, in the legends::
+
+        label: colim_proto
+
+    in the map elements::
+
+        glabel: colim
+
+**height_shift:** float (**3D maps**)
+    z shift of the element (esp. for corridor, block, wall elements, but also
+    wells and arrows). An element with a height shift will not begin on the
+    ground, but above or below as specified.
+**hidden:** bool (**3D maps**)
+    removed from 3D maps.
+**inaccessible:** bool (**3D maps**)
+    inaccessible elements will be separated from others, and set in the
+    ``Inaccessible`` display category.
+**item_height:** float (**3D maps**)
+    height of the element (esp. for corridor, block, wall elements).
+    **WARNING:** it is ``item_height``, not ``height`` as height is already an
+    official SVG attribute for some elements (rectangles for instance).
 **label:** str (**2D and 3D maps**)
     name of the element type
+**label_alt_colors:** JSON dict (**2D and 3D maps**)
+    Like alt_colors, except that the dict has an upper-level which keys area
+    object labels. The dict can be applied hierarchically, thus put in a layer.
+    Ex::
+
+        {"repetiteur": {"black": {"bg": "#cccccc4c"}}}
+
+    see also: :ref:`colorsets`
+
+**legend:** bool (**2D maps**)
+    set on a layer, indicates that this layer contains the legend symbols and
+    can be searched for replacement symbols (wells, etc) which will replace
+    those in the map to enlarge them and ease view from a bit further.
 **level:** str (**2D and 3D maps**)
     depth level name (sup, inf, surf, tech, metro, esc...). Levels are an
     "open" property, there is no predefined list of levels, apart for 2
@@ -122,89 +202,6 @@ Properties list
     Levels are associated to depth maps, so for each level used (except
     ``surf``), a ``depth_map`` layer is supposed to be defined. See
     :ref:`depth_maps`.
-**upper_level:** str (**3D maps**)
-    depth level for the top of elements. Only used for elements joining two levels
-    (wells, arrows)
-**private:** bool (**2D and 3D maps**)
-    private elements will only be visible if a code is provided
-**inaccessible:** bool (**3D maps**)
-    inaccessible elements will be separated from others, and set in the
-    ``Inaccessible`` display category.
-**visibility:** str (**2D and 3D maps**)
-    may be ``private``: alternative to ``private: true``.
-**symbol:** bool (**3D maps**)
-    not sure it is used, after all...
-**corridor:** bool (**3D maps**)
-    corridors have a floor and walls. Meshes are extruded and tesselated to be
-    filled.
-**block:** bool (**3D maps**)
-    block elements have a ceiling and walls. Meshes are extruded and tesselated
-    to be filled.
-**wall:** bool (**3D maps**)
-    wall elements have only side walls (no floor or ceiling).
-**arrow:** bool (**3D maps**)
-    arrows join a text label to a location on map. They are filar meshes. Most
-    of them are just a segment (2 points) but they may contain more points.
-    Points orientation is important as the arrow goes from the text (above the
-    meshes) down to the pointed item below.
-**text:** bool (**3D maps**)
-    text layers.
-**well:** bool (**3D maps**)
-    wells are replaced with custom elements, which type is the element label
-    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
-    or layers) shoud specify the level and upper_level.
-**well_read_mode:** str (**3D maps**)
-    tells if well elements should be read in the XML file as a single "path"
-    element (a circle for instance), or a group (a grop containing a circle,
-    and additional lines). Thus allowed values are ``path`` or ``group``.
-**catflap:** bool (**3D maps**)
-    In catflaps, paths are replaced with striped tubes.
-**hidden:** bool (**3D maps**)
-    removed from 3D maps.
-**item_height:** float (**3D maps**)
-    height of the element (esp. for corridor, block, wall elements).
-    **WARNING:** it is ``item_height``, not ``height`` as height is already an
-    official SVG attribute for some elements (rectangles for instance).
-**height_shift:** float (**3D maps**)
-    z shift of the element (esp. for corridor, block, wall elements, but also
-    wells and arrows). An element with a height shift will not begin on the
-    ground, but above or below as specified.
-**depth_map:** bool (**3D maps**)
-    the layer is a depth map. It should contain a level attribute to define the
-    level it maps. See :ref:`depth_maps` for details.
-**alt_colors:** JSON dict (**2D and 3D maps**)
-    color to be used alternatively in maps. This is a string representing a
-    JSON format dictionary. Keys are colorsets names, values are a second level
-    of dictionary which specifies color properties, a bit like for SVG elements
-    style. The
-    default colorset for 3D maps is ``map_3d``.
-    Ex::
-
-        {"map_3d": "#cccccc4c"}
-
-    see also: :ref:`colorsets`
-
-**label_alt_colors:** JSON dict (**2D and 3D maps**)
-    Like alt_colors, except that the dict has an upper-level which keys area
-    object labels. The dict can be applied hierarchically, thus put in a layer.
-    Ex::
-
-        {"repetiteur": {"black": {"bg": "#cccccc4c"}}}
-
-    see also: :ref:`colorsets`
-
-**colorset_inheritance:** JSON dict (**2D and 3D maps**)
-    used as a property of the ``metadata`` layer only, it specifies colorsets
-    which can inherit the colors defined by another, in order to minimally
-    specialize it.
-
-    see also: :ref:`colorsets`
-
-**category:** str (**3D maps**)
-    the category string the element will be associated in the 3D views.
-    Categories can be displayed/hidden using buttons or menus in 3D views.
-**border:** bool (**3D maps**)
-    not used if I remember...
 **map_transform**: SVG transformation spec (**2D maps**)
     additional transformation applied to elements, used for
     instance to shift lower level parts when they are superimposed under an
@@ -214,29 +211,53 @@ Properties list
 
     This propery can be set to paths, groups, and arrows (which will thus point
     to a shifted location).
-**glabel:** str (**2D maps**)
-    "group label" used to replace elements with ones from the legends layer.
-    The ``glabel`` is associated to one legends element if the legends element
-    ``label`` property has the value of the ``glabel`` property of the element
-    plus the duffix ``_proto``. Ex, in the legends::
+**marker:** str (**3D maps**)
+    set on a layer to specify that this layer is a **markers layer**. Two types
+    of markers are currently recognized: ``sounds`` and ``photos``.
 
-        label: colim_proto
+    See :ref:`markers` for more details.
 
-    in the map elements::
+**markers_base_url:** bool (**3D maps**)
+    set on a :ref:`marker layer <markers>` to specify that marekrs in this
+    layer have URLS which point to the server directory specified here.
+    Individual markers will be appended to this base URL. The URL may be
+    absolute (``https://photos.google.com/xyzsomething``) or relative to the
+    map server (``photos/photo_dir``). If not specified, the default base url
+    is the markers type (``photos``, ``sounds``), in relative mode.
+**private:** bool (**2D and 3D maps**)
+    private elements will only be visible if a code is provided
+**radius:** float (**3D maps)
+    used in a "marker" layer to specify the max radius between the user click
+    and the marker position for it to be triggered. It can be set on the marker
+    layer itself, or on any marker item inside.
 
-        glabel: colim
+    See :ref:`markers` for more details.
+
 **replace_children:** bool (**2D maps**)
     should be set only in replacement symbols in the legend layer (wells signs,
     etc) to indicate that children of matching elements should be parsed
     recursively and their children may be replaced also.
-**legend:** bool (**2D maps**)
-    set on a layer, indicates that this layer contains the legend symbols and
-    can be searched for replacement symbols (wells, etc) which will replace
-    those in the map to enlarge them and ease view from a bit further.
+**symbol:** bool (**3D maps**)
+    not sure it is used, after all...
+**text:** bool (**3D maps**)
+    text layers.
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
-**date:** str (**2D maps**)
-    the date text will be replaced with the date of the map build.
+**upper_level:** str (**3D maps**)
+    depth level for the top of elements. Only used for elements joining two levels
+    (wells, arrows)
+**visibility:** str (**2D and 3D maps**)
+    may be ``private``: alternative to ``private: true``.
+**wall:** bool (**3D maps**)
+    wall elements have only side walls (no floor or ceiling).
+**well:** bool (**3D maps**)
+    wells are replaced with custom elements, which type is the element label
+    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
+    or layers) shoud specify the level and upper_level.
+**well_read_mode:** str (**3D maps**)
+    tells if well elements should be read in the XML file as a single "path"
+    element (a circle for instance), or a group (a grop containing a circle,
+    and additional lines). Thus allowed values are ``path`` or ``group``.
 
 .. _depth_maps:
 
@@ -345,6 +366,30 @@ A ``label_alt_colors`` property has an additional upper level whick key is the e
     {"repetiteur": {"black": {"bg": "#c0c0c0ff"}},
      "marches": {"black": {"fg": "#c0c0c0ff"}}}
 
+.. _markers:
+
+Markers
+-------
+
+**Markers** are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).
+
+Markers are recorded in dedicated layers in the SVG file. Such layer must have a ``marker`` property, which value is the type of markers in the layer. Currently two types of markers are handled: ``photos`` (links to photographs URLS) or ``sounds``.
+
+Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).
+
+A marker layer can have ``markers_base_url`` or ``radius`` properties, which respectively specify the base URL for all markers, and the max distance to the marker for which a user click will trigger the marker.
+
+
+The layer contents are similar to depth layers: they are text objects, or groups containing a text object and a line object to make an arrow from the text to the marker exact location. The layer may not have other kind of groups, it is not recursive.
+
+Items in the marker layer are thus text at specified locations. The text is the URL of the resource (sound, photo, ...) and is appended to the base URL above. If no ``markers_base_url`` is specified, the marker value (type) is used as a relative directory as base URL (``sounds/...`` or ``photos/...``).
+
+Each item may get a specific ``radius`` property, which may overload the layer radius. If no radius is specified, a default is used (10., which would correspond to 10 m radisu, depending on the map scale).
+
+If an item text has no file extension, ``.jpg`` will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, ``123`` will be replaced with ``photos/123.jpg``.
+
+On the web server side, photos and sounds directory have to be created and contain the referenced files.
+
 
 map_to_meshes module
 ====================
@@ -423,7 +468,7 @@ class ItemProperties(object):
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
-                  'well_read_mode', 'grid_interval', 'sound', 'photo')
+                  'well_read_mode', 'grid_interval', 'marker')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -449,8 +494,7 @@ class ItemProperties(object):
         self.height = None
         self.height_shift = None
         self.border = False
-        self.sound = False
-        self.photo = False
+        self.marker = None
         self.alt_colors = None
         self.label_alt_colors = None
         self.category = None
@@ -486,8 +530,6 @@ class ItemProperties(object):
                 'catflap': ItemProperties.is_true,
                 'hidden': ItemProperties.is_true,
                 'depth_map': ItemProperties.is_true,
-                'sound': ItemProperties.is_true,
-                'photo': ItemProperties.is_true,
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
@@ -534,7 +576,7 @@ class ItemProperties(object):
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
                          'category', 'well_read_mode', 'grid_interval',
-                         'sound', 'photo'):
+                         'marker'):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -1053,11 +1095,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.fontis_mesh = None
         self.lily_mesh = None
         self.large_sign_mesh = None
-        self.sound_marker_model = None
-        self.photo_marker_model = None
+        self.sounds_marker_model = None
+        self.photos_marker_model = None
         self.level = ''
         self.sounds = {}
+        self.sounds_private = {}
         self.photos = {}
+        self.photos_private = {}
         self.group_properties = {}
         self.colorset = 'map_3d'  # alt colors to translate to
         self.colorset_inheritance = {}
@@ -1153,17 +1197,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if item_props.depth_map:
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
-            if item_props.sound:
-                print('SOUND:', xml_element.tag, xml_element)
-                self.read_markers(xml_element, 'sounds')
+            if item_props.marker:
+                print('MARKER:', item_props.marker)
+                sname = item_props.marker
+                if item_props.private:
+                    sname += '_private'
+                model = getattr(self, '%s_marker_model' % item_props.marker,
+                                None)
+                if model is None:
+                    model = self.photo_marker_model
+                self.read_markers(xml_element, model, sname)
                 return (self.noop, clean_return, True)
-            elif label == 'lambert93':
+            if label == 'lambert93':
                 print('LAMBERT93')
                 self.read_lambert93(xml_element)
                 return (self.noop, clean_return, True)
-            if item_props.photo:
-                print('PHOTO:', xml_element.tag, xml_element)
-                self.read_markers(xml_element, 'photos')
+                self.read_markers(xml_element, self.photo_marker_model,
+                                  pname)
                 return (self.noop, clean_return, True)
 
         if hidden:
@@ -1243,10 +1293,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.lily_mesh = self.make_lily_model(xml)
         if self.large_sign_mesh is None:
             self.large_sign_mesh = self.make_large_sign_model(xml)
-        if self.sound_marker_model is None:
-            self.sound_marker_model = self.make_sound_marker_model()
-        if self.photo_marker_model is None:
-            self.photo_marker_model = self.make_photo_marker_model()
+        if self.sounds_marker_model is None:
+            self.sounds_marker_model = self.make_sounds_marker_model()
+        if self.photos_marker_model is None:
+            self.photos_marker_model = self.make_photos_marker_model()
         res = super(CataSvgToMesh, self).read_paths(xml)
 
         #print('======= read_path done =======')
@@ -1835,11 +1885,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         depth_mesh.vertex().append((x, y, z * self.z_scale))
 
 
-    def read_markers(self, xml, mtype='sounds', trans=None, style=None):
+    def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
         print('READ', mtype.upper())
+        if not hasattr(self, mtype):
+            setattr(self, mtype, {})
         markers = getattr(self, mtype)
         if trans is None:
             trans = np.matrix(np.eye(3))
+        base_url = xml.get('markers_base_url')
+        if base_url is None:
+            base_url = mtype + '/'
+        if not base_url.endswith('/'):
+            base_url += '/'
+
+        layer_radius = xml.get('radius')
+        if layer_radius is not None:
+            layer_radius = float(layer_radius)
+        else:
+            layer_radius = 10.
+
         for xml_element in xml:
             level = self.item_props.level
             text = None
@@ -1883,9 +1947,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if radius is not None:
                 radius = float(radius)
             else:
-                radius = 10.
+                radius = layer_radius
+
             if text and pos:
-                markers.setdefault(text, []).append((pos + [level], radius))
+                markers.setdefault(base_url + text, []).append((
+                    pos + [level], radius))
                 # print('%s:' % mtype, markers[text])
         print('read', len(markers), mtype)
 
@@ -2854,12 +2920,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # sounds and photos depth + markers meshes
         object_win_size = [8, 8]
 
-        protos = {'sounds': 'sound_marker_model',
-                  'photos': 'photo_marker_model'}
+        protos = {'sounds': 'sounds_marker_model',
+                  'sounds_private': 'sounds_marker_model',
+                  'photos': 'photos_marker_model',
+                  'photos_private': 'photos_marker_model'}
 
-        for mtype in ('sounds', 'photos'):
+        for mtype, proto in protos.items():
             mesh = None
-            mesh_proto = getattr(self, protos[mtype])
+            mesh_proto = getattr(self, proto)
             print(mtype, 'proto:', len(mesh_proto.vertex()))
             for mpos in getattr(self, mtype).values():
                 for pos, radius in mpos:
@@ -3245,7 +3313,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return self.make_spiral_stair([0, 0], 1., 0., 1.5)
 
 
-    def make_sound_marker_model(self):
+    def make_sounds_marker_model(self):
         mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
         cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1., 0., 2.6), 0.3, 12,
                                           False, True)
@@ -3254,7 +3322,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return mesh
 
 
-    def make_photo_marker_model(self):
+    def make_photos_marker_model(self):
         mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
         mesh.header()['material'] = {'diffuse': [1., 0., 0., 1.]}
         return mesh
@@ -3453,13 +3521,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         # sounds
         if self.sounds:
-            json_obj['sounds'] = [(os.path.join('sounds', s), self.sounds[s])
+            json_obj['sounds'] = [(s, self.sounds[s])
                                   for s in sorted(self.sounds.keys())]
+        if self.sounds_private:
+            json_obj['sounds_private'] = [
+                (s, self.sounds_private[s])
+                for s in sorted(self.sounds_private.keys())]
 
         # photos
         if self.photos:
-            json_obj['photos'] = [(os.path.join('photos', s), self.photos[s])
+            json_obj['photos'] = [(s, self.photos[s])
                                   for s in sorted(self.photos.keys())]
+        if self.photos_private:
+            json_obj['photos_private'] = [
+                (s, self.photos_private[s])
+                for s in sorted(self.photos_private.keys())]
 
         if json_filename is not None:
             if six.PY3:
