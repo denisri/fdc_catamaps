@@ -389,8 +389,9 @@
 
     // SOUND
     listener = new THREE.AudioListener();
-    camera.add( listener );
     current_sound = new THREE.Audio( listener );
+    camera.add( listener );
+    mediaElement = new Audio();
 
 //     var light = new THREE.AmbientLight(0xffffff);
     var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
@@ -1021,21 +1022,31 @@
 
       // stop any playing sound
       if( current_sound.isPlaying )
+      {
         current_sound.stop();
+      }
+      mediaElement.pause();
+      // mediaElement.src = '';
 
       if( snd_filename != '' )
       {
         console.log('play:', snd_filename );
 
-        var audioloader = new THREE.AudioLoader();
-        audioloader.load( snd_filename, function( buffer )
-          {
-            current_sound.setBuffer( buffer );
-            current_sound.setLoop( false );
-            current_sound.setVolume( 0.5 );
-            current_sound.play();
-          }
-        );
+        mediaElement.pause();
+        mediaElement.src = snd_filename;
+        mediaElement.play();
+        current_sound.setMediaElementSource( mediaElement );
+        current_sound.play();
+
+//         var audioloader = new THREE.AudioLoader();
+//         audioloader.load( snd_filename, function( buffer )
+//           {
+//             current_sound.setBuffer( buffer );
+//             current_sound.setLoop( false );
+//             current_sound.setVolume( 1. );
+//             current_sound.play();
+//           }
+//         );
       }
     }
 
