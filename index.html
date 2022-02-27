@@ -137,7 +137,83 @@ modified .svg files, .pdf and .jpg files.</p>
 <section id="properties-list">
 <h3>Properties list<a class="headerlink" href="#properties-list" title="Permalink to this headline">¶</a></h3>
 <dl>
+<dt><strong>alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>color to be used alternatively in maps. This is a string representing a
+JSON format dictionary. Keys are colorsets names, values are a second level
+of dictionary which specifies color properties, a bit like for SVG elements
+style. The
+default colorset for 3D maps is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>arrow:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>arrows join a text label to a location on map. They are filar meshes. Most
+of them are just a segment (2 points) but they may contain more points.
+Points orientation is important as the arrow goes from the text (above the
+meshes) down to the pointed item below.</p>
+</dd>
+<dt><strong>block:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>block elements have a ceiling and walls. Meshes are extruded and tesselated
+to be filled.</p>
+</dd>
+<dt><strong>border:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not used if I remember…</p>
+</dd>
+<dt><strong>category:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
+Categories can be displayed/hidden using buttons or menus in 3D views.</p>
+</dd>
+<dt><strong>catflap:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>In catflaps, paths are replaced with striped tubes.</p>
+</dd>
+<dt><strong>colorset_inheritance:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies colorsets
+which can inherit the colors defined by another, in order to minimally
+specialize it.</p>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>corridor:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>corridors have a floor and walls. Meshes are extruded and tesselated to be
+filled.</p>
+</dd>
+<dt><strong>date:</strong> str (<strong>2D maps</strong>)</dt><dd><p>the date text will be replaced with the date of the map build.</p>
+</dd>
+<dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a <code class="docutils literal notranslate"><span class="pre">level</span></code> property to define
+the level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
+</dd>
+<dt><strong>glabel:</strong> str (<strong>2D maps</strong>)</dt><dd><p>“group label” used to replace elements with ones from the legends layer.
+The <code class="docutils literal notranslate"><span class="pre">glabel</span></code> is associated to one legends element if the legends element
+<code class="docutils literal notranslate"><span class="pre">label</span></code> property has the value of the <code class="docutils literal notranslate"><span class="pre">glabel</span></code> property of the element
+plus the duffix <code class="docutils literal notranslate"><span class="pre">_proto</span></code>. Ex, in the legends:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">label</span><span class="p">:</span> <span class="n">colim_proto</span>
+</pre></div>
+</div>
+<p>in the map elements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">glabel</span><span class="p">:</span> <span class="n">colim</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the element (esp. for corridor, block, wall elements, but also
+wells and arrows). An element with a height shift will not begin on the
+ground, but above or below as specified.</p>
+</dd>
+<dt><strong>hidden:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>removed from 3D maps.</p>
+</dd>
+<dt><strong>inaccessible:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>inaccessible elements will be separated from others, and set in the
+<code class="docutils literal notranslate"><span class="pre">Inaccessible</span></code> display category.</p>
+</dd>
+<dt><strong>item_height:</strong> float (<strong>3D maps</strong>)</dt><dd><p>height of the element (esp. for corridor, block, wall elements).
+<strong>WARNING:</strong> it is <code class="docutils literal notranslate"><span class="pre">item_height</span></code>, not <code class="docutils literal notranslate"><span class="pre">height</span></code> as height is already an
+official SVG attribute for some elements (rectangles for instance).</p>
+</dd>
 <dt><strong>label:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>name of the element type</p>
+</dd>
+<dt><strong>label_alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
+object labels. The dict can be applied hierarchically, thus put in a layer.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>legend:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>set on a layer, indicates that this layer contains the legend symbols and
+can be searched for replacement symbols (wells, etc) which will replace
+those in the map to enlarge them and ease view from a bit further.</p>
 </dd>
 <dt><strong>level:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>depth level name (sup, inf, surf, tech, metro, esc…). Levels are an
 “open” property, there is no predefined list of levels, apart for 2
@@ -154,32 +230,48 @@ later.</p></li>
 <code class="docutils literal notranslate"><span class="pre">surf</span></code>), a <code class="docutils literal notranslate"><span class="pre">depth_map</span></code> layer is supposed to be defined. See
 <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a>.</p>
 </dd>
-<dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two levels
-(wells, arrows)</p>
+<dt><strong>map_transform</strong>: SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
+instance to shift lower level parts when they are superimposed under an
+upper level. Without this shift, they would not be seen because they are
+hidden by the upper level. The transform is specified in the same way as
+the standard SVG <code class="docutils literal notranslate"><span class="pre">transform</span></code> property.</p>
+<p>This propery can be set to paths, groups, and arrows (which will thus point
+to a shifted location).</p>
+</dd>
+<dt><strong>marker:</strong> str (<strong>3D maps</strong>)</dt><dd><p>set on a layer to specify that this layer is a <strong>markers layer</strong>. Two types
+of markers are currently recognized: <code class="docutils literal notranslate"><span class="pre">sounds</span></code> and <code class="docutils literal notranslate"><span class="pre">photos</span></code>.</p>
+<p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
+<dt><strong>markers_base_url:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a> to specify that marekrs in this
+layer have URLS which point to the server directory specified here.
+Individual markers will be appended to this base URL. The URL may be
+absolute (<code class="docutils literal notranslate"><span class="pre">https://photos.google.com/xyzsomething</span></code>) or relative to the
+map server (<code class="docutils literal notranslate"><span class="pre">photos/photo_dir</span></code>). If not specified, the default base url
+is the markers type (<code class="docutils literal notranslate"><span class="pre">photos</span></code>, <code class="docutils literal notranslate"><span class="pre">sounds</span></code>), in relative mode.</p>
 </dd>
 <dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
 </dd>
-<dt><strong>inaccessible:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>inaccessible elements will be separated from others, and set in the
-<code class="docutils literal notranslate"><span class="pre">Inaccessible</span></code> display category.</p>
+<dt><strong>radius:</strong> float (<a href="#id1"><span class="problematic" id="id2">**</span></a>3D maps)</dt><dd><p>used in a “marker” layer to specify the max radius between the user click
+and the marker position for it to be triggered. It can be set on the marker
+layer itself, or on any marker item inside.</p>
+<p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
-<dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>.</p>
+<dt><strong>replace_children:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>should be set only in replacement symbols in the legend layer (wells signs,
+etc) to indicate that children of matching elements should be parsed
+recursively and their children may be replaced also.</p>
 </dd>
 <dt><strong>symbol:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not sure it is used, after all…</p>
 </dd>
-<dt><strong>corridor:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>corridors have a floor and walls. Meshes are extruded and tesselated to be
-filled.</p>
+<dt><strong>text:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>text layers.</p>
 </dd>
-<dt><strong>block:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>block elements have a ceiling and walls. Meshes are extruded and tesselated
-to be filled.</p>
+<dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
+</dd>
+<dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two levels
+(wells, arrows)</p>
+</dd>
+<dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>.</p>
 </dd>
 <dt><strong>wall:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wall elements have only side walls (no floor or ceiling).</p>
-</dd>
-<dt><strong>arrow:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>arrows join a text label to a location on map. They are filar meshes. Most
-of them are just a segment (2 points) but they may contain more points.
-Points orientation is important as the arrow goes from the text (above the
-meshes) down to the pointed item below.</p>
-</dd>
-<dt><strong>text:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>text layers.</p>
 </dd>
 <dt><strong>well:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wells are replaced with custom elements, which type is the element label
 (PE, PS, PSh, échelle, sans, P ossements, …). Well elements (or groups,
@@ -189,86 +281,10 @@ or layers) shoud specify the level and upper_level.</p>
 element (a circle for instance), or a group (a grop containing a circle,
 and additional lines). Thus allowed values are <code class="docutils literal notranslate"><span class="pre">path</span></code> or <code class="docutils literal notranslate"><span class="pre">group</span></code>.</p>
 </dd>
-<dt><strong>catflap:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>In catflaps, paths are replaced with striped tubes.</p>
-</dd>
-<dt><strong>hidden:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>removed from 3D maps.</p>
-</dd>
-<dt><strong>item_height:</strong> float (<strong>3D maps</strong>)</dt><dd><p>height of the element (esp. for corridor, block, wall elements).
-<strong>WARNING:</strong> it is <code class="docutils literal notranslate"><span class="pre">item_height</span></code>, not <code class="docutils literal notranslate"><span class="pre">height</span></code> as height is already an
-official SVG attribute for some elements (rectangles for instance).</p>
-</dd>
-<dt><strong>height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the element (esp. for corridor, block, wall elements, but also
-wells and arrows). An element with a height shift will not begin on the
-ground, but above or below as specified.</p>
-</dd>
-<dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a level attribute to define the
-level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
-</dd>
-<dt><strong>alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>color to be used alternatively in maps. This is a string representing a
-JSON format dictionary. Keys are colorsets names, values are a second level
-of dictionary which specifies color properties, a bit like for SVG elements
-style. The
-default colorset for 3D maps is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>.
-Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}</span>
-</pre></div>
-</div>
-<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
-</dd>
-<dt><strong>label_alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
-object labels. The dict can be applied hierarchically, thus put in a layer.
-Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
-</pre></div>
-</div>
-<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
-</dd>
-<dt><strong>colorset_inheritance:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies colorsets
-which can inherit the colors defined by another, in order to minimally
-specialize it.</p>
-<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
-</dd>
-<dt><strong>category:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
-Categories can be displayed/hidden using buttons or menus in 3D views.</p>
-</dd>
-<dt><strong>border:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not used if I remember…</p>
-</dd>
-<dt><strong>map_transform</strong>: SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
-instance to shift lower level parts when they are superimposed under an
-upper level. Without this shift, they would not be seen because they are
-hidden by the upper level. The transform is specified in the same way as
-the standard SVG <code class="docutils literal notranslate"><span class="pre">transform</span></code> property.</p>
-<p>This propery can be set to paths, groups, and arrows (which will thus point
-to a shifted location).</p>
-</dd>
-<dt><strong>glabel:</strong> str (<strong>2D maps</strong>)</dt><dd><p>“group label” used to replace elements with ones from the legends layer.
-The <code class="docutils literal notranslate"><span class="pre">glabel</span></code> is associated to one legends element if the legends element
-<code class="docutils literal notranslate"><span class="pre">label</span></code> property has the value of the <code class="docutils literal notranslate"><span class="pre">glabel</span></code> property of the element
-plus the duffix <code class="docutils literal notranslate"><span class="pre">_proto</span></code>. Ex, in the legends:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">label</span><span class="p">:</span> <span class="n">colim_proto</span>
-</pre></div>
-</div>
-<p>in the map elements:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">glabel</span><span class="p">:</span> <span class="n">colim</span>
-</pre></div>
-</div>
-</dd>
-<dt><strong>replace_children:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>should be set only in replacement symbols in the legend layer (wells signs,
-etc) to indicate that children of matching elements should be parsed
-recursively and their children may be replaced also.</p>
-</dd>
-<dt><strong>legend:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>set on a layer, indicates that this layer contains the legend symbols and
-can be searched for replacement symbols (wells, etc) which will replace
-those in the map to enlarge them and ease view from a bit further.</p>
-</dd>
-<dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
-</dd>
-<dt><strong>date:</strong> str (<strong>2D maps</strong>)</dt><dd><p>the date text will be replaced with the date of the map build.</p>
-</dd>
 </dl>
 </section>
 <section id="depth-maps">
-<span id="id1"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this headline">¶</a></h3>
+<span id="id3"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this headline">¶</a></h3>
 <p>Depth maps are layers containing depth information, <strong>and nothing else</strong>.</p>
 <p>Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:</p>
 <ul class="simple">
@@ -278,7 +294,7 @@ those in the map to enlarge them and ease view from a bit further.</p>
 </ul>
 </section>
 <section id="altitude-maps">
-<span id="id2"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this headline">¶</a></h3>
 <p>Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an <code class="docutils literal notranslate"><span class="pre">upper_level</span></code> property in depth maps which could be any other map).</p>
 <p>To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.</p>
 <section id="geolocalisation-of-the-svg-file">
@@ -296,8 +312,8 @@ those in the map to enlarge them and ease view from a bit further.</p>
 </ul>
 <p>Lambert 93 positions can be found using <a class="reference external" href="https://www.geoportail.gouv.fr/carte">https://www.geoportail.gouv.fr/carte</a>: on the map, select “tools” on the right, and enable “display coordinates”. Then select for “reference system” the “Lambert 93” mode.</p>
 </section>
-<section id="id3">
-<h4>Altitude maps<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<section id="id5">
+<h4>Altitude maps<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
 <p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
@@ -311,7 +327,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="colorsets">
-<span id="id4"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this headline">¶</a></h3>
+<span id="id6"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this headline">¶</a></h3>
 <p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
 <p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
 <ul class="simple">
@@ -347,6 +363,18 @@ The result in 2D is (left: original map, right: result):</p>
 </pre></div>
 </div>
 </section>
+</section>
+<section id="markers">
+<span id="id7"></span><h3>Markers<a class="headerlink" href="#markers" title="Permalink to this headline">¶</a></h3>
+<p><strong>Markers</strong> are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).</p>
+<p>Markers are recorded in dedicated layers in the SVG file. Such layer must have a <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, which value is the type of markers in the layer. Currently two types of markers are handled: <code class="docutils literal notranslate"><span class="pre">photos</span></code> (links to photographs URLS) or <code class="docutils literal notranslate"><span class="pre">sounds</span></code>.</p>
+<p>Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).</p>
+<p>A marker layer can have <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> or <code class="docutils literal notranslate"><span class="pre">radius</span></code> properties, which respectively specify the base URL for all markers, and the max distance to the marker for which a user click will trigger the marker.</p>
+<p>The layer contents are similar to depth layers: they are text objects, or groups containing a text object and a line object to make an arrow from the text to the marker exact location. The layer may not have other kind of groups, it is not recursive.</p>
+<p>Items in the marker layer are thus text at specified locations. The text is the URL of the resource (sound, photo, …) and is appended to the base URL above. If no <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> is specified, the marker value (type) is used as a relative directory as base URL (<code class="docutils literal notranslate"><span class="pre">sounds/...</span></code> or <code class="docutils literal notranslate"><span class="pre">photos/...</span></code>).</p>
+<p>Each item may get a specific <code class="docutils literal notranslate"><span class="pre">radius</span></code> property, which may overload the layer radius. If no radius is specified, a default is used (10., which would correspond to 10 m radisu, depending on the map scale).</p>
+<p>If an item text has no file extension, <code class="docutils literal notranslate"><span class="pre">.jpg</span></code> will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, <code class="docutils literal notranslate"><span class="pre">123</span></code> will be replaced with <code class="docutils literal notranslate"><span class="pre">photos/123.jpg</span></code>.</p>
+<p>On the web server side, photos and sounds directory have to be created and contain the referenced files.</p>
 </section>
 </section>
 <section id="map-to-meshes-module">
@@ -755,7 +783,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#depth-maps">Depth maps</a></li>
 <li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
 <li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
-<li><a class="reference internal" href="#id3">Altitude maps</a></li>
+<li><a class="reference internal" href="#id5">Altitude maps</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
@@ -763,6 +791,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#colors-specifications">Colors specifications</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#markers">Markers</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#map-to-meshes-module">map_to_meshes module</a><ul>
