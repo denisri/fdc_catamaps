@@ -1139,10 +1139,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sounds_marker_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">photos_marker_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">photos</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">photos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>  <span class="c1"># alt colors to translate to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1925,6 +1925,14 @@
                      <span class="nb">float</span><span class="p">(</span><span class="n">rect_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))))</span> <span class="o">*</span> <span class="mf">10.</span>
         <span class="n">depth_mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">))</span>
 
+    <span class="k">def</span> <span class="nf">read_markers_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">csv</span>
+        <span class="n">mmap</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+                <span class="n">mmap</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">mmap</span>
 
     <span class="k">def</span> <span class="nf">read_markers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">marker_model</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;READ&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
@@ -1934,6 +1942,10 @@
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">trans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">base_url</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;markers_base_url&#39;</span><span class="p">)</span>
+        <span class="n">markres_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">markers_map_file</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;markers_map&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">markers_map_file</span><span class="p">:</span>
+            <span class="n">markres_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_markers_map</span><span class="p">(</span><span class="n">markers_map_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">base_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">base_url</span> <span class="o">=</span> <span class="n">mtype</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">base_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
@@ -1991,9 +2003,15 @@
                 <span class="n">radius</span> <span class="o">=</span> <span class="n">layer_radius</span>
 
             <span class="k">if</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">pos</span><span class="p">:</span>
-                <span class="n">markers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">text</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
-                    <span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">radius</span><span class="p">))</span>
-                <span class="c1"># print(&#39;%s:&#39; % mtype, markers[text])</span>
+                <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>  <span class="c1"># list</span>
+                    <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
+                    <span class="n">images</span> <span class="o">=</span> <span class="n">markres_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[</span><span class="n">text</span><span class="p">])</span>
+                <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">level</span><span class="p">,</span> <span class="n">radius</span><span class="p">],</span>
+                                <span class="p">[</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]])</span>
+                <span class="c1"># print(&#39;%s:&#39; % mtype, markers[pos + [level, radius]])</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">markers</span><span class="p">),</span> <span class="n">mtype</span><span class="p">)</span>
 
 
@@ -2970,25 +2988,27 @@
             <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">mesh_proto</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;proto:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_proto</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
-            <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span> <span class="ow">in</span> <span class="n">mpos</span><span class="p">:</span>
-                    <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
-                    <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
-                                       <span class="n">object_win_size</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed to get depth for:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
-                        <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
-                    <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
-                    <span class="n">mmesh</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh_proto</span><span class="p">)(</span><span class="n">mesh_proto</span><span class="p">)</span>  <span class="c1"># copy</span>
-                    <span class="n">trans</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
-                    <span class="n">trans</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-                    <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">mmesh</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">mesh</span> <span class="o">=</span> <span class="n">mmesh</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mmesh</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">radius</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
+                                    <span class="n">object_win_size</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed to get depth for:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+                <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+                <span class="n">mmesh</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh_proto</span><span class="p">)(</span><span class="n">mesh_proto</span><span class="p">)</span>  <span class="c1"># copy</span>
+                <span class="n">trans</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
+                <span class="n">trans</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+                <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">mmesh</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">mesh</span> <span class="o">=</span> <span class="n">mmesh</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mmesh</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
             <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">main_group</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mesh&#39;</span> <span class="o">%</span> <span class="n">mtype</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
@@ -3569,21 +3589,15 @@
 
         <span class="c1"># sounds</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-                                  <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span>
 
         <span class="c1"># photos</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-                                  <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">photos</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span>
 
         <span class="k">if</span> <span class="n">json_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
