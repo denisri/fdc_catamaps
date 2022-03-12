@@ -997,26 +997,23 @@
       var snd_filename = '';
       for( i=0; i<sounds.length; i++ )
       {
-        for( j=0; j<sounds[i][1].length; j++)
+        var spos = sounds[i][0];
+        // TODO: x is inverted, check why is it not in the mesh coords ?
+        var x = -spos[0];
+        var y = spos[1];
+        var z = spos[2];
+        max_dist = spos[3];
+        var fname = sounds[i][1][0];
+        // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
+        var snd_pos = new THREE.Vector3( x, y, z );
+        var dist = point.distanceTo( snd_pos );
+        // console.log( 'distance:', dist );
+        if( i == 0 )
+          min_dist = dist;
+        if( dist <= min_dist && dist < max_dist )
         {
-          var spos = sounds[i][1][j];
-          // TODO: x is inverted, check why is it not in the mesh coords ?
-          var x = -spos[0][0];
-          var y = spos[0][1];
-          var z = spos[0][2];
-          max_dist = spos[1];
-          var fname = sounds[i][0];
-          // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
-          var snd_pos = new THREE.Vector3( x, y, z );
-          var dist = point.distanceTo( snd_pos );
-          // console.log( 'distance:', dist );
-          if( i == 0 )
-            min_dist = dist;
-          if( dist <= min_dist && dist < max_dist )
-          {
-            min_dist = dist;
-            snd_filename = fname;
-          }
+          min_dist = dist;
+          snd_filename = fname;
         }
       }
 
@@ -1035,8 +1032,9 @@
         mediaElement.pause();
         mediaElement.src = snd_filename;
         mediaElement.play();
-        current_sound.setMediaElementSource( mediaElement );
-        current_sound.play();
+        // current_sound.setMediaElementSource( mediaElement );
+        current_sound.setVolume( 1. );
+        /// current_sound.play();
 
 //         var audioloader = new THREE.AudioLoader();
 //         audioloader.load( snd_filename, function( buffer )
@@ -1058,35 +1056,51 @@
 
       var max_dist = 10;
       var min_dist = 11;
-      var photo_filename = '';
+      var photo_filenames = [];
       for( i=0; i<photos.length; i++ )
       {
-        for( j=0; j<photos[i][1].length; j++)
+        var spos = photos[i][0];
+
+        // TODO: x is inverted, check why is it not in the mesh coords ?
+        var x = -spos[0];
+        var y = spos[1];
+        var z = point.z;
+        // var z = spos[2];
+        max_dist = spos[3];
+        var fnames = photos[i][1];
+        // console.log( 'photo:', x, y, z, fnames, ', radius:', max_dist );
+        var photo_pos = new THREE.Vector3( x, y, z );
+        var dist = point.distanceTo( photo_pos );
+        // console.log( 'distance:', dist );
+        if( i == 0 )
+          min_dist = dist;
+        if( dist <= min_dist && dist < max_dist )
         {
-          var spos = photos[i][1][j];
-          // TODO: x is inverted, check why is it not in the mesh coords ?
-          var x = -spos[0][0];
-          var y = spos[0][1];
-          var z = spos[0][2];
-          max_dist = spos[1];
-          var fname = photos[i][0];
-          // console.log( 'photo:', x, y, z, fname, ', radius:', max_dist );
-          var photo_pos = new THREE.Vector3( x, y, z );
-          var dist = point.distanceTo( photo_pos );
-          // console.log( 'distance:', dist );
-          if( i == 0 )
-            min_dist = dist;
-          if( dist <= min_dist && dist < max_dist )
-          {
-            min_dist = dist;
-            photo_filename = fname;
-          }
+          min_dist = dist;
+          photo_filenames = fnames;
         }
       }
 
-      if( photo_filename != '' )
+      if( photo_filenames.length != 0 )
       {
-        console.log( 'display photo:', x, y, z, photo_filename, ', radius:', min_dist );
+        console.log( 'display photos:', x, y, z, photo_filenames, ', radius:', min_dist );
+        display_photos( photo_filenames );
+      }
+
+    }
+
+
+    function display_photos( photo_filenames )
+    {
+
+      var tab = window.open( '', '_blank' );
+      tab.focus();
+      var doc = tab.document;
+      var new_html = '';
+
+      for( i=0; i<photo_filenames.length; i++ )
+      {
+        var photo_filename = photo_filenames[i];
         var ext = photo_filename.lastIndexOf( '/' );
         var basename = photo_filename;
         var photo_url = photo_filename;
@@ -1095,10 +1109,26 @@
         ext = basename.indexOf( '.' );
         if( ext < 0 && basename != '' )
           photo_url = photo_filename + '.jpg';
-        window.open(photo_url, '_blank').focus();
-
+        var tag = 'img';
+        if( ext >= 0 )
+        {
+          var fext = basename.substring( ext+1 );
+          console.log('fext:', fext );
+          if( fext == 'mp4' || fext == 'mpg' )
+            tag = 'video';
+        }
+        if( tag == 'video' )
+        {
+          new_html +=  '<a href="' + photo_url + '" target="_blank"><video controls src="' + photo_url + '" height="100%" width="auto"><source src="' + photo_url + '" /></video></a> ';
+        }
+        else
+          new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
       }
 
+      console.log( 'new html:', new_html );
+      doc.open();
+      doc.write( new_html );
+      doc.close();
     }
 
 

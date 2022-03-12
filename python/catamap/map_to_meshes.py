@@ -1098,10 +1098,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.sounds_marker_model = None
         self.photos_marker_model = None
         self.level = ''
-        self.sounds = {}
-        self.sounds_private = {}
-        self.photos = {}
-        self.photos_private = {}
+        self.sounds = []
+        self.sounds_private = []
+        self.photos = []
+        self.photos_private = []
         self.group_properties = {}
         self.colorset = 'map_3d'  # alt colors to translate to
         self.colorset_inheritance = {}
@@ -1884,6 +1884,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                      float(rect_xml.get('height')))) * 10.
         depth_mesh.vertex().append((x, y, z * self.z_scale))
 
+    def read_markers_map(self, filename):
+        import csv
+        mmap = {}
+        with open(filename) as f:
+            reader = csv.reader(f, delimiter='\t')
+            for row in reader:
+                mmap.setdefault(row[1], []).append(row[0])
+        return mmap
 
     def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
         print('READ', mtype.upper())
@@ -1893,6 +1901,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if trans is None:
             trans = np.matrix(np.eye(3))
         base_url = xml.get('markers_base_url')
+        markres_map = {}
+        markers_map_file = xml.get('markers_map')
+        if markers_map_file:
+            markres_map = self.read_markers_map(markers_map_file)
         if base_url is None:
             base_url = mtype + '/'
         if not base_url.endswith('/'):
@@ -1950,9 +1962,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 radius = layer_radius
 
             if text and pos:
-                markers.setdefault(base_url + text, []).append((
-                    pos + [level], radius))
-                # print('%s:' % mtype, markers[text])
+                if text.startswith('['):  # list
+                    texts = [t.strip() for t in text[1:-1].split(',')]
+                else:
+                    texts = [text]
+                for text in texts:
+                    images = markres_map.get(text, [text])
+                markers.append([pos + [level, radius],
+                                [base_url + image for image in images]])
+                # print('%s:' % mtype, markers[pos + [level, radius]])
         print('read', len(markers), mtype)
 
 
@@ -2929,25 +2947,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh = None
             mesh_proto = getattr(self, proto)
             print(mtype, 'proto:', len(mesh_proto.vertex()))
-            for mpos in getattr(self, mtype).values():
-                for pos, radius in mpos:
-                    level = pos[2]
-                    win = self.depth_wins[level]
-                    z = self.get_depth(pos[:2] + [0.], win.view(),
-                                       object_win_size)
-                    if z is None:
-                        print('failed to get depth for:', mtype, pos, level)
-                        z = 0.
-                    pos[2] = z
-                    mmesh = type(mesh_proto)(mesh_proto)  # copy
-                    trans = aims.AffineTransformation3d()
-                    trans.setTranslation(pos)
-                    aims.SurfaceManip.meshTransform(mmesh, trans)
-                    if mesh is None:
-                        mesh = mmesh
-                    else:
-                        aims.SurfaceManip.meshMerge(mesh, mmesh)
-                    print('marker:', pos, len(mesh.vertex()))
+            for mpos in getattr(self, mtype):
+                pos = mpos[0][:3]
+                radius = mpos[0][3]
+                level = pos[2]
+                win = self.depth_wins[level]
+                z = self.get_depth(pos[:2] + [0.], win.view(),
+                                    object_win_size)
+                if z is None:
+                    print('failed to get depth for:', mtype, pos, level)
+                    z = 0.
+                mpos[0][2] = z
+                pos[2] = z
+                mmesh = type(mesh_proto)(mesh_proto)  # copy
+                trans = aims.AffineTransformation3d()
+                trans.setTranslation(pos)
+                aims.SurfaceManip.meshTransform(mmesh, trans)
+                if mesh is None:
+                    mesh = mmesh
+                else:
+                    aims.SurfaceManip.meshMerge(mesh, mmesh)
+                print('marker:', pos, len(mesh.vertex()))
             if mesh is not None:
                 main_group = '%s_mesh' % mtype
                 self.mesh_dict[main_group] = mesh
@@ -3528,21 +3548,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         # sounds
         if self.sounds:
-            json_obj['sounds'] = [(s, self.sounds[s])
-                                  for s in sorted(self.sounds.keys())]
+            json_obj['sounds'] = self.sounds
         if self.sounds_private:
-            json_obj['sounds_private'] = [
-                (s, self.sounds_private[s])
-                for s in sorted(self.sounds_private.keys())]
+            json_obj['sounds_private'] = self.sounds_private
 
         # photos
         if self.photos:
-            json_obj['photos'] = [(s, self.photos[s])
-                                  for s in sorted(self.photos.keys())]
+            json_obj['photos'] = self.photos
         if self.photos_private:
-            json_obj['photos_private'] = [
-                (s, self.photos_private[s])
-                for s in sorted(self.photos_private.keys())]
+            json_obj['photos_private'] = self.photos_private
 
         if json_filename is not None:
             if six.PY3:
