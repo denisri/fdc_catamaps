@@ -224,6 +224,9 @@ Properties list
     absolute (``https://photos.google.com/xyzsomething``) or relative to the
     map server (``photos/photo_dir``). If not specified, the default base url
     is the markers type (``photos``, ``sounds``), in relative mode.
+**markers_map:** str (**3D maps**)
+    Set on a :ref:`marker layer <markers>`: correspondence map file name (CSV
+    file) for markers text. See :ref:`markers` for more details.
 **private:** bool (**2D and 3D maps**)
     private elements will only be visible if a code is provided
 **radius:** float (**3D maps)
@@ -379,7 +382,6 @@ Sounds are handled specificly using a media player inside the 3D map, whereas ph
 
 A marker layer can have ``markers_base_url`` or ``radius`` properties, which respectively specify the base URL for all markers, and the max distance to the marker for which a user click will trigger the marker.
 
-
 The layer contents are similar to depth layers: they are text objects, or groups containing a text object and a line object to make an arrow from the text to the marker exact location. The layer may not have other kind of groups, it is not recursive.
 
 Items in the marker layer are thus text at specified locations. The text is the URL of the resource (sound, photo, ...) and is appended to the base URL above. If no ``markers_base_url`` is specified, the marker value (type) is used as a relative directory as base URL (``sounds/...`` or ``photos/...``).
@@ -389,6 +391,28 @@ Each item may get a specific ``radius`` property, which may overload the layer r
 If an item text has no file extension, ``.jpg`` will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, ``123`` will be replaced with ``photos/123.jpg``.
 
 On the web server side, photos and sounds directory have to be created and contain the referenced files.
+
+Markers text syntax
++++++++++++++++++++
+
+Markers text may be a filename (which will be prefixed with the contents of the ``markers_base_url`` property, and possibly suffixed with ``.jpg``), or a list of such filenames::
+
+    image1.jpg, video2.mp4, image3.jpg
+
+or::
+
+    image1, video2.mp4, image3
+
+In addition to the "direct URL" mechanism above, it is also possible to specify, for each markers layer, a "correspondance map" file (using the ``markers_map`` property on the layer). This file will be read as a CSV file (with ``tab`` separators). Then texts in markers text in the SGV file will go through this map to get a "final" file name for the marker element. A given marker text can be found several times in the file, and then several files will be associated with the marker element. For instance if you use numbers for markers texts, ``1``, ``2``, ``3`` in the SVG map, a ``markers_map`` can specify final filenames such as::
+
+    20220304_201758.jpg	1
+    20220304_201802.jpg	2
+    20220304_201804.jpg	1
+    20220304_201815.jpg	3
+    20220304_202652.jpg	2
+    20220304_202810.jpg	1
+
+will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.
 
 
 map_to_meshes module
