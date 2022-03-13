@@ -249,6 +249,9 @@ absolute (<code class="docutils literal notranslate"><span class="pre">https://p
 map server (<code class="docutils literal notranslate"><span class="pre">photos/photo_dir</span></code>). If not specified, the default base url
 is the markers type (<code class="docutils literal notranslate"><span class="pre">photos</span></code>, <code class="docutils literal notranslate"><span class="pre">sounds</span></code>), in relative mode.</p>
 </dd>
+<dt><strong>markers_map:</strong> str (<strong>3D maps</strong>)</dt><dd><p>Set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a>: correspondence map file name (CSV
+file) for markers text. See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
 <dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
 </dd>
 <dt><strong>radius:</strong> float (<a href="#id1"><span class="problematic" id="id2">**</span></a>3D maps)</dt><dd><p>used in a “marker” layer to specify the max radius between the user click
@@ -375,6 +378,27 @@ The result in 2D is (left: original map, right: result):</p>
 <p>Each item may get a specific <code class="docutils literal notranslate"><span class="pre">radius</span></code> property, which may overload the layer radius. If no radius is specified, a default is used (10., which would correspond to 10 m radisu, depending on the map scale).</p>
 <p>If an item text has no file extension, <code class="docutils literal notranslate"><span class="pre">.jpg</span></code> will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, <code class="docutils literal notranslate"><span class="pre">123</span></code> will be replaced with <code class="docutils literal notranslate"><span class="pre">photos/123.jpg</span></code>.</p>
 <p>On the web server side, photos and sounds directory have to be created and contain the referenced files.</p>
+<section id="markers-text-syntax">
+<h4>Markers text syntax<a class="headerlink" href="#markers-text-syntax" title="Permalink to this headline">¶</a></h4>
+<p>Markers text may be a filename (which will be prefixed with the contents of the <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> property, and possibly suffixed with <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>), or a list of such filenames:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image1</span><span class="o">.</span><span class="n">jpg</span><span class="p">,</span> <span class="n">video2</span><span class="o">.</span><span class="n">mp4</span><span class="p">,</span> <span class="n">image3</span><span class="o">.</span><span class="n">jpg</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image1</span><span class="p">,</span> <span class="n">video2</span><span class="o">.</span><span class="n">mp4</span><span class="p">,</span> <span class="n">image3</span>
+</pre></div>
+</div>
+<p>In addition to the “direct URL” mechanism above, it is also possible to specify, for each markers layer, a “correspondance map” file (using the <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> property on the layer). This file will be read as a CSV file (with <code class="docutils literal notranslate"><span class="pre">tab</span></code> separators). Then texts in markers text in the SGV file will go through this map to get a “final” file name for the marker element. A given marker text can be found several times in the file, and then several files will be associated with the marker element. For instance if you use numbers for markers texts, <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code> in the SVG map, a <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> can specify final filenames such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">20220304_201758.</span><span class="n">jpg</span> <span class="mi">1</span>
+<span class="mf">20220304_201802.</span><span class="n">jpg</span> <span class="mi">2</span>
+<span class="mf">20220304_201804.</span><span class="n">jpg</span> <span class="mi">1</span>
+<span class="mf">20220304_201815.</span><span class="n">jpg</span> <span class="mi">3</span>
+<span class="mf">20220304_202652.</span><span class="n">jpg</span> <span class="mi">2</span>
+<span class="mf">20220304_202810.</span><span class="n">jpg</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>will assign to marker <code class="docutils literal notranslate"><span class="pre">1</span></code> the files: <code class="docutils literal notranslate"><span class="pre">20220304_201758.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_201804.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_202810.jpg</span></code>, and so on. Each of the file names will undergo the prefix/suffix transformations using <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> etc.</p>
+</section>
 </section>
 </section>
 <section id="map-to-meshes-module">
@@ -791,7 +815,10 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#colors-specifications">Colors specifications</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#markers">Markers</a></li>
+<li><a class="reference internal" href="#markers">Markers</a><ul>
+<li><a class="reference internal" href="#markers-text-syntax">Markers text syntax</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#map-to-meshes-module">map_to_meshes module</a><ul>
