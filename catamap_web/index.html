@@ -1096,7 +1096,7 @@
       var tab = window.open( '', '_blank' );
       tab.focus();
       var doc = tab.document;
-      var new_html = '';
+      var new_html = '<style>body { background-color: black; }</style>';
 
       for( i=0; i<photo_filenames.length; i++ )
       {
@@ -1125,7 +1125,7 @@
           new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
       }
 
-      console.log( 'new html:', new_html );
+      // console.log( 'new html:', new_html );
       doc.open();
       doc.write( new_html );
       doc.close();
