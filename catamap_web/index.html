@@ -62,6 +62,7 @@
             .top_row {
                 position: absolute;
                 top: 0%;
+                left: 0%;
                 width: 100%;
                 text-align: center;
                 color: #a0a0a0;
@@ -85,6 +86,45 @@
             }
             .control_help {
                 text-align: left;
+            }
+            .player {
+                display: none;
+                z-index: 30;
+                position: absolute;
+                top: 2%;
+                left: 2%;
+                width: 30%;
+                height: 40%;
+            }
+            .media_frame {
+                width: 100%;
+                height: 100%;
+                display: block;
+                z-index: 10;
+            }
+            .photo_frame {
+                margin: 0px auto 0px;
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+            .media_button {
+                background: #50505080;
+                border: 1px;
+                border-color: #80808080;
+                color: #d0d0d0;
+                width: 30px;
+                z-index: 10;
+                font-size: 18px;
+            }
+            .media_button2 {
+                background: #50505080;
+                border: 1px;
+                border-color: #80808080;
+                color: #d0d0d0;
+                width: 40%;
+                z-index: 10;
+                font-size: 18px;
             }
             #debug_win {
                 position: absolute;
@@ -527,7 +567,6 @@
         map_objects = json;
       }
     })
-    console.log('map_objects:', map_objects)
     // console.log( 'map_objects:', map_objects );
     var allow_private = false;
     var filenames = map_objects.meshes;
@@ -1099,11 +1138,12 @@
     function display_photos( photo_filenames )
     {
 
-      var tab = window.open( '', '_blank' );
-      tab.focus();
-      var doc = tab.document;
+//       var tab = window.open( '', '_blank' );
+//       tab.focus();
+//       var doc = tab.document;
       var new_html = '<style>body { background-color: black; }</style>';
       var has_video = 0;
+      var photo_urls = [];
 
       for( i=0; i<photo_filenames.length; i++ )
       {
@@ -1133,15 +1173,18 @@
         }
         else
           new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
+        photo_urls.push( [photo_url, tag] );
       }
 
       if( has_video )
         stop_sound();  // avoid sound + video at the same time
 
       // console.log( 'new html:', new_html );
-      doc.open();
-      doc.write( new_html );
-      doc.close();
+//       doc.open();
+//       doc.write( new_html );
+//       doc.close();
+
+      open_media( photo_urls );
     }
 
 
@@ -1195,10 +1238,6 @@
     }
 
         </script>
-
-        <div class="bottom_row">
-            Thanks: Big, Nexus, ...
-        </div>
 
         <div class="help" id="help_block">
 
@@ -1261,6 +1300,155 @@
 
             document.getElementById( 'help' ).addEventListener( 'click', open_help_clicked );
             document.getElementById( 'close_help' ).addEventListener( 'click', close_help_clicked );
+
+        </script>
+
+        <fieldset class="player" id="media_player">
+            <legend>Vues:</legend>
+
+            <div class="media" id="media_frame" style="display: block; position: absolute; top: 0%; left: 0%; width: 100%, height: 100%; max-width: 100%; max-height: 100%">
+            </div>
+
+            <button id="close_media" class="media_button" style="display: inline; position: absolute; top: 1%; left: 2%; z-index: 20; border-radius: 12%">&#10006;</button>
+            <button class="media_button"></button>
+            <button id="enlarge_media" class="media_button" style="display: inline; position: absolute; top: 1%; right: 2%; z-index: 20; border-radius: 12%">&#x26F6;</button>
+            <button id="media_prev" class="media_button" style="display: inline; position: absolute; top: 45%; left: 2%; z-index: 20; border-radius: 50%">&lt;</button>
+            <button id="media_text" class="media_button2" style="display: inline; position: absolute; bottom: 2%; left: 30%; width: 40%; text-align: center; border-radius: 20%">BB</button>
+            <button id="media_next" class="media_button" style="display: inline; position: absolute; top: 45%; right: 2%; z-index: 20; border-radius: 50%">&gt;</button>
+        </fieldset>
+
+        <script>
+
+            function close_media_clicked( event )
+            {
+              document.getElementById( 'media_player' ).style.display = 'none';
+              var media = document.getElementById( 'photo_frame' );
+              if( media )
+                media.parentNode.removeChild( media );
+            }
+
+            function open_media( photo_files )
+            {
+              close_media_clicked();
+
+              document.getElementById( 'media_player' ).style.display = 'block';
+              var media = document.getElementById( 'media_frame' );
+              media.large = false;
+              media.photos = photo_files;
+              display_photo( 0 );
+            }
+
+            function display_photo( num )
+            {
+              var photo = document.getElementById( 'photo_frame' );
+              var parent = document.getElementById( 'media_frame' );
+              var photo_files = parent.photos;
+              var player = document.getElementById( 'media_player' )
+              if( photo )
+                parent.removeChild( photo );
+              var tag = photo_files[num][1];
+              photo = document.createElement( tag );
+              parent.num = num;
+              parent.style.width = "100%";
+              parent.style.height = "100%";
+              photo.id = 'photo_frame';
+              photo.style.textAlign = 'center';
+              photo.style.align = 'center';
+              photo.style.display = 'block';
+              photo.style.margin = '0px auto 0px';
+              photo.style.maxWidth = '100%';
+              photo.style.maxHeight = '100%';
+
+              if( parent.large )
+              {
+                player.style.maxWidth = '94%';
+                player.style.maxHeight = '94%';
+                player.style.width = '94%';
+                player.style.height = '94%';
+              }
+              else
+              {
+                player.style.maxWidth = '20%';
+                player.style.maxHeight = '30%';
+                player.style.width = '20%';
+                player.style.height = '30%';
+              }
+
+              photo.src = photo_files[num][0];
+              if( tag == 'video' )
+              {
+                photo.controls = 'true';
+                photo.style.maxHeight = '90%';
+                var src = document.createElement( 'source' );
+                src.src = photo_files[num][0];
+              }
+              else
+              {
+                photo.src = photo_files[num][0];
+                photo.onclick = display_large_photo;
+              }
+              parent.appendChild( photo );
+
+              document.getElementById( 'media_text' ).innerHTML = (num + 1) + ' / ' + photo_files.length;
+            }
+
+            function prev_media_clicked()
+            {
+              var media = document.getElementById( 'media_frame' );
+              var photo_files = media.photos;
+              var num = media.num;
+              if( num > 0 )
+                display_photo( num - 1 );
+            }
+
+
+            function next_media_clicked()
+            {
+              var media = document.getElementById( 'media_frame' );
+              var photo_files = media.photos;
+              var num = media.num;
+              if( num < photo_files.length - 1 )
+                display_photo( num + 1 );
+            }
+
+            function enlarge_media_clicked()
+            {
+              var media = document.getElementById( 'media_frame' );
+              var large = media.large;
+              large = !large;
+              media.large = large;
+              var photo = document.getElementById( 'photo_frame' );
+              var player = document.getElementById( 'media_player' )
+              if( large )
+              {
+                player.style.maxWidth = '94%';
+                player.style.maxHeight = '94%';
+                player.style.width = '94%';
+                player.style.height = '94%';
+              }
+              else
+              {
+                player.style.maxWidth = '20%';
+                player.style.maxHeight = '30%';
+                player.style.width = '20%';
+                player.style.height = '30%';
+              }
+            }
+
+
+            function display_large_photo()
+            {
+              var media = document.getElementById( 'media_frame' );
+              var photo_files = media.photos;
+              var num = media.num;
+              window.open( photo_files[num][0] ).focus();
+            }
+
+
+            document.getElementById( 'close_media' ).addEventListener( 'click', close_media_clicked, {capture: true} );
+            document.getElementById( 'enlarge_media' ).addEventListener( 'click', enlarge_media_clicked,  {capture: true});
+            document.getElementById( 'media_prev' ).addEventListener( 'click', prev_media_clicked, {capture: true} );
+            document.getElementById( 'media_next' ).addEventListener( 'click', next_media_clicked, {capture: true} );
 
         </script>
 
