@@ -95,6 +95,7 @@
                 left: 2%;
                 width: 30%;
                 height: 40%;
+                background: #60606080;
             }
             .media_frame {
                 width: 100%;
@@ -109,7 +110,7 @@
                 display: block;
             }
             .media_button {
-                background: #50505080;
+                background: #80808080;
                 border: 1px;
                 border-color: #80808080;
                 color: #d0d0d0;
@@ -1359,6 +1360,15 @@
               photo.style.maxWidth = '100%';
               photo.style.maxHeight = '100%';
 
+              if( num == 0 )
+                document.getElementById( 'media_prev' ).style.display = 'none';
+              else
+                document.getElementById( 'media_prev' ).style.display = 'inline';
+              if( num == photo_files.length - 1 )
+                document.getElementById( 'media_next' ).style.display = 'none';
+              else
+                document.getElementById( 'media_next' ).style.display = 'inline';
+
               if( parent.large )
               {
                 player.style.maxWidth = '94%';
@@ -1368,10 +1378,10 @@
               }
               else
               {
-                player.style.maxWidth = '20%';
-                player.style.maxHeight = '30%';
-                player.style.width = '20%';
-                player.style.height = '30%';
+                player.style.maxWidth = '30%';
+                player.style.maxHeight = '40%';
+                player.style.width = '30%';
+                player.style.height = '40%';
               }
 
               photo.src = photo_files[num][0];
@@ -1428,10 +1438,10 @@
               }
               else
               {
-                player.style.maxWidth = '20%';
-                player.style.maxHeight = '30%';
-                player.style.width = '20%';
-                player.style.height = '30%';
+                player.style.maxWidth = '30%';
+                player.style.maxHeight = '40%';
+                player.style.width = '30%';
+                player.style.height = '40%';
               }
             }
 
