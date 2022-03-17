@@ -30,8 +30,10 @@
                 align-content: right;
                 position: absolute;
                 top: 0%;
-                right: 0%;
+                right: 1%;
                 background: #60606080;
+                font-size: 18px;
+                display: block;
             }
             fieldset {
                 border: 1px solid #888;
@@ -50,7 +52,6 @@
                 color: #d0d0d0;
                 width: 100%;
                 z-index: 10;
-                font-size: 18px;
             }
             .mesh_checkbox {
                 background: #50505080;
@@ -144,7 +145,7 @@
         <h3 id="title_2"></h3>
       </div>
 
-      <div class="button_bar">
+      <div class="button_bar" id="button_bar">
         <fieldset id="mesh_fields" class="right_col">
           <legend>Charger/voir:</legend>
           <div id="mesh_buttons">
@@ -155,6 +156,7 @@
             <button id="help" class="mesh_button">Aide</button>
           </div>
         </fieldset>
+        <button id="show_buttons" class="media_button" style="position: absolute; top: 10px; right: 1%; z-index: 20">&#x25BC;</button>
       </div>
 
         <script>
@@ -333,9 +335,18 @@
 
     function set_font_sizes()
     {
-        if( window.innerWidth > 700 )
+        if(window.innerWidth < window.innerHeight )
         {
-            var font_size = Math.round( window.innerWidth * 0.01 );
+            document.getElementById( 'mesh_fields' ).style['font-size']
+                = '4.0vw';
+            document.getElementById( 'all' ).style['font-size']
+                = '4.0vw';
+            document.getElementById( 'help' ).style['font-size']
+                = '4.0vw';
+        }
+        else if( window.innerWidth > 700 )
+        {
+//             var font_size = Math.round( window.innerWidth * 0.01 );
             document.getElementById( 'mesh_fields' ).style['font-size']
                 = '2.0vw';
 //                 = font_size + 'px';
@@ -1299,8 +1310,27 @@
                     document.getElementById( 'help_block' ).style.display = 'block';
             }
 
+
+            function toggle_show_buttons()
+            {
+              console.log('toggle_show_buttons');
+              if( document.getElementById( 'mesh_buttons' ).style.display == 'none' )
+              {
+                console.log('show');
+                document.getElementById( 'mesh_buttons' ).style.display = 'block';
+                document.getElementById( 'show_buttons' ).innerHTML = '&#x25BC;';
+              }
+              else
+              {
+                console.log('hide');
+                document.getElementById( 'mesh_buttons' ).style.display = 'none';
+                document.getElementById( 'show_buttons' ).innerHTML = '&#x25B6';
+              }
+            }
+
             document.getElementById( 'help' ).addEventListener( 'click', open_help_clicked );
             document.getElementById( 'close_help' ).addEventListener( 'click', close_help_clicked );
+            document.getElementById( 'show_buttons' ).addEventListener( 'click', toggle_show_buttons );
 
         </script>
 
