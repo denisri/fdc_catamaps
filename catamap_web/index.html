@@ -159,6 +159,10 @@
         <button id="show_buttons" class="media_button" style="position: absolute; top: 10px; right: 1%; z-index: 20">&#x25BC;</button>
       </div>
 
+      <div style="border: 0px; bottom: 0%; left: 0%; width: 100%; height: auto; display: block; position: absolute; margin: auto;">
+        <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
+      </div>
+
         <script>
 
     function sha1 (str) {
@@ -382,7 +386,6 @@
 
     var mouse;
     var rayCaster;
-    var listener;
     var current_sound;
 
     document.getElementById( 'all' ).addEventListener( 'click', all_clicked );
@@ -440,12 +443,8 @@
     document.body.appendChild( renderer.domElement );
 
     // SOUND
-    listener = new THREE.AudioListener();
-    current_sound = new THREE.Audio( listener );
-    camera.add( listener );
-    mediaElement = new Audio();
+    var mediaElement = document.getElementById( 'audio_player' );
 
-//     var light = new THREE.AmbientLight(0xffffff);
     var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
     light.position.z = 1;
     light.target.z = 0;
@@ -1041,10 +1040,10 @@
     function stop_sound()
     {
       // stop any playing sound
-      if( current_sound.isPlaying )
-      {
-        current_sound.stop();
-      }
+//       if( current_sound.isPlaying )
+//       {
+//         current_sound.stop();
+//       }
       mediaElement.pause();
       // mediaElement.src = '';
     }
@@ -1089,19 +1088,7 @@
         mediaElement.pause();
         mediaElement.src = snd_filename;
         mediaElement.play();
-        // current_sound.setMediaElementSource( mediaElement );
-        current_sound.setVolume( 1. );
-        /// current_sound.play();
-
-//         var audioloader = new THREE.AudioLoader();
-//         audioloader.load( snd_filename, function( buffer )
-//           {
-//             current_sound.setBuffer( buffer );
-//             current_sound.setLoop( false );
-//             current_sound.setVolume( 1. );
-//             current_sound.play();
-//           }
-//         );
+        mediaElement.style.display = 'block';
       }
     }
 
@@ -1187,14 +1174,6 @@
           new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
         photo_urls.push( [photo_url, tag] );
       }
-
-      if( has_video )
-        stop_sound();  // avoid sound + video at the same time
-
-      // console.log( 'new html:', new_html );
-//       doc.open();
-//       doc.write( new_html );
-//       doc.close();
 
       open_media( photo_urls );
     }
@@ -1417,6 +1396,8 @@
               photo.src = photo_files[num][0];
               if( tag == 'video' )
               {
+                stop_sound();  // avoid sound + video at the same time
+
                 photo.controls = 'true';
                 photo.style.maxHeight = '90%';
                 var src = document.createElement( 'source' );
