@@ -1914,7 +1914,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         with open(filename) as f:
             reader = csv.reader(f, delimiter='\t')
             for row in reader:
-                mmap.setdefault(row[1], []).append(row[0])
+                if row:
+                    mmap.setdefault(row[1], []).append(row[0])
         return mmap
 
     def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
@@ -1925,10 +1926,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if trans is None:
             trans = np.matrix(np.eye(3))
         base_url = xml.get('markers_base_url')
-        markres_map = {}
+        markers_map = {}
         markers_map_file = xml.get('markers_map')
         if markers_map_file:
-            markres_map = self.read_markers_map(markers_map_file)
+            markers_map = self.read_markers_map(markers_map_file)
         if base_url is None:
             base_url = mtype + '/'
         if not base_url.endswith('/'):
@@ -1939,6 +1940,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             layer_radius = float(layer_radius)
         else:
             layer_radius = 10.
+
+        used_texts = {}
+        missing = []
 
         for xml_element in xml:
             level = self.item_props.level
@@ -1962,7 +1966,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                float(sub_el.get('y'))]
                         x, y = trans_el.dot([[pos[0]], [pos[1]], [1]])[:2]
                         pos = [x[0, 0], y[0, 0]]
-                    text = sub_el[0].text
+                    text = sub_el[0].text.strip()
                 elif tag == 'path':
                     trans3 = sub_el.get('transform')
                     trans_el2 = trans_el
@@ -1990,12 +1994,31 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     texts = [t.strip() for t in text[1:-1].split(',')]
                 else:
                     texts = [text]
+                images = []
                 for text in texts:
-                    images = markres_map.get(text, [text])
+                    imlist = markers_map.get(text)
+                    if imlist is None:
+                        if markers_map:
+                            missing.append((text, pos))
+                        imlist = [text]
+                    images += imlist
+                    used_texts.setdefault(text, []).append(pos)
                 markers.append([pos + [level, radius],
                                 [base_url + image for image in images]])
                 # print('%s:' % mtype, markers[pos + [level, radius]])
         print('read', len(markers), mtype)
+        # check and print duplicates
+        dup = False
+        for text, pos in used_texts.items():
+            if len(pos) != 1:
+                if not dup:
+                    print('** Duplicate markers texts in layer', mtype, ': **')
+                    dup = True
+                print('marker:', text, 'at positions:', pos)
+        if missing:
+            print('** Missing correspondance for marker texts: **')
+            for m in missing:
+                print(m[0], 'at position:', m[1])
 
 
     def read_lambert93(self, xml, trans=None):
