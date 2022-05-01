@@ -1924,7 +1924,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             setattr(self, mtype, {})
         markers = getattr(self, mtype)
         if trans is None:
+            trans = self.get_transform(xml)
+        if trans is None:
             trans = np.matrix(np.eye(3))
+        # print('trans:', trans)
         base_url = xml.get('markers_base_url')
         markers_map = {}
         markers_map_file = xml.get('markers_map')
@@ -1949,13 +1952,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             text = None
             pos = None
             trans2 = xml_element.get('transform')
-            trans_el = np.matrix(np.eye(3))
+            trans_el = trans
             if trans2 is not None:
                 transm = self.get_transform(trans2)
-                if trans is None:
-                    trans_el = transm
-                else:
-                    trans_el = trans * transm
+                trans_el = trans * transm
             if xml_element.tag.split('}')[-1] != 'g':
                 xml_element = [xml_element]
             for sub_el in xml_element:
@@ -2706,6 +2706,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
             direc = (v - v0).normalize()
             mlen = (v - v0).norm()
+            if mlen == 0:
+                # zero length segment: nothing to do.
+                return alt, offset
+
             # section plane
             xdir = direc.crossed((0., 0., 1.))
             if xdir.norm2() == 0:
@@ -3014,7 +3018,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     mesh = mmesh
                 else:
                     aims.SurfaceManip.meshMerge(mesh, mmesh)
-                print('marker:', pos, len(mesh.vertex()))
+                # print('marker:', pos, len(mesh.vertex()))
             if mesh is not None:
                 main_group = '%s_mesh' % mtype
                 self.mesh_dict[main_group] = mesh
