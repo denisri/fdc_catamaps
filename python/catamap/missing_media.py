@@ -23,7 +23,7 @@ def get_missing_media(obj_map):
         for items in s_obj:
             for item in items[1]:
                 if not os.path.exists(item):
-                    missing.append((item, items[0]))
+                    missing.append((item, items[0][:2]))
         if missing:
             all_missing[section] = missing
 
