@@ -3734,6 +3734,40 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
               'Drop Shadow')
         f.set('style', 'color-interpolation-filters:sRGB;')
         f.set('id', 'filter14930')
+
+        #c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
+        #c.set('result', 'flood')
+        #c.set('id', 'feFlood14920')
+        #c.set('flood-opacity', '0.7')
+        #c.set('flood-color', 'rgb(128,128,128)')
+        #f.append(c)
+        #c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        #c.set('operator', 'in')
+        #c.set('id', 'feComposite14922')
+        #c.set('result', 'composite1')
+        #c.set('in2', 'SourceGraphic')
+        #c.set('in', 'flood')
+        #f.append(c)
+        #c = ET.Element('{http://www.w3.org/2000/svg}feGaussianBlur')
+        #c.set('id', 'feGaussianBlur14924')
+        #c.set('stdDeviation', '0.3')
+        #c.set('result', 'blur')
+        #c.set('in', 'composite1')
+        #f.append(c)
+        #c = ET.Element('{http://www.w3.org/2000/svg}feOffset')
+        #c.set('id', 'feOffset14926')
+        #c.set('result', 'offset')
+        #c.set('dx', '0.3')
+        #c.set('dy', '-0.3')
+        #f.append(c)
+        #c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        #c.set('operator', 'over')
+        #c.set('id', 'feComposite14928')
+        #c.set('result', 'fbSourceGraphic')
+        #c.set('in2', 'SourceGraphic')
+        #c.set('in', 'offset')
+        #f.append(c)
+
         c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
         c.set('result', 'flood')
         c.set('id', 'feFlood14920')
@@ -3805,6 +3839,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         c.set('in2', 'offset')
         c.set('in', 'fbSourceGraphic')
         f.append(c)
+
         defs = [l for l in xml.getroot()
                 if l.tag == '{http://www.w3.org/2000/svg}defs'][0]
         defs.append(f)
@@ -3823,6 +3858,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
 
     def add_shadows(self, xml):
+        if inkscape_version()[:2] == [1, 1]:
+            # inkscape 1.1 has a problem with filters, it is extemely slow
+            # and consumes memory. Rendering with inkscape 1.0 is 3 minutes for
+            # a 360dpi map, and 185 minutes with inkscape 1.1
+            return
+
         shadow = self.make_shadow_filter(xml).get('id')
         for layer in xml.getroot():
             label = layer.get(
