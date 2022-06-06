@@ -1569,13 +1569,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh.header()['material'] = mat
 
 
-    def make_psh_well(self, center, radius, z, height, props):
+    def make_psh_sq_well(self, center, radius, z, height, props, faces=8):
+        # square well
+        return self.make_psh_well(center, radius, z, height, props, faces=4,
+                                  smooth=False, rotate=math.pi / 4)
+
+
+    def make_psh_well(self, center, radius, z, height, props, faces=8,
+                      smooth=True, rotate=0.):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
         r0 = radius * 0.7
         well = aims.SurfaceGenerator.cylinder({
-            'point1': p1, 'point2': p2, 'radius': r0, 'facets': 8,
-            'smooth': True, 'closed': False})
+            'point1': p1, 'point2': p2, 'radius': r0, 'facets': faces,
+            'smooth': smooth, 'closed': False})
+        if rotate != 0.:
+            tr = aims.AffineTransformation3d()
+            tr.setTranslation(p1)
+            rot = aims.Quaternion()
+            rot.fromAxis((0, 0, 1), rotate)
+            mat = tr * aims.AffineTransformation3d(rot) * tr.inverse()
+            aims.SurfaceManip.meshTransform(well, mat)
         vert = well.vertex()
         poly = well.polygon()
         norm = well.normal()
@@ -1616,7 +1630,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         norm += [(0., 0., 1.)] * (len(vert) - nv0)
         color = self.get_alt_color(props)
         if not color:
-            color = [0., 1., .6, 1.]
+            color = [0.5, 0.7, .6, 1.]
         well.header()['material'] = {'diffuse': color,
                                      'face_culling': 0}
         return well
@@ -1693,14 +1707,26 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return well
 
 
-    def make_ps_well(self, center, radius, z, height, well_type, props):
+    def make_ps_sq_well(self, center, radius, z, height, well_type, props):
+        return self.make_ps_well(center, radius, z, height, well_type, props,
+                                 faces=4, smooth=False, rotate=math.pi / 4)
+
+    def make_ps_well(self, center, radius, z, height, well_type, props,
+                     faces=8, smooth=True, rotate=0.):
         '''PS or PE (blue), P ossements (yellow)
         '''
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
         well = aims.SurfaceGenerator.cylinder({
-            'point1': p1, 'point2': p2, 'radius': radius, 'facets': 8,
-            'smooth': True, 'closed': False})
+            'point1': p1, 'point2': p2, 'radius': radius, 'facets': faces,
+            'smooth': smooth, 'closed': False})
+        if rotate != 0.:
+            tr = aims.AffineTransformation3d()
+            tr.setTranslation(p1)
+            rot = aims.Quaternion()
+            rot.fromAxis((0, 0, 1), rotate)
+            mat = tr * aims.AffineTransformation3d(rot) * tr.inverse()
+            aims.SurfaceManip.meshTransform(well, mat)
         color = self.get_alt_color(props)
         if not color:
             color = [0., 1., .6, 1.]
@@ -1721,12 +1747,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if well_type == 'PS':
             return self.make_ps_well(center, radius, z, height, well_type,
                                      props)
-        if well_type in ('PSh', 'sans'):
+        elif well_type == 'PS_sq':
+            return self.make_ps_sq_well(center, radius, z, height, well_type,
+                                        props)
+        if well_type in ('PSh', 'sans', 'PSh sans', 'PSh sans_sq'):
             return self.make_psh_well(center, radius, z, height, props)
+        elif well_type in ('PSh_sq', 'sans_sq'):
+            return self.make_psh_sq_well(center, radius, z, height, props)
         elif well_type in ('echelle', u'échelle'):
             return self.make_ladder(center, radius, z, height, props)
         elif well_type.startswith('colim'):
             return self.make_spiral_stair(center, radius, z, height, props)
+
+        if well_type.endswith('_sq'):
+            return self.make_ps_sq_well(center, radius, z, height, well_type,
+                                        props)
 
         return self.make_ps_well(center, radius, z, height, well_type, props)
 
@@ -3385,8 +3420,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def make_sounds_marker_model(self):
-        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
-        cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1., 0., 2.6), 0.3, 12,
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.5, 80)
+        cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1.3, 0., 2.7), 0.5, 12,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [.8, 0.6, 0., 1.]}
@@ -3394,7 +3429,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def make_photos_marker_model(self):
-        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.3, 80)
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.5, 80)
+        cone = aims.SurfaceGenerator.cone((0, 0, 1.), (0, 0, 2.5), 0.15, 6,
+                                          False, True)
+        aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [1., 0., 0., 1.]}
         return mesh
 
@@ -3727,46 +3765,18 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             added = element[:]
             todo = added + todo
 
+    def shadow1(self, filter_id):
+        f = ET.Element('{http://www.w3.org/2000/svg}filter')
+        f.set('{http://www.inkscape.org/namespaces/inkscape}label',
+              'Shadow')
+        f.set('style', 'color-interpolation-filters:sRGB;')
+        f.set('id', filter_id)
 
-    def make_shadow_filter(self, xml):
         f = ET.Element('{http://www.w3.org/2000/svg}filter')
         f.set('{http://www.inkscape.org/namespaces/inkscape}label',
               'Drop Shadow')
         f.set('style', 'color-interpolation-filters:sRGB;')
         f.set('id', 'filter14930')
-
-        #c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
-        #c.set('result', 'flood')
-        #c.set('id', 'feFlood14920')
-        #c.set('flood-opacity', '0.7')
-        #c.set('flood-color', 'rgb(128,128,128)')
-        #f.append(c)
-        #c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
-        #c.set('operator', 'in')
-        #c.set('id', 'feComposite14922')
-        #c.set('result', 'composite1')
-        #c.set('in2', 'SourceGraphic')
-        #c.set('in', 'flood')
-        #f.append(c)
-        #c = ET.Element('{http://www.w3.org/2000/svg}feGaussianBlur')
-        #c.set('id', 'feGaussianBlur14924')
-        #c.set('stdDeviation', '0.3')
-        #c.set('result', 'blur')
-        #c.set('in', 'composite1')
-        #f.append(c)
-        #c = ET.Element('{http://www.w3.org/2000/svg}feOffset')
-        #c.set('id', 'feOffset14926')
-        #c.set('result', 'offset')
-        #c.set('dx', '0.3')
-        #c.set('dy', '-0.3')
-        #f.append(c)
-        #c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
-        #c.set('operator', 'over')
-        #c.set('id', 'feComposite14928')
-        #c.set('result', 'fbSourceGraphic')
-        #c.set('in2', 'SourceGraphic')
-        #c.set('in', 'offset')
-        #f.append(c)
 
         c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
         c.set('result', 'flood')
@@ -3840,6 +3850,126 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         c.set('in', 'fbSourceGraphic')
         f.append(c)
 
+        return f
+
+    def shadow2(self, filter_id):
+        f = ET.Element('{http://www.w3.org/2000/svg}filter')
+        f.set('{http://www.inkscape.org/namespaces/inkscape}label',
+              'Shadow')
+        f.set('style', 'color-interpolation-filters:sRGB;')
+        f.set('id', filter_id)
+
+        c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
+        c.set('result', 'flood')
+        c.set('id', 'feFlood14920')
+        c.set('flood-opacity', '0.7')
+        c.set('flood-color', 'rgb(128,128,128)')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'in')
+        c.set('id', 'feComposite14922')
+        c.set('result', 'composite1')
+        c.set('in2', 'SourceGraphic')
+        c.set('in', 'flood')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feGaussianBlur')
+        c.set('id', 'feGaussianBlur14924')
+        c.set('stdDeviation', '0.3')
+        c.set('result', 'blur')
+        c.set('in', 'composite1')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feOffset')
+        c.set('id', 'feOffset14926')
+        c.set('result', 'offset')
+        c.set('dx', '0.3')
+        c.set('dy', '-0.3')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'over')
+        c.set('id', 'feComposite14928')
+        c.set('result', 'fbSourceGraphic')
+        c.set('in2', 'SourceGraphic')
+        c.set('in', 'offset')
+        f.append(c)
+
+        return f
+
+    def halo1(self, filter_id, scale):
+        f = ET.Element('{http://www.w3.org/2000/svg}filter')
+        f.set('{http://www.inkscape.org/namespaces/inkscape}label',
+              'Shadow')
+        f.set('style', 'color-interpolation-filters:sRGB;')
+        f.set('id', filter_id)
+
+        c = ET.Element('{http://www.w3.org/2000/svg}feMorphology')
+        c.set('result', 'dilate1')
+        c.set('id', 'feMorphology44406')
+        c.set('radius', '%f' % (0.25 / scale))
+        c.set('operator', 'dilate')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
+        c.set('result', 'flood')
+        c.set('id', 'feFlood14920')
+        c.set('flood-opacity', '0.6')
+        c.set('flood-color', 'rgb(135,128,128)')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'in')
+        c.set('id', 'feComposite14922')
+        c.set('result', 'composite1')
+        c.set('in2', 'dilate1')
+        c.set('in', 'flood')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feGaussianBlur')
+        c.set('id', 'feGaussianBlur14924')
+        c.set('stdDeviation', '%f' % (0.2 / scale))
+        c.set('result', 'blur')
+        c.set('in', 'composite1')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feFlood')
+        c.set('result', 'flood2')
+        c.set('id', 'feFlood14921')
+        c.set('flood-opacity', '1.')
+        c.set('flood-color', 'rgb(0,0,0)')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'in')
+        c.set('id', 'feComposite14929')
+        c.set('result', 'composite2')
+        c.set('in', 'flood2')
+        c.set('in2', 'SourceGraphic')
+        f.append(c)
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'over')
+        c.set('id', 'feComposite14930')
+        c.set('result', 'composite3')
+        c.set('in2', 'blur')
+        c.set('in', 'composite2')
+        f.append(c)
+
+        c = ET.Element('{http://www.w3.org/2000/svg}feComposite')
+        c.set('operator', 'over')
+        c.set('id', 'feComposite14928')
+        c.set('result', 'fbSourceGraphic')
+        c.set('in', 'SourceGraphic')
+        c.set('in2', 'compisite3')
+        f.append(c)
+
+        return f
+
+
+    def make_shadow_filter(self, xml, scale=1.):
+        if not hasattr(self, 'shadow_filters'):
+            self.shadow_filters = {}
+
+        scale = round(scale * 10)
+
+        f = self.shadow_filters.get(scale)
+        if f:
+            return f
+
+        f = self.halo1('filter14930_%d' % scale, scale / 10)
+
         defs = [l for l in xml.getroot()
                 if l.tag == '{http://www.w3.org/2000/svg}defs'][0]
         defs.append(f)
@@ -3847,7 +3977,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
 
     def add_shadow(self, layer, filter):
-        for child in layer:
+        child = layer
+        if True:
+        #for child in layer:
             style = child.get('style')
             if style is None:
                 style = ' '
@@ -3864,7 +3996,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             # a 360dpi map, and 185 minutes with inkscape 1.1
             return
 
-        shadow = self.make_shadow_filter(xml).get('id')
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -3888,6 +4019,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                              'galeries big sud',
                              'galeries techniques',
                              'galeries inf private', 'metro'):
+                    trans = self.get_transform(layer.get('transform'))
+                    scale = (trans[0,0] + trans[1,1]) / 2.
+                    shadow = self.make_shadow_filter(xml, scale).get('id')
                     self.add_shadow(layer, shadow)
 
 
