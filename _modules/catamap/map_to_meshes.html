@@ -1624,7 +1624,7 @@
         <span class="n">r0</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="mf">0.7</span>
         <span class="n">well</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cylinder</span><span class="p">({</span>
             <span class="s1">&#39;point1&#39;</span><span class="p">:</span> <span class="n">p1</span><span class="p">,</span> <span class="s1">&#39;point2&#39;</span><span class="p">:</span> <span class="n">p2</span><span class="p">,</span> <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="n">r0</span><span class="p">,</span> <span class="s1">&#39;facets&#39;</span><span class="p">:</span> <span class="n">faces</span><span class="p">,</span>
-            <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;closed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+            <span class="s1">&#39;smooth_tube&#39;</span><span class="p">:</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;closed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">rotate</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
             <span class="n">tr</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
             <span class="n">tr</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
@@ -1761,7 +1761,7 @@
         <span class="n">p2</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span> <span class="o">+</span> <span class="n">height</span><span class="p">)</span>
         <span class="n">well</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cylinder</span><span class="p">({</span>
             <span class="s1">&#39;point1&#39;</span><span class="p">:</span> <span class="n">p1</span><span class="p">,</span> <span class="s1">&#39;point2&#39;</span><span class="p">:</span> <span class="n">p2</span><span class="p">,</span> <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span> <span class="s1">&#39;facets&#39;</span><span class="p">:</span> <span class="n">faces</span><span class="p">,</span>
-            <span class="s1">&#39;smooth&#39;</span><span class="p">:</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;closed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+            <span class="s1">&#39;smooth_tube&#39;</span><span class="p">:</span> <span class="n">smooth</span><span class="p">,</span> <span class="s1">&#39;closed&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">rotate</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
             <span class="n">tr</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
             <span class="n">tr</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
@@ -4440,22 +4440,16 @@
                     <span class="n">parent</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">element</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
-
-
+        
+        
     <span class="k">def</span> <span class="nf">remove_gtech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;ebauches&#39;</span><span class="p">,</span> <span class="s1">&#39;galeries techniques&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;PSh gtech&#39;</span><span class="p">,</span> <span class="s1">&#39;PSh vers gtech&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;PS gtech&#39;</span><span class="p">,</span> <span class="s1">&#39;PSh gtech&#39;</span><span class="p">,</span> <span class="s1">&#39;PSh vers gtech&#39;</span><span class="p">,</span>
                                     <span class="s1">&#39;symboles gtech&#39;</span><span class="p">,</span> <span class="s1">&#39;eau gtech&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;galeries private&#39;</span><span class="p">,</span> <span class="s1">&#39;chatieres private&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;private&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;curiosités private&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;symboles private&#39;</span><span class="p">,</span> <span class="s1">&#39;salles vdg private&#39;</span><span class="p">,</span>
-                                    <span class="sa">u</span><span class="s1">&#39;salles flèches private&#39;</span><span class="p">,</span>
-                                    <span class="sa">u</span><span class="s1">&#39;curiosités flèches private&#39;</span><span class="p">,</span>
-                                    <span class="sa">u</span><span class="s1">&#39;rues v1 private&#39;</span><span class="p">,</span>
-                                    <span class="sa">u</span><span class="s1">&#39;rues v1 flèches private&#39;</span><span class="p">,</span>
                                     <span class="s1">&#39;raccords gtech 2D&#39;</span><span class="p">,</span>
                                     <span class="s1">&#39;metro&#39;</span><span class="p">,</span>
                                     <span class="sa">u</span><span class="s1">&#39;curiosités flèches GTech&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;curiosités GTech&#39;</span><span class="p">,</span>
                                     <span class="sa">u</span><span class="s1">&#39;échelle gtech&#39;</span><span class="p">,</span>
                                     <span class="sa">u</span><span class="s1">&#39;plaques de puits GTech&#39;</span><span class="p">,</span>
                                     <span class="sa">u</span><span class="s1">&#39;échelle vers gtech&#39;</span><span class="p">,</span>
@@ -4465,11 +4459,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
 
+    <span class="k">def</span> <span class="nf">remove_calcaire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;calcaire 2010&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire ciel ouvert&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;calcaire masse2&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire masse&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire med&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;calcaire sup&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire inf&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire vdg&#39;</span><span class="p">,</span>
+        <span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">remove_igc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;planches&#39;</span><span class="p">,</span> <span class="s1">&#39;planches fond&#39;</span><span class="p">,</span> <span class="s1">&#39;planches IGC&#39;</span><span class="p">,</span>
         <span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">remove_non_aqueduc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;légende&#39;</span><span class="p">,</span> <span class="s1">&#39;grandes plaques&#39;</span><span class="p">,</span>
+        <span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_non_printable1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
@@ -5078,8 +5083,9 @@
             <span class="s1">&#39;remove_south&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_south</span><span class="p">,</span>
             <span class="s1">&#39;remove_background&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_background</span><span class="p">,</span>
             <span class="s1">&#39;remove_limestone&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_limestone</span><span class="p">,</span>
-            <span class="s1">&#39;remove_zooms&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_zooms</span><span class="p">,</span>
             <span class="s1">&#39;remove_gtech&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_gtech</span><span class="p">,</span>
+            <span class="s1">&#39;remove_non_aqueduc&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_aqueduc</span><span class="p">,</span>
+            <span class="s1">&#39;remove_calcaire&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_calcaire</span><span class="p">,</span>
             <span class="s1">&#39;remove_igc&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_igc</span><span class="p">,</span>
             <span class="s1">&#39;remove_other&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_other</span><span class="p">,</span>
             <span class="s1">&#39;add_shadow&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_shadows</span><span class="p">,</span>
@@ -5092,6 +5098,7 @@
             <span class="s1">&#39;split_layers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_layers</span><span class="p">,</span>
             <span class="s1">&#39;join_layers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">join_layers</span><span class="p">,</span>
             <span class="s1">&#39;layer_opacity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_opacity</span><span class="p">,</span>
+            <span class="s1">&#39;remove_zooms&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_zooms</span><span class="p">,</span>
             <span class="s1">&#39;printable_map&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
                               <span class="c1">#&#39;add_shadow&#39;,</span>
                               <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
@@ -5128,6 +5135,16 @@
                     <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;add_shadow&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;recolor=&quot;igc&quot;&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;layer_opacity=[&quot;planches fond&quot;, &quot;0.44&quot;]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
+                              <span class="c1">#&#39;add_shadow&#39;,</span>
+                               <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>                         
+                              <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> 
+                              <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
+                                  <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span> 
+                              <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span> 
+                              <span class="s1">&#39;remove_calcaire&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_aqueduc&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">],</span>                    
         <span class="p">}</span>
 
         <span class="n">map_2d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -5357,7 +5374,7 @@
         <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="s1">&#39;180&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="s1">&#39;300&#39;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_private&#39;</span>
+    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_private&#39;</span><span class="p">,</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span><span class="s1">&#39;No_Gtech&#39;</span>
 
     <span class="k">class</span> <span class="nc">MultilineFormatter</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">HelpFormatter</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_fill_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
@@ -5391,7 +5408,7 @@
         <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--maps&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_2d_maps&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify which 2d maps should be built, ex: &#39;</span>
         <span class="s1">&#39;&quot;public,private,igc&quot;. Values are in (&quot;public&quot;, &quot;private&quot;, &quot;wip&quot;, &#39;</span>
-        <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;). Default: all if --2d is used. If &#39;</span>
+        <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &quot;No_GTech&quot;). Default: all if --2d is used. If &#39;</span>
         <span class="s1">&#39;this option is specified, --2d is implied (thus is not needed)&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--3d&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_3d&#39;</span><span class="p">,</span>
@@ -5571,18 +5588,18 @@
             <span class="p">},</span>
             <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">&#39;aqueduc_private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc_private&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
-                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc_clip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;No_GTech&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;No_GTech&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">,</span><span class="s1">&#39;remove_gtech&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
+           <span class="p">},</span>
         <span class="p">}</span>
 
         <span class="k">for</span> <span class="n">map_type</span> <span class="ow">in</span> <span class="n">do_2d_maps</span><span class="p">:</span>
