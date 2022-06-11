@@ -1582,7 +1582,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         r0 = radius * 0.7
         well = aims.SurfaceGenerator.cylinder({
             'point1': p1, 'point2': p2, 'radius': r0, 'facets': faces,
-            'smooth': smooth, 'closed': False})
+            'smooth_tube': smooth, 'closed': False})
         if rotate != 0.:
             tr = aims.AffineTransformation3d()
             tr.setTranslation(p1)
@@ -1719,7 +1719,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         p2 = aims.Point3df(center[0], center[1], z + height)
         well = aims.SurfaceGenerator.cylinder({
             'point1': p1, 'point2': p2, 'radius': radius, 'facets': faces,
-            'smooth': smooth, 'closed': False})
+            'smooth_tube': smooth, 'closed': False})
         if rotate != 0.:
             tr = aims.AffineTransformation3d()
             tr.setTranslation(p1)
