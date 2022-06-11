@@ -4398,22 +4398,16 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     parent.remove(element)
                 else:
                     todo += [(element, item) for item in element]
-
-
+        
+        
     def remove_gtech(self, xml):
         self.removed_labels.update(('ebauches', 'galeries techniques',
-                                    'PSh gtech', 'PSh vers gtech',
+                                    'PS gtech', 'PSh gtech', 'PSh vers gtech',
                                     'symboles gtech', 'eau gtech',
-                                    'galeries private', 'chatieres private',
-                                    'private', u'curiosités private',
-                                    'symboles private', 'salles vdg private',
-                                    u'salles flèches private',
-                                    u'curiosités flèches private',
-                                    u'rues v1 private',
-                                    u'rues v1 flèches private',
                                     'raccords gtech 2D',
                                     'metro',
                                     u'curiosités flèches GTech',
+                                    'curiosités GTech',
                                     u'échelle gtech',
                                     u'plaques de puits GTech',
                                     u'échelle vers gtech',
@@ -4423,11 +4417,22 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.do_remove_layers(xml)
 
 
+    def remove_calcaire(self, xml):
+        self.removed_labels.update(('calcaire 2010', 'calcaire ciel ouvert', 
+        'calcaire masse2', 'calcaire masse', 'calcaire med',
+        'calcaire sup', 'calcaire inf', 'calcaire vdg',
+        ))
+        self.do_remove_layers(xml)
+
     def remove_igc(self, xml):
         self.removed_labels.update(('planches', 'planches fond', 'planches IGC',
         ))
         self.do_remove_layers(xml)
 
+    def remove_non_aqueduc(self, xml):
+        self.removed_labels.update(('légende', 'grandes plaques',
+        ))
+        self.do_remove_layers(xml)
 
     def remove_non_printable1(self, xml):
         self.removed_labels.update(
@@ -5036,8 +5041,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'remove_south': self.remove_south,
             'remove_background': self.remove_background,
             'remove_limestone': self.remove_limestone,
-            'remove_zooms': self.remove_zooms,
             'remove_gtech': self.remove_gtech,
+            'remove_non_aqueduc': self.remove_non_aqueduc,
+            'remove_calcaire': self.remove_calcaire,
             'remove_igc': self.remove_igc,
             'remove_other': self.remove_other,
             'add_shadow': self.add_shadows,
@@ -5050,6 +5056,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'split_layers': self.split_layers,
             'join_layers': self.join_layers,
             'layer_opacity': self.layer_opacity,
+            'remove_zooms': self.remove_zooms,
             'printable_map': ['remove_non_printable1', 'show_all',
                               #'add_shadow',
                               'shift_inf_level', 'replace_symbols', 'date',
@@ -5086,6 +5093,16 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'show_all', 'add_shadow', 'date', 'recolor="igc"',
                     'layer_opacity=["planches fond", "0.44"]',
                     'layer_opacity=["planches IGC", "0.44"]'],
+            'aqueduc': ['remove_non_printable1', 'show_all',
+                              #'add_shadow',
+                               'shift_inf_level', 'replace_symbols', 'date',                         
+                              'remove_background', 'remove_wip', 
+                              'remove_other=["raccords plan 2D", "parcelles", '
+                                  '"raccords gtech 2D"]',
+                              'replace_symbols', 'date', 'remove_zooms', 
+                              'remove_non_printable2', 'remove_igc', 
+                              'remove_calcaire', 'remove_non_aqueduc',
+                              'layer_opacity=["XIII masses", "0.31"]'],                    
         }
 
         map_2d = copy.deepcopy(xml)
@@ -5315,7 +5332,7 @@ def main():
         'igc': '180',
         'igc_private': '300',
     }
-    all_maps = 'public,private,wip,poster,igc,igc_private'
+    all_maps = 'public,private,wip,poster,igc,igc_private','aqueduc','No_Gtech'
 
     class MultilineFormatter(argparse.HelpFormatter):
         def _fill_text(self, text, width, indent):
@@ -5349,7 +5366,7 @@ The program allows to produce:
         '-m', '--maps', dest='do_2d_maps',
         help='specify which 2d maps should be built, ex: '
         '"public,private,igc". Values are in ("public", "private", "wip", '
-        '"poster", "igc", "igc_private"). Default: all if --2d is used. If '
+        '"poster", "igc", "igc_private", "aqueduc", "No_GTech"). Default: all if --2d is used. If '
         'this option is specified, --2d is implied (thus is not needed)')
     parser.add_argument(
         '--3d', action='store_true', dest='do_3d',
@@ -5529,18 +5546,18 @@ The program allows to produce:
             },
             'aqueduc': {
                 'name': 'aqueduc',
-                'filters': ['remove_private', 'printable_map'] + col_filter,
+                'filters': ['aqueduc'] + col_filter,
                 'clip_rect': 'aqueduc_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
-            'aqueduc_private': {
-                'name': 'aqueduc_private',
-                'filters': ['remove_wip', 'printable_map'] + col_filter,
-                'clip_rect': 'aqueduc_clip',
+            'No_GTech': {
+                'name': 'No_GTech',
+                'filters': ['remove_wip', 'printable_map','remove_gtech'] + col_filter,
+                'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
-            },
+           },
         }
 
         for map_type in do_2d_maps:
