@@ -2322,7 +2322,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.nrenders += 1
             ok = view.cursorFromPosition(pos, pt)
         if ok:
-            ok = view.positionFromCursor(pt[0], pt[1], pt)
+            ok = view.positionFromCursor(int(pt[0]), int(pt[1]), pt)
             if ok:
                 return pt[2]
         #print('get_depth: point not found:', pos, pt)
