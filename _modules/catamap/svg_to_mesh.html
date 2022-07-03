@@ -561,6 +561,8 @@
 <span class="sd">            parent transform to be composed with</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1">#print(&#39;transform:&#39;, trans_str)</span>
+        <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">mat3d</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">trans3d</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform_3d&#39;</span><span class="p">)</span>
