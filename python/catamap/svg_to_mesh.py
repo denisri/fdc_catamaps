@@ -519,6 +519,8 @@ class SvgToMesh(object):
             parent transform to be composed with
         '''
         #print('transform:', trans_str)
+        if trans is None:
+            return np.matrix(np.eye(3))
         mat3d = None
         if not isinstance(trans, str):
             trans3d = trans.get('transform_3d')
