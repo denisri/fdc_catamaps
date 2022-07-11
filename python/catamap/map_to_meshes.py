@@ -1091,7 +1091,7 @@ class DefaultItemProperties(object):
         'échelle vers': 'group',
         'échelle galeries big': 'group',
         'PSh sans': 'group',
-        'sans': 'group',
+        'sans': 'path',
     }
 
 
