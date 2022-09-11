@@ -1950,6 +1950,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             reader = csv.reader(f, delimiter='\t')
             for row in reader:
                 if row:
+                    if len(row) == 1:  # no \t separtator
+                        row = [x.strip() for x in row[0].split()]
+                    if len(row) == 1:  # still no split
+                        print('marker without identifier:', row[0])
+                        continue
                     mmap.setdefault(row[1], []).append(row[0])
         return mmap
 
