@@ -1945,17 +1945,51 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def read_markers_map(self, filename):
         import csv
-        mmap = {}
-        with open(filename) as f:
-            reader = csv.reader(f, delimiter='\t')
-            for row in reader:
-                if row:
-                    if len(row) == 1:  # no \t separtator
-                        row = [x.strip() for x in row[0].split()]
-                    if len(row) == 1:  # still no split
-                        print('marker without identifier:', row[0])
-                        continue
-                    mmap.setdefault(row[1], []).append(row[0])
+        #def _parse(item):
+            #item = item.strip()
+            #if '"' not in item and "'" not in item:
+                #return [s.strip() for s in item.split(' ')]
+            #q = item.find('"')
+            #if q >= 0:
+                #items = item.split('"')
+            #else:
+                #items = item.split("'")
+            #parsed = []
+            #i = 0
+            #for item in items:
+              #if i % 2 == 0:
+                  #parsed += _parse(item)
+              #else:
+                  #parsed.append(item)
+              #i += 1
+            #return parsed
+
+        try:
+            mmap = {}
+            with open(filename) as f:
+                #for line in f.readlines():
+                    #items = line.strip().split('\t')
+                    #row = []
+                    #for item in items:
+                        #row += _parse(item)
+
+                dialect = csv.Sniffer().sniff(f.read(1024))
+                f.seek(0)
+                #reader = csv.reader(f, delimiter='\t')
+                reader = csv.reader(f, dialect=dialect)
+                for row in reader:
+                    if row:
+                        if len(row) == 1:  # no \t separtator
+                            row = [x.strip() for x in row[0].split()]
+                        if len(row) == 1:  # still no split
+                            print('marker without identifier:', row[0])
+                            continue
+                        if len(row) == 0:
+                            continue  # empty line
+                        mmap.setdefault(row[1], []).append(row[0])
+        except Exception as e:
+            print('error reading markers map file:', filename, file=sys.stderr)
+            raise
         return mmap
 
     def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
