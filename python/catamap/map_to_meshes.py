@@ -163,7 +163,7 @@ Properties list
     z shift of the element (esp. for corridor, block, wall elements, but also
     wells and arrows). An element with a height shift will not begin on the
     ground, but above or below as specified.
-**hidden:** bool (**3D maps**)
+**hidden:** bool (**2D and 3D maps**)
     removed from 3D maps.
 **inaccessible:** bool (**3D maps**)
     inaccessible elements will be separated from others, and set in the
