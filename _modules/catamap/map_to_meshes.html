@@ -651,8 +651,24 @@
 
             <span class="c1"># alternative to &quot;private: true&quot;, using &quot;visibility: private&quot;</span>
             <span class="n">visibility</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visibility&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">visibility</span> <span class="o">==</span> <span class="s1">&#39;private&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">visibility</span><span class="p">:</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">elif</span> <span class="n">visibility</span> <span class="ow">and</span> <span class="n">visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">visibility</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">visibility</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">private</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="n">visibility</span>
+
+            <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;non_visibility&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">non_visibility</span><span class="p">:</span>
+                <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">non_visibility</span> <span class="ow">and</span> <span class="n">non_visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">non_visibility</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">non_visibility</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">non_visibility</span> <span class="o">=</span> <span class="n">non_visibility</span>
 
             <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;corridor&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="c1"># &#39;wireframe&#39;,</span>
                          <span class="s1">&#39;well&#39;</span><span class="p">,</span>
@@ -4089,18 +4105,24 @@
                 <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
                 <span class="n">style</span><span class="p">[</span><span class="s1">&#39;display&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;inline&#39;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;galeries inaccessibles inf&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;anciennes galeries inf&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries inf&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries inf private&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;anciennes galeries big&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries inaccessibles&#39;</span><span class="p">,</span> <span class="s1">&#39;galeries big PARIS&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries private&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries big 2&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries big sud&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries techniques&#39;</span><span class="p">,</span>
-                             <span class="s1">&#39;galeries inf private&#39;</span><span class="p">,</span> <span class="s1">&#39;metro&#39;</span><span class="p">):</span>
+                <span class="n">shadow</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadow&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">shadow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shadow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span> <span class="s1">&#39;FALSE&#39;</span><span class="p">):</span>
+                    <span class="n">shadow</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">shadow</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">shadow</span> <span class="ow">or</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="s1">&#39;galeries inaccessibles inf&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;anciennes galeries inf&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries inf&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries inf private&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;anciennes galeries big&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries inaccessibles&#39;</span><span class="p">,</span> <span class="s1">&#39;galeries big PARIS&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries private&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries big 2&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries big sud&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries techniques&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;galeries inf private&#39;</span><span class="p">):</span>
                     <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">))</span>
                     <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_shadow_filter</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
@@ -4425,6 +4447,32 @@
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
             <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">remove_selected_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;non_visibility&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">non_visibility</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">non_visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                    <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">non_visibility</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">non_visibility</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">in</span> <span class="n">non_visibility</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+            <span class="n">visibility</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visibility&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">visibility</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">visibility</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visibility</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_wip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
@@ -5108,7 +5156,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">keep_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                     <span class="n">filters</span><span class="o">=</span><span class="p">[]):</span>
+                     <span class="n">filters</span><span class="o">=</span><span class="p">[],</span> <span class="n">map_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">all_filters</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;remove_private&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_private</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable1</span><span class="p">,</span>
@@ -5192,6 +5240,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep_private</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keep_transformed_properties</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;map_transform&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="o">=</span> <span class="n">map_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_selected_layers</span><span class="p">(</span><span class="n">map_2d</span><span class="p">)</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">done</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -5374,7 +5425,7 @@
 <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">map_name</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span>
                  <span class="n">dpi</span><span class="p">,</span> <span class="n">shadows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_pdf</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">svg2d</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
-    <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+    <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">ensure_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">)</span>
@@ -5716,7 +5767,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.2.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>
