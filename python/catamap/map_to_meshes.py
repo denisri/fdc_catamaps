@@ -608,8 +608,24 @@ class ItemProperties(object):
 
             # alternative to "private: true", using "visibility: private"
             visibility = element.get('visibility')
-            if visibility == 'private':
+            if not visibility:
+                visibility = []
+            elif visibility and visibility.strip().startswith('['):
+                visibility = json.loads(visibility)
+            else:
+                visibility = [visibility]
+            if 'private' in visibility:
                 self.private = True
+            self.visibility = visibility
+
+            non_visibility = element.get('non_visibility')
+            if not non_visibility:
+                non_visibility = []
+            if non_visibility and non_visibility.strip().startswith('['):
+                non_visibility = json.loads(non_visibility)
+            else:
+                non_visibility = [non_visibility]
+            self.non_visibility = non_visibility
 
             for kind in ('corridor', 'block', 'wall', # 'wireframe',
                          'well',
@@ -4046,18 +4062,24 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 style = self.get_style(layer)
                 style['display'] = 'inline'
                 self.set_style(layer, style)
-                if label in ('galeries inaccessibles inf',
-                             'anciennes galeries inf',
-                             'galeries inf',
-                             'galeries inf private',
-                             'anciennes galeries big',
-                             'galeries inaccessibles', 'galeries big PARIS',
-                             'galeries',
-                             'galeries private',
-                             'galeries big 2',
-                             'galeries big sud',
-                             'galeries techniques',
-                             'galeries inf private', 'metro'):
+                shadow = layer.get('shadow')
+                if shadow is not None and shadow not in ('0', 'false', 'False', 'FALSE'):
+                    shadow = True
+                else:
+                    shadow = False
+                if shadow or label in (
+                        'galeries inaccessibles inf',
+                        'anciennes galeries inf',
+                        'galeries inf',
+                        'galeries inf private',
+                        'anciennes galeries big',
+                        'galeries inaccessibles', 'galeries big PARIS',
+                        'galeries',
+                        'galeries private',
+                        'galeries big 2',
+                        'galeries big sud',
+                        'galeries techniques',
+                        'galeries inf private'):
                     trans = self.get_transform(layer.get('transform'))
                     scale = (trans[0,0] + trans[1,1]) / 2.
                     shadow = self.make_shadow_filter(xml, scale).get('id')
@@ -4382,6 +4404,32 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         for layer in to_remove:
             xml.getroot().remove(layer)
 
+    def remove_selected_layers(self, xml):
+        for layer in xml.getroot():
+            label = layer.get(
+                '{http://www.inkscape.org/namespaces/inkscape}label')
+            if label is None:
+                continue
+
+            non_visibility = layer.get('non_visibility')
+            if non_visibility:
+                if non_visibility.strip().startswith('['):
+                    non_visibility = json.loads(non_visibility)
+                else:
+                    non_visibility = [non_visibility]
+                if self.map_name in non_visibility:
+                    self.removed_labels.add(label)
+                    continue
+
+            visibility = layer.get('visibility')
+            if visibility is None:
+                continue
+            elif visibility.strip().startswith('['):
+                visibility = json.loads(visibility)
+            else:
+                visibility = [visibility]
+            if self.map_name not in visibility:
+                self.removed_labels.add(label)
 
     def remove_wip(self, xml):
         self.removed_labels.update(
@@ -5065,7 +5113,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             self.set_transform(layer, trans)
 
     def build_2d_map(self, xml, keep_private=True, wip=False,
-                     filters=[]):
+                     filters=[], map_name=None):
         all_filters = {
             'remove_private': self.remove_private,
             'remove_non_printable1': self.remove_non_printable1,
@@ -5149,6 +5197,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.removed_labels = set()
         self.keep_private = True
         self.keep_transformed_properties = set(('level', 'map_transform'))
+        self.map_name = map_name
+
+        self.remove_selected_layers(map_2d)
 
         results = []
         done = set()
@@ -5331,7 +5382,7 @@ def convert_to_jpg(png_file, remove=True, max_pixels=None):
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, shadows=True, do_pdf=False):
     svg2d = CataMapTo2DMap()
-    map2d = svg2d.build_2d_map(xml_et, filters=filters)
+    map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
     if clip_rect:
         svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
