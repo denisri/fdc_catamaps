@@ -227,6 +227,9 @@ Properties list
 **markers_map:** str (**3D maps**)
     Set on a :ref:`marker layer <markers>`: correspondence map file name (CSV
     file) for markers text. See :ref:`markers` for more details.
+**non_visibility:** str (**2D maps**)
+    list of maps types (json-like), for which this layer is removed. The
+    inverse of **visibility** (see below).
 **private:** bool (**2D and 3D maps**)
     private elements will only be visible if a code is provided
 **radius:** float (**3D maps)
@@ -250,7 +253,9 @@ Properties list
     depth level for the top of elements. Only used for elements joining two levels
     (wells, arrows)
 **visibility:** str (**2D and 3D maps**)
-    may be ``private``: alternative to ``private: true``.
+    may be either: ``private``: alternative to ``private: true``, or a list of
+    maps types (json-like), for which this layer is kept visible. If such a
+    list is specified, then maps types not listed here will drop the layer.
 **wall:** bool (**3D maps**)
     wall elements have only side walls (no floor or ceiling).
 **well:** bool (**3D maps**)
@@ -5380,7 +5385,7 @@ def convert_to_jpg(png_file, remove=True, max_pixels=None):
 
 
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
-                 dpi, shadows=True, do_pdf=False):
+                 dpi, shadows=True, do_pdf=False, do_jpg=True):
     svg2d = CataMapTo2DMap()
     map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
@@ -5399,7 +5404,8 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     if do_pdf:
         export_pdf(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     os.unlink(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
-    convert_to_jpg(out_filename.replace('.svg', '_%s.png' % map_name))
+    if do_jpg:
+        convert_to_jpg(out_filename.replace('.svg', '_%s.png' % map_name))
 
 
 def main():
@@ -5456,7 +5462,8 @@ The program allows to produce:
         '-m', '--maps', dest='do_2d_maps',
         help='specify which 2d maps should be built, ex: '
         '"public,private,igc". Values are in ("public", "private", "wip", '
-        '"poster", "igc", "igc_private", "aqueduc", "No_GTech"). Default: all if --2d is used. If '
+        '"poster", "igc", "igc_private", "aqueduc", "No_GTech", "igcportail", '
+        '"igcportail_txt"). Default: all if --2d is used. If '
         'this option is specified, --2d is implied (thus is not needed)')
     parser.add_argument(
         '--3d', action='store_true', dest='do_3d',
@@ -5634,6 +5641,22 @@ The program allows to produce:
                 'shadows': True,
                 'do_pdf': False,
             },
+            'igcportail': {
+                'name': 'igcportail',
+                'filters': ['igc_private'],
+                'clip_rect': 'nord_sud_clip',
+                'shadows': True,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_txt': {
+                'name': 'igcportail_txt',
+                'filters': ['igc_private'],
+                'clip_rect': 'nord_sud_clip',
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
             'aqueduc': {
                 'name': 'aqueduc',
                 'filters': ['aqueduc'] + col_filter,
@@ -5665,7 +5688,8 @@ The program allows to produce:
                 clip_rect=map_def['clip_rect'],
                 dpi=maps_dpi.get('private', maps_dpi['default']),
                 shadows=map_def['shadows'],
-                do_pdf=map_def['do_pdf'])
+                do_pdf=map_def['do_pdf'],
+                do_jpg=map_def.get('do_jpg', True))
 
     if do_split:
         svg2d = CataMapTo2DMap()
