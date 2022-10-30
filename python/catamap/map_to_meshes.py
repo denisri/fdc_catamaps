@@ -256,6 +256,8 @@ Properties list
     may be either: ``private``: alternative to ``private: true``, or a list of
     maps types (json-like), for which this layer is kept visible. If such a
     list is specified, then maps types not listed here will drop the layer.
+    As ``visibility`` has now a broader meaning, it is better to specify
+    ``private: true`` for private things, to avoid ambiguities.
 **wall:** bool (**3D maps**)
     wall elements have only side walls (no floor or ceiling).
 **well:** bool (**3D maps**)
@@ -4432,6 +4434,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             elif visibility.strip().startswith('['):
                 visibility = json.loads(visibility)
             else:
+                if visibility == 'private':  # old style
+                    # exception, here 'private' is not a map type name but a
+                    # variant (used in private, igc_private maps etc). It is
+                    # filtered by remove_private(), and it is better to specify
+                    # the tag private: true.
+                    continue
                 visibility = [visibility]
             if self.map_name not in visibility:
                 self.removed_labels.add(label)
