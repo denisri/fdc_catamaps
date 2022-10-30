@@ -5358,8 +5358,8 @@ def export_png(in_file, resolution=180, rect_id=None, out_file=None,
              cmd += ['--export-id', rect_id]
         call(cmd + [in_file])
 
-def convert_to_jpg(png_file, remove=True, max_pixels=None):
-    outfile = png_file.replace('.png', '.jpg')
+def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
+    outfile = png_file.replace('.png', '.%s' % format)
     if PIL:
         # use Pillow PIL module
         if not max_pixels:
@@ -5367,19 +5367,25 @@ def convert_to_jpg(png_file, remove=True, max_pixels=None):
         PIL.Image.MAX_IMAGE_PIXELS = max_pixels
         try:
             with PIL.Image.open(png_file) as im:
-                # convert to RGB with alpha and white background
-                front = np.array(im)  # copy because the image in read only
-                for i in range(3):
-                    alpha = front[:, :, 3] / 255.
-                    front[:, :, i] = (
-                        255 * (1. - alpha)
-                        + front[:, :, i] * alpha).astype(np.uint8)
-                front[:,:,3] = 255
+                if format == 'jpg':
+                    # convert to RGB with alpha and white background
+                    front = np.array(im)  # copy because the image in read only
+                    for i in range(3):
+                        alpha = front[:, :, 3] / 255.
+                        front[:, :, i] = (
+                            255 * (1. - alpha)
+                            + front[:, :, i] * alpha).astype(np.uint8)
+                    front[:,:,3] = 255
 
-                im = PIL.Image.fromarray(front, 'RGBA')
-                im = im.convert(mode='RGB')
+                    im = PIL.Image.fromarray(front, 'RGBA')
+                    im = im.convert(mode='RGB')
 
-                im.save(outfile, quality=95)
+                save_options={}
+                if format == 'tif':
+                    save_options['compression'] = 'tiff_lzw'
+                else:
+                    save_options['quality'] = 95
+                im.save(outfile, **save_options)
         except OSError:
             print("cannot convert", infile)
     else:
@@ -5393,7 +5399,7 @@ def convert_to_jpg(png_file, remove=True, max_pixels=None):
 
 
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
-                 dpi, shadows=True, do_pdf=False, do_jpg=True):
+                 dpi, shadows=True, do_pdf=False, do_jpg=True, georef=None):
     svg2d = CataMapTo2DMap()
     map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
@@ -5412,8 +5418,22 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     if do_pdf:
         export_pdf(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     os.unlink(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
-    if do_jpg:
-        convert_to_jpg(out_filename.replace('.svg', '_%s.png' % map_name))
+    if do_jpg or georef:
+        if georef:
+            format = 'tif'
+        print('convert to', format.upper())
+        convert_to_format(out_filename.replace('.svg', '_%s.png' % map_name),
+                          format=format)
+    if georef:
+        try:
+            from . import gdalcopyproj
+        except ImportError:
+            print('gdal module is not installed - georeferencing data will '
+                  'not be copied')
+            return
+        tiff_file = out_filename.replace('.svg', '_%s.tif' % map_name)
+        gdalcopyproj.copy_geo_projection(georef, tiff_file)
+        print('geolocalization info copied.')
 
 
 def main():
@@ -5518,6 +5538,10 @@ The program allows to produce:
     parser.add_argument(
         'output_3d_dir', nargs='?', default=out_dirname,
         help='output 3D meshes directory (default: %(default)s)')
+    parser.add_argument(
+        '-g', '--georef',
+        help='Copy GeoTIFF information from the given source file to a .tif '
+        'export')
 
     options = parser.parse_args()
 
@@ -5574,6 +5598,8 @@ The program allows to produce:
     else:
         svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True
+
+    georef = options.georef
 
     if colorset:
         svg_mesh.colorset = colorset
@@ -5674,7 +5700,8 @@ The program allows to produce:
             },
             'No_GTech': {
                 'name': 'No_GTech',
-                'filters': ['remove_wip', 'printable_map','remove_gtech'] + col_filter,
+                'filters': ['remove_wip', 'printable_map','remove_gtech']
+                    + col_filter,
                 'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
@@ -5688,6 +5715,9 @@ The program allows to produce:
             if do_pdf is not None:
                 map_def['do_pdf'] = do_pdf
             print('clip:', map_def['clip_rect'])
+            if georef:
+                # don't write jpg, we will use tiff
+                map_def['do_jpg'] = False
             build_2d_map(
                 xml_et,
                 out_filename,
@@ -5697,7 +5727,8 @@ The program allows to produce:
                 dpi=maps_dpi.get('private', maps_dpi['default']),
                 shadows=map_def['shadows'],
                 do_pdf=map_def['do_pdf'],
-                do_jpg=map_def.get('do_jpg', True))
+                do_jpg=map_def.get('do_jpg', True),
+                georef=georef)
 
     if do_split:
         svg2d = CataMapTo2DMap()
