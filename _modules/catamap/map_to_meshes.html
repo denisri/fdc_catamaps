@@ -270,6 +270,9 @@
 <span class="sd">**markers_map:** str (**3D maps**)</span>
 <span class="sd">    Set on a :ref:`marker layer &lt;markers&gt;`: correspondence map file name (CSV</span>
 <span class="sd">    file) for markers text. See :ref:`markers` for more details.</span>
+<span class="sd">**non_visibility:** str (**2D maps**)</span>
+<span class="sd">    list of maps types (json-like), for which this layer is removed. The</span>
+<span class="sd">    inverse of **visibility** (see below).</span>
 <span class="sd">**private:** bool (**2D and 3D maps**)</span>
 <span class="sd">    private elements will only be visible if a code is provided</span>
 <span class="sd">**radius:** float (**3D maps)</span>
@@ -293,7 +296,11 @@
 <span class="sd">    depth level for the top of elements. Only used for elements joining two levels</span>
 <span class="sd">    (wells, arrows)</span>
 <span class="sd">**visibility:** str (**2D and 3D maps**)</span>
-<span class="sd">    may be ``private``: alternative to ``private: true``.</span>
+<span class="sd">    may be either: ``private``: alternative to ``private: true``, or a list of</span>
+<span class="sd">    maps types (json-like), for which this layer is kept visible. If such a</span>
+<span class="sd">    list is specified, then maps types not listed here will drop the layer.</span>
+<span class="sd">    As ``visibility`` has now a broader meaning, it is better to specify</span>
+<span class="sd">    ``private: true`` for private things, to avoid ambiguities.</span>
 <span class="sd">**wall:** bool (**3D maps**)</span>
 <span class="sd">    wall elements have only side walls (no floor or ceiling).</span>
 <span class="sd">**well:** bool (**3D maps**)</span>
@@ -4470,6 +4477,12 @@
             <span class="k">elif</span> <span class="n">visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
                 <span class="n">visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">visibility</span> <span class="o">==</span> <span class="s1">&#39;private&#39;</span><span class="p">:</span>  <span class="c1"># old style</span>
+                    <span class="c1"># exception, here &#39;private&#39; is not a map type name but a</span>
+                    <span class="c1"># variant (used in private, igc_private maps etc). It is</span>
+                    <span class="c1"># filtered by remove_private(), and it is better to specify</span>
+                    <span class="c1"># the tag private: true.</span>
+                    <span class="k">continue</span>
                 <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">visibility</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visibility</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
@@ -5423,7 +5436,7 @@
 
 
 <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">map_name</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span>
-                 <span class="n">dpi</span><span class="p">,</span> <span class="n">shadows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_pdf</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">dpi</span><span class="p">,</span> <span class="n">shadows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_pdf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">do_jpg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">svg2d</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
     <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
@@ -5442,7 +5455,8 @@
     <span class="k">if</span> <span class="n">do_pdf</span><span class="p">:</span>
         <span class="n">export_pdf</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_flat.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
     <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_flat.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
-    <span class="n">convert_to_jpg</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">do_jpg</span><span class="p">:</span>
+        <span class="n">convert_to_jpg</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -5499,7 +5513,8 @@
         <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--maps&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_2d_maps&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify which 2d maps should be built, ex: &#39;</span>
         <span class="s1">&#39;&quot;public,private,igc&quot;. Values are in (&quot;public&quot;, &quot;private&quot;, &quot;wip&quot;, &#39;</span>
-        <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &quot;No_GTech&quot;). Default: all if --2d is used. If &#39;</span>
+        <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &quot;No_GTech&quot;, &quot;igcportail&quot;, &#39;</span>
+        <span class="s1">&#39;&quot;igcportail_txt&quot;). Default: all if --2d is used. If &#39;</span>
         <span class="s1">&#39;this option is specified, --2d is implied (thus is not needed)&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--3d&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_3d&#39;</span><span class="p">,</span>
@@ -5677,6 +5692,22 @@
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
+            <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
             <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
@@ -5708,7 +5739,8 @@
                 <span class="n">clip_rect</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">],</span>
                 <span class="n">dpi</span><span class="o">=</span><span class="n">maps_dpi</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;private&#39;</span><span class="p">,</span> <span class="n">maps_dpi</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]),</span>
                 <span class="n">shadows</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;shadows&#39;</span><span class="p">],</span>
-                <span class="n">do_pdf</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">])</span>
+                <span class="n">do_pdf</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">],</span>
+                <span class="n">do_jpg</span><span class="o">=</span><span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;do_jpg&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">do_split</span><span class="p">:</span>
         <span class="n">svg2d</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>

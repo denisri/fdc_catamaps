@@ -258,6 +258,9 @@ is the markers type (<code class="docutils literal notranslate"><span class="pre
 <dt><strong>markers_map:</strong> str (<strong>3D maps</strong>)</dt><dd><p>Set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a>: correspondence map file name (CSV
 file) for markers text. See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
+<dt><strong>non_visibility:</strong> str (<strong>2D maps</strong>)</dt><dd><p>list of maps types (json-like), for which this layer is removed. The
+inverse of <strong>visibility</strong> (see below).</p>
+</dd>
 <dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
 </dd>
 <dt><strong>radius:</strong> float (<a href="#id1"><span class="problematic" id="id2">**</span></a>3D maps)</dt><dd><p>used in a “marker” layer to specify the max radius between the user click
@@ -278,7 +281,11 @@ recursively and their children may be replaced also.</p>
 <dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two levels
 (wells, arrows)</p>
 </dd>
-<dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>.</p>
+<dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be either: <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>, or a list of
+maps types (json-like), for which this layer is kept visible. If such a
+list is specified, then maps types not listed here will drop the layer.
+As <code class="docutils literal notranslate"><span class="pre">visibility</span></code> has now a broader meaning, it is better to specify
+<code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code> for private things, to avoid ambiguities.</p>
 </dd>
 <dt><strong>wall:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wall elements have only side walls (no floor or ceiling).</p>
 </dd>
