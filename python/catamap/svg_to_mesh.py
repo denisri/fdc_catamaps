@@ -1132,10 +1132,16 @@ class SvgToMesh(object):
             'objects': [],
         }
         if not xml_item.get('x') or not xml_item.get('y'):
-            print('text without coords, id:', xml_item.get('id'))
-            print(xml_item)
-            print(xml_item.items())
-            pos = (0., 0.)
+            if len(xml_item[:]) != 0 and xml_item[0].get('x') \
+                    and xml_item[0].get('y'):
+                # coords on tspan item
+                pos = (float(xml_item[0].get('x')),
+                       float(xml_item[0].get('y')))
+            else:
+                print('text without coords, id:', xml_item.get('id'))
+                print(xml_item)
+                print(xml_item.items())
+                pos = (0., 0.)
         else:
             pos = (float(xml_item.get('x')), float(xml_item.get('y')))
         if trans is not None:

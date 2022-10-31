@@ -2059,8 +2059,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 tag = sub_el.tag.split('}')[-1]
                 if tag == 'text':
                     if pos is None:
-                        pos = [float(sub_el.get('x')),
-                               float(sub_el.get('y'))]
+                        try:
+                            pos = [float(sub_el.get('x')),
+                                  float(sub_el.get('y'))]
+                        except Exception as e:
+                            if len(sub_el[:]) != 0 and sub_el[0].get('x') \
+                                    and sub_el[0].get('y'):
+                                try:
+                                    pos = [float(sub_el[0].get('x')),
+                                           float(sub_el[0].get('y'))]
+                                except Exception as e:
+                                    print(
+                                        'error while reading marker',
+                                        sub_el.get('id'))
+                                    raise
+                            else:
+                                print(
+                                    'error while reading marker',
+                                    sub_el.get('id'))
+                                raise
                         x, y = trans_el.dot([[pos[0]], [pos[1]], [1]])[:2]
                         pos = [x[0, 0], y[0, 0]]
                     text = sub_el[0].text.strip()
@@ -4654,7 +4671,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            if label and label.startswith(u'légende'):
+            if (label and label.startswith(u'légende')) \
+                    or layer.get('legend') in ('1', 'true', 'True', 'TRUE'):
                 for child in layer:
                     if child.get('date') is not None:
                         # set date in appropriate field
@@ -5382,10 +5400,23 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
 
                 save_options={}
                 if format == 'tif':
-                    save_options['compression'] = 'tiff_lzw'
+                    # save_options['compression'] = 'tiff_lzw'
+                    save_options['compression'] = 'jpeg'
                 else:
                     save_options['quality'] = 95
-                im.save(outfile, **save_options)
+                try:
+                    im.save(outfile, **save_options)
+                except:
+                    if format == 'tif':
+                        # we smetimes run into the error:
+                        # JPEGSetupEncode: RowsPerStrip must be multiple of 8
+                        # for JPEG.
+                        # I don't know how to handle it for now, so then switch
+                        # to LZW compression (files will be much larger)
+                        save_options['compression'] = 'tiff_lzw'
+                        im.save(outfile, **save_options)
+                    else:
+                        raise
         except OSError:
             print("cannot convert", infile)
     else:
