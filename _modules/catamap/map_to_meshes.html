@@ -2102,8 +2102,25 @@
                 <span class="n">tag</span> <span class="o">=</span> <span class="n">sub_el</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)),</span>
-                               <span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))]</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)),</span>
+                                  <span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))]</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_el</span><span class="p">[:])</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span> \
+                                    <span class="ow">and</span> <span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">):</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)),</span>
+                                           <span class="nb">float</span><span class="p">(</span><span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))]</span>
+                                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span>
+                                        <span class="s1">&#39;error while reading marker&#39;</span><span class="p">,</span>
+                                        <span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                                    <span class="k">raise</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span>
+                                    <span class="s1">&#39;error while reading marker&#39;</span><span class="p">,</span>
+                                    <span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                                <span class="k">raise</span>
                         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">trans_el</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])[:</span><span class="mi">2</span><span class="p">]</span>
                         <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -4697,7 +4714,8 @@
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">label</span> <span class="ow">and</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">))</span> \
+                    <span class="ow">or</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="c1"># set date in appropriate field</span>
@@ -5425,10 +5443,23 @@
 
                 <span class="n">save_options</span><span class="o">=</span><span class="p">{}</span>
                 <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;tif&#39;</span><span class="p">:</span>
-                    <span class="n">save_options</span><span class="p">[</span><span class="s1">&#39;compression&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tiff_lzw&#39;</span>
+                    <span class="c1"># save_options[&#39;compression&#39;] = &#39;tiff_lzw&#39;</span>
+                    <span class="n">save_options</span><span class="p">[</span><span class="s1">&#39;compression&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;jpeg&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">save_options</span><span class="p">[</span><span class="s1">&#39;quality&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">95</span>
-                <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="o">**</span><span class="n">save_options</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="o">**</span><span class="n">save_options</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;tif&#39;</span><span class="p">:</span>
+                        <span class="c1"># we smetimes run into the error:</span>
+                        <span class="c1"># JPEGSetupEncode: RowsPerStrip must be multiple of 8</span>
+                        <span class="c1"># for JPEG.</span>
+                        <span class="c1"># I don&#39;t know how to handle it for now, so then switch</span>
+                        <span class="c1"># to LZW compression (files will be much larger)</span>
+                        <span class="n">save_options</span><span class="p">[</span><span class="s1">&#39;compression&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tiff_lzw&#39;</span>
+                        <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="o">**</span><span class="n">save_options</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cannot convert&quot;</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
