@@ -165,6 +165,8 @@
 <span class="sd">    of them are just a segment (2 points) but they may contain more points.</span>
 <span class="sd">    Points orientation is important as the arrow goes from the text (above the</span>
 <span class="sd">    meshes) down to the pointed item below.</span>
+<span class="sd">**arrow_base_height_shift:** float (**3D maps**)</span>
+<span class="sd">    z shift of the base of an arrow element in the upper layer depth. The arrow head shift is specified using height_shift.</span>
 <span class="sd">**block:** bool (**3D maps**)</span>
 <span class="sd">    block elements have a ceiling and walls. Meshes are extruded and tesselated</span>
 <span class="sd">    to be filled.</span>
@@ -542,7 +544,8 @@
                   <span class="s1">&#39;symbol&#39;</span><span class="p">,</span> <span class="s1">&#39;arrow&#39;</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;well&#39;</span><span class="p">,</span> <span class="s1">&#39;catflap&#39;</span><span class="p">,</span> <span class="s1">&#39;hidden&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;depth_map&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;border&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;label_alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;marker&#39;</span><span class="p">)</span>
+                  <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;marker&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">)</span>
 
     <span class="n">prop_types</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># will be initialized when used in get_typed_prop()</span>
 
@@ -567,6 +570,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">depth_map</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">height_shift</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arrow_base_height_shift</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">marker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alt_colors</span> <span class="o">=</span> <span class="kc">None</span>
@@ -606,6 +610,7 @@
                 <span class="s1">&#39;depth_map&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">,</span>
                 <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
                 <span class="s1">&#39;height_shift&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
+                <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
                 <span class="s1">&#39;border&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
                 <span class="s1">&#39;layer&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">,</span>
                 <span class="s1">&#39;grid_interval&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
@@ -711,6 +716,8 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">height_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_height_shift</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arrow_base_height_shift</span> \
+                <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_arrow_base_height_shift</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">set_defaults</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;upper_level&#39;</span><span class="p">,</span> <span class="p">):</span>
@@ -907,6 +914,16 @@
         <span class="n">shift</span> <span class="o">=</span> <span class="n">DefaultItemProperties</span><span class="o">.</span><span class="n">height_shifts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">shift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">height_shift</span> <span class="o">=</span> <span class="n">shift</span>
+
+        <span class="k">return</span> <span class="n">height_shift</span>
+
+    <span class="k">def</span> <span class="nf">get_arrow_base_height_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="n">height_shift</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">height_shift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">height_shift</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrow_base_height_shift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrow_base_height_shift</span>
 
         <span class="k">return</span> <span class="n">height_shift</span></div>
 
@@ -1356,7 +1373,7 @@
             <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
             <span class="n">nv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">xrange</span><span class="p">(</span><span class="n">nv</span><span class="p">):</span>
-                <span class="n">vert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">4.</span> <span class="o">-</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">3.</span> <span class="o">/</span> <span class="p">(</span><span class="n">nv</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
+                <span class="n">vert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">nv</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="c1">## create mesh if it doesn&#39;t exist, and assign it arrow indices</span>
             <span class="c1">#gmesh = self.mesh_dict.setdefault(self.main_group,</span>
                                               <span class="c1">#aims.AimsTimeSurface(2))</span>
@@ -2602,16 +2619,12 @@
         <span class="k">if</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">hshift</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="n">hshift</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-        <span class="n">text_hshift</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
+        <span class="n">text_hshift</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">arrow_base_height_shift</span>
         <span class="k">if</span> <span class="n">text_hshift</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">text_hshift</span> <span class="o">=</span> <span class="mf">4.</span>
         <span class="n">text_hshift</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-        <span class="n">text_z1</span> <span class="o">=</span> <span class="mf">4.</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-        <span class="n">text_z0</span> <span class="o">=</span> <span class="n">text_z1</span>
         <span class="n">text_win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tz_level</span><span class="p">)</span>
         <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">text_z0</span> <span class="o">-</span> <span class="n">base</span>
         <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
         <span class="n">hshift1</span> <span class="o">=</span> <span class="n">hshift</span> <span class="o">+</span> <span class="n">text_hshift</span>
         <span class="n">view</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2621,19 +2634,19 @@
         <span class="k">if</span> <span class="n">text_win</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">text_view</span> <span class="o">=</span> <span class="n">text_win</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
 
+        <span class="c1"># print(&#39;ARROW DEPTH for&#39;, props)</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
             <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">z</span> <span class="o">+=</span> <span class="n">hshift</span>
-                <span class="n">old_z</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">text_z</span> <span class="o">=</span> <span class="n">text_z1</span>
-                <span class="n">tz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">text_view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">tz</span> <span class="o">+</span> <span class="n">hshift1</span> <span class="o">&gt;</span> <span class="n">text_z1</span><span class="p">:</span>
-                    <span class="n">tz</span> <span class="o">+=</span> <span class="n">hshift1</span>
-                    <span class="n">text_z</span> <span class="o">=</span> <span class="n">tz</span>
-                <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">text_z</span> <span class="o">-</span> <span class="n">base</span> <span class="o">-</span> <span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="n">dz</span>
-                <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">text_z0</span> <span class="o">*</span> <span class="n">z</span> <span class="o">+</span> <span class="n">base</span> <span class="o">*</span> <span class="p">(</span><span class="n">text_z0</span> <span class="o">-</span> <span class="n">text_z</span><span class="p">))</span> <span class="o">/</span> <span class="n">dz</span>
-                <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="n">old_z</span> <span class="o">+</span> <span class="n">d</span>
+                <span class="n">old_z</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># old_z is a weight between text and z</span>
+                <span class="n">text_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">text_view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">text_z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">text_z</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="n">text_z</span> <span class="o">+=</span> <span class="n">text_hshift</span>
+                <span class="n">new_z</span> <span class="o">=</span> <span class="n">z</span> <span class="o">*</span> <span class="n">old_z</span> <span class="o">+</span> <span class="n">text_z</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">old_z</span><span class="p">)</span>
+                <span class="c1"># print(&#39;w:&#39;, old_z, &#39;, t: &#39;, text_z, &#39;, a:&#39;, z, &#39;:&#39;, new_z)</span>
+                <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_z</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">pass</span> <span class="c1"># warn ?</span>
 
@@ -5495,6 +5508,8 @@
     <span class="k">if</span> <span class="n">do_jpg</span> <span class="ow">or</span> <span class="n">georef</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">georef</span><span class="p">:</span>
             <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;tif&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;jpg&#39;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;convert to&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="n">convert_to_format</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">),</span>
                           <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
