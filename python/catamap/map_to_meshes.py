@@ -122,6 +122,8 @@ Properties list
     of them are just a segment (2 points) but they may contain more points.
     Points orientation is important as the arrow goes from the text (above the
     meshes) down to the pointed item below.
+**arrow_base_height_shift:** float (**3D maps**)
+    z shift of the base of an arrow element in the upper layer depth. The arrow head shift is specified using height_shift.
 **block:** bool (**3D maps**)
     block elements have a ceiling and walls. Meshes are extruded and tesselated
     to be filled.
@@ -499,7 +501,8 @@ class ItemProperties(object):
                   'symbol', 'arrow', 'text', 'well', 'catflap', 'hidden',
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
-                  'well_read_mode', 'grid_interval', 'marker')
+                  'well_read_mode', 'grid_interval', 'marker',
+                  'arrow_base_height_shift')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -524,6 +527,7 @@ class ItemProperties(object):
         self.depth_map = False
         self.height = None
         self.height_shift = None
+        self.arrow_base_height_shift = None
         self.border = False
         self.marker = None
         self.alt_colors = None
@@ -563,6 +567,7 @@ class ItemProperties(object):
                 'depth_map': ItemProperties.is_true,
                 'height': ItemProperties.float_value,
                 'height_shift': ItemProperties.float_value,
+                'arrow_base_height_shift': ItemProperties.float_value,
                 'border': ItemProperties.float_value,
                 'layer': ItemProperties.is_true,
                 'grid_interval': ItemProperties.float_value,
@@ -668,6 +673,8 @@ class ItemProperties(object):
 
             self.height = self.get_height(element)
             self.height_shift = self.get_height_shift(element)
+            self.arrow_base_height_shift \
+                = self.get_arrow_base_height_shift(element)
 
             if set_defaults:
                 for prop in ('level', 'upper_level', ):
@@ -864,6 +871,16 @@ class ItemProperties(object):
         shift = DefaultItemProperties.height_shifts.get(self.name)
         if shift is not None:
             height_shift = shift
+
+        return height_shift
+
+    def get_arrow_base_height_shift(self, element):
+        height_shift = element.get('arrow_base_height_shift')
+        if height_shift is not None:
+            return float(height_shift)
+
+        if self.arrow_base_height_shift is not None:
+            return self.arrow_base_height_shift
 
         return height_shift
 
@@ -1313,7 +1330,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             vert = mesh.vertex()
             nv = len(vert)
             for i in six.moves.xrange(nv):
-                vert[i][2] = (4. - i * 3. / (nv - 1)) * self.z_scale
+                vert[i][2] = i / (nv - 1)
             ## create mesh if it doesn't exist, and assign it arrow indices
             #gmesh = self.mesh_dict.setdefault(self.main_group,
                                               #aims.AimsTimeSurface(2))
@@ -2559,16 +2576,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if hshift is None:
             hshift = 0.
         hshift *= self.z_scale
-        text_hshift = props.height_shift
+        text_hshift = props.arrow_base_height_shift
         if text_hshift is None:
             text_hshift = 4.
         text_hshift *= self.z_scale
-        text_z1 = 4. * self.z_scale
-        text_z0 = text_z1
         text_win = self.depth_wins.get(tz_level)
         object_win_size = (8, 8)
-        base = 1 * self.z_scale
-        dz = text_z0 - base
         win = self.depth_wins.get(level)
         hshift1 = hshift + text_hshift
         view = None
@@ -2578,19 +2591,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if text_win is not None:
             text_view = text_win.view()
 
+        # print('ARROW DEPTH for', props)
         for v in mesh.vertex():
             z = self.get_depth(v, view, object_win_size)
             if z is not None:
                 z += hshift
-                old_z = v[2]
-                text_z = text_z1
-                tz = self.get_depth(v, text_view, object_win_size)
-                if tz is not None and tz + hshift1 > text_z1:
-                    tz += hshift1
-                    text_z = tz
-                s = (text_z - base - z) / dz
-                d = (text_z0 * z + base * (text_z0 - text_z)) / dz
-                v[2] = s * old_z + d
+                old_z = v[2]  # old_z is a weight between text and z
+                text_z = self.get_depth(v, text_view, object_win_size)
+                if text_z is None:
+                    text_z = 0.
+                text_z += text_hshift
+                new_z = z * old_z + text_z * (1. - old_z)
+                # print('w:', old_z, ', t: ', text_z, ', a:', z, ':', new_z)
+                v[2] = new_z
             else:
                 pass # warn ?
 
@@ -5452,6 +5465,8 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     if do_jpg or georef:
         if georef:
             format = 'tif'
+        else:
+            format = 'jpg'
         print('convert to', format.upper())
         convert_to_format(out_filename.replace('.svg', '_%s.png' % map_name),
                           format=format)
