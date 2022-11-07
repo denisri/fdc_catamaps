@@ -5651,6 +5651,9 @@
         <span class="s1">&#39;--no-pdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;do not generate PDF versions of the map&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--pdf&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;do generate PDF versions of the map&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--join&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;reverse the --split operation: concatenate layers from several &#39;</span>
         <span class="s1">&#39;files&#39;</span><span class="p">)</span>
@@ -5688,6 +5691,8 @@
     <span class="n">do_list_colorsets</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_colorsets</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">do_pdf</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">pdf</span>
     <span class="n">out_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">output_filename</span>
     <span class="n">colorset</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">color</span><span class="p">:</span>
