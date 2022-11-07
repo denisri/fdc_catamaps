@@ -2960,7 +2960,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes)
+        self.attach_arrows_to_text(meshes, with_squares=True)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3178,13 +3178,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         pos = props['position']
                         vert = mesh.vertex()
                         size = props['size']
-                        vert2 = aims.vector_POINT3DF(vert)
+                        # vert2 = aims.vector_POINT3DF(vert)
                         decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
                             - vert[0]
                         #print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
                         n = len(vert)
                         for i, v in enumerate(vert):
-                            v += decal * float(n - i) / n
+                            # v += decal * float(n - i) / n
+                            v += decal * (1. - v[2])
                         if with_squares:
                             # debug: display rectangle around text location
                             size = props['size']
@@ -5446,10 +5447,23 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, shadows=True, do_pdf=False, do_jpg=True, georef=None):
     svg2d = CataMapTo2DMap()
     map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
+    clip_rect_name = clip_rect
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
+    yscale = 1.
     if clip_rect:
         svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
         svg2d.clip_page(map2d, clip_rect)
+        # TODO: remove hard-coded clip here
+        if georef and clip_rect_name != 'nord_sud_clip':
+            # not the same clipping as the georefed one
+            cr = svg2d.find_element(xml_et, clip_rect)
+            crref = svg2d.find_clip_rect(xml_et, 'nord_sud_clip')
+            crref = svg2d.find_element(xml_et, crref)
+            if cr and crref:
+                yscale = float(cr[0].get('height')) \
+                    / float(crref[0].get('height'))
+                print('use yscale:', yscale)
+
     map2d.write(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     if shadows:
         svg2d.add_shadows(map2d)
@@ -5478,8 +5492,34 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                   'not be copied')
             return
         tiff_file = out_filename.replace('.svg', '_%s.tif' % map_name)
-        gdalcopyproj.copy_geo_projection(georef, tiff_file)
+        gdalcopyproj.copy_geo_projection(georef, tiff_file, scale_y=yscale)
         print('geolocalization info copied.')
+
+
+def scale_georef_points_file(in_filename, out_filename, scale_factor_x,
+                             scale_factor_y=None):
+    ''' Rescale source positions in a QGis .points file in order to adapt
+    to a different resolution
+    '''
+    if scale_factor_y is None:
+        scale_factor_y = scale_factor_x
+    with open(filename) as f:
+        reader = csv.reader(f)
+        lines = []
+        for row in reader:
+            lines.append(row)
+
+    # scale columns 2 and 3 (sourceX,sourceY)
+    for row in lines[2:]:
+        row[2] = str(float(row[2]) * scale_factor_x)
+        row[3] = str(float(row[3]) * scale_factor_y)
+
+    with open(out_filename, 'w') as f:
+        # 1st line is not parsed correctly, write it by hand
+        print(','.join(lines[0]), file=f)
+        writer = csv.writer(f)
+        for row in lines[1:]:
+            writer.writerow(row)
 
 
 def main():
@@ -5761,6 +5801,7 @@ The program allows to produce:
             if do_pdf is not None:
                 map_def['do_pdf'] = do_pdf
             print('clip:', map_def['clip_rect'])
+            georef_yscale = 1.
             if georef:
                 # don't write jpg, we will use tiff
                 map_def['do_jpg'] = False
