@@ -5608,6 +5608,9 @@ The program allows to produce:
         '--no-pdf', action='store_true', default=None,
         help='do not generate PDF versions of the map')
     parser.add_argument(
+        '--pdf', action='store_true', default=None,
+        help='do generate PDF versions of the map')
+    parser.add_argument(
         '--join', action='store_true',
         help='reverse the --split operation: concatenate layers from several '
         'files')
@@ -5645,6 +5648,8 @@ The program allows to produce:
     do_list_colorsets = options.list_colorsets
     if options.no_pdf is not None:
         do_pdf = not options.no_pdf
+    elif options.pdf is not None:
+        do_pdf = options.pdf
     out_filename = options.output_filename
     colorset = None
     if options.color:
