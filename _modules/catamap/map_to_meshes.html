@@ -3003,7 +3003,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">recolor_text_specs</span><span class="p">(</span><span class="n">tspec</span><span class="p">,</span> <span class="p">[</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
 
         <span class="c1"># move arrows in order to follow text in 3D</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># get ground altitude map</span>
         <span class="c1">#self.load_ground_altitude(</span>
@@ -3221,13 +3221,14 @@
                         <span class="n">pos</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
                         <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
                         <span class="n">size</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
-                        <span class="n">vert2</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vector_POINT3DF</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
+                        <span class="c1"># vert2 = aims.vector_POINT3DF(vert)</span>
                         <span class="n">decal</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vert</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> \
                             <span class="o">-</span> <span class="n">vert</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="c1">#print(&#39;decal text&#39;, text_o[&#39;objects&#39;][0][&#39;properties&#39;][&#39;text&#39;], list(decal), &#39;to:&#39;, pos, &#39;, size&#39;, size)</span>
                         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vert</span><span class="p">):</span>
-                            <span class="n">v</span> <span class="o">+=</span> <span class="n">decal</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+                            <span class="c1"># v += decal * float(n - i) / n</span>
+                            <span class="n">v</span> <span class="o">+=</span> <span class="n">decal</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
                         <span class="k">if</span> <span class="n">with_squares</span><span class="p">:</span>
                             <span class="c1"># debug: display rectangle around text location</span>
                             <span class="n">size</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
@@ -5489,10 +5490,23 @@
                  <span class="n">dpi</span><span class="p">,</span> <span class="n">shadows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_pdf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">do_jpg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">georef</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">svg2d</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
     <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
+    <span class="n">clip_rect_name</span> <span class="o">=</span> <span class="n">clip_rect</span>
     <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+    <span class="n">yscale</span> <span class="o">=</span> <span class="mf">1.</span>
     <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">ensure_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">)</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_page</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+        <span class="c1"># TODO: remove hard-coded clip here</span>
+        <span class="k">if</span> <span class="n">georef</span> <span class="ow">and</span> <span class="n">clip_rect_name</span> <span class="o">!=</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">:</span>
+            <span class="c1"># not the same clipping as the georefed one</span>
+            <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+            <span class="n">crref</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">)</span>
+            <span class="n">crref</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">crref</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cr</span> <span class="ow">and</span> <span class="n">crref</span><span class="p">:</span>
+                <span class="n">yscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span> \
+                    <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">crref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;use yscale:&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="p">)</span>
+
     <span class="n">map2d</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_flat.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">shadows</span><span class="p">:</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">add_shadows</span><span class="p">(</span><span class="n">map2d</span><span class="p">)</span>
@@ -5521,8 +5535,34 @@
                   <span class="s1">&#39;not be copied&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">tiff_file</span> <span class="o">=</span> <span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.tif&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">)</span>
-        <span class="n">gdalcopyproj</span><span class="o">.</span><span class="n">copy_geo_projection</span><span class="p">(</span><span class="n">georef</span><span class="p">,</span> <span class="n">tiff_file</span><span class="p">)</span>
+        <span class="n">gdalcopyproj</span><span class="o">.</span><span class="n">copy_geo_projection</span><span class="p">(</span><span class="n">georef</span><span class="p">,</span> <span class="n">tiff_file</span><span class="p">,</span> <span class="n">scale_y</span><span class="o">=</span><span class="n">yscale</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;geolocalization info copied.&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="scale_georef_points_file"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.scale_georef_points_file">[docs]</a><span class="k">def</span> <span class="nf">scale_georef_points_file</span><span class="p">(</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">scale_factor_x</span><span class="p">,</span>
+                             <span class="n">scale_factor_y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Rescale source positions in a QGis .points file in order to adapt</span>
+<span class="sd">    to a different resolution</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">scale_factor_y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scale_factor_y</span> <span class="o">=</span> <span class="n">scale_factor_x</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+    <span class="c1"># scale columns 2 and 3 (sourceX,sourceY)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">scale_factor_x</span><span class="p">)</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">*</span> <span class="n">scale_factor_y</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># 1st line is not parsed correctly, write it by hand</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -5804,6 +5844,7 @@
             <span class="k">if</span> <span class="n">do_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">do_pdf</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip:&#39;</span><span class="p">,</span> <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">])</span>
+            <span class="n">georef_yscale</span> <span class="o">=</span> <span class="mf">1.</span>
             <span class="k">if</span> <span class="n">georef</span><span class="p">:</span>
                 <span class="c1"># don&#39;t write jpg, we will use tiff</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_jpg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
