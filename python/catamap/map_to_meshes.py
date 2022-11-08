@@ -1276,9 +1276,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 print('LAMBERT93')
                 self.read_lambert93(xml_element)
                 return (self.noop, clean_return, True)
-                self.read_markers(xml_element, self.photo_marker_model,
-                                  pname)
-                return (self.noop, clean_return, True)
 
         if hidden:
             # hidden layers are not rendered
@@ -2062,7 +2059,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         missing = []
 
         for xml_element in xml:
-            level = self.item_props.level
+            level = xml_element.get('level')
+            if level is None:
+                level = self.item_props.level
             text = None
             pos = None
             trans2 = xml_element.get('transform')
@@ -2136,7 +2135,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     used_texts.setdefault(text, []).append(pos)
                 markers.append([pos + [level, radius],
                                 [base_url + image for image in images]])
-                # print('%s:' % mtype, markers[pos + [level, radius]])
+                # print('%s:' % mtype, markers[-1])
         print('read', len(markers), mtype)
         # check and print duplicates
         dup = False
@@ -2960,7 +2959,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=True)
+        self.attach_arrows_to_text(meshes, with_squares=False)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3137,6 +3136,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     z = 0.
                 mpos[0][2] = z
                 pos[2] = z
+                # print('marker:', level, pos)
                 mmesh = type(mesh_proto)(mesh_proto)  # copy
                 trans = aims.AffineTransformation3d()
                 trans.setTranslation(pos)
