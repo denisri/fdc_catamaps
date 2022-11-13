@@ -1630,18 +1630,35 @@ class SvgToMesh(object):
         return summary
 
 
-    def find_element(self, xml_et, id):
+    def find_element(self, xml_et, filters):
+        filt_layer = None
+        if isinstance(filters, str):
+            filters = {'id': filters}
+        else:
+            if 'layer' in filters:
+                filt_layer = filters['layer']
+                filters = dict(filters)
+                del filters['layer']
+
         doc = xml_et.getroot()
-        todo = [(layer, None) for layer in doc]
+        todo = [(layer, None) for layer in doc
+                if filt_layer is None
+                    or layer.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}label')
+                            == filt_layer]
         while todo:
             elem, strans = todo.pop(0)
-            eid = elem.get('id')
             trans = self.get_transform(elem, strans)
-            if eid == id:
+            match = 0
+            for k, v in filters.items():
+                ev = elem.get(k)
+                if v != ev:
+                    break
+                match += 1
+            if match == len(filters):
                 return elem, trans
             todo += [(child, trans) for child in elem]
         return None
-
 
     def clip_rect_from_id(self, xml_et, rect_id):
         if isinstance(rect_id, str):
