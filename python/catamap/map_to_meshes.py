@@ -502,7 +502,7 @@ class ItemProperties(object):
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
                   'well_read_mode', 'grid_interval', 'marker',
-                  'arrow_base_height_shift')
+                  'arrow_base_height_shift', 'visibility', 'non_visibility')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -536,6 +536,8 @@ class ItemProperties(object):
         self.layer = False
         self.well_read_mode = None
         self.grid_interval = None
+        self.visibility = None
+        self.non_visibility = None
 
     def __str__(self):
         d = ['{']
@@ -620,23 +622,25 @@ class ItemProperties(object):
 
             # alternative to "private: true", using "visibility: private"
             visibility = element.get('visibility')
-            if not visibility:
-                visibility = []
-            elif visibility and visibility.strip().startswith('['):
-                visibility = json.loads(visibility)
-            else:
-                visibility = [visibility]
-            if 'private' in visibility:
-                self.private = True
+            #if not visibility:
+                #visibility = []
+            if visibility is not None:
+                if visibility.strip().startswith('['):
+                    visibility = json.loads(visibility)
+                else:
+                    visibility = [visibility]
+                if 'private' in visibility:
+                    self.private = True
             self.visibility = visibility
 
             non_visibility = element.get('non_visibility')
-            if not non_visibility:
-                non_visibility = []
-            if non_visibility and non_visibility.strip().startswith('['):
-                non_visibility = json.loads(non_visibility)
-            else:
-                non_visibility = [non_visibility]
+            #if not non_visibility:
+                #non_visibility = []
+            if non_visibility is not None:
+                if non_visibility.strip().startswith('['):
+                    non_visibility = json.loads(non_visibility)
+                else:
+                    non_visibility = [non_visibility]
             self.non_visibility = non_visibility
 
             for kind in ('corridor', 'block', 'wall', # 'wireframe',
@@ -1169,6 +1173,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.group_properties = {}
         self.colorset = 'map_3d'  # alt colors to translate to
         self.colorset_inheritance = {}
+        self.map_name = 'map_3d'
 
         if headless:
             try:
@@ -1243,7 +1248,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.group_properties[item_props.main_group] = item_props
             # print(item_props.main_group)
 
-        hidden = self.item_props.hidden
+        hidden = (self.item_props.hidden
+                  or (self.item_props.visibility is not None
+                      and self.map_name not in self.item_props.visibility)
+                  or (self.item_props.non_visibility
+                      and self.map_name in self.item_props.non_visibility))
         self.level = self.item_props.level
         self.main_group = self.item_props.main_group
 
@@ -1411,7 +1420,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         #print('well_type:', well_type, len(wells_spec))
 
     def read_well_group(self, stair_xml, trans, style=None):
-        #print('well with group', props)
         props = self.group_properties[self.main_group]
         props.well = True
         props.corridor = False
@@ -1530,7 +1538,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         try:
             lily_mesh = aims.AimsTimeSurface(self.large_sign_mesh)
         except:
-            print('Mesh error:', type(self.large_sign_mesh))
+            print('Mesh error:', type(self.large_sign_mesh), 'in',
+                  self.item_props)
             return
             #raise
         aims.SurfaceManip.meshTransform(lily_mesh, tr)
@@ -3462,10 +3471,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def make_large_sign_model(self, xml):
         cm = CataMapTo2DMap()
-        protos = cm.find_protos(xml)
-        if not protos:
-            return
-        lproto = protos['label'].get('grande_plaque')
+        lproto = cm.find_element(xml, layer='légende',
+                                 filters={'label': 'grande_plaque'})
         if lproto is None:
             print('No proto for grande_plaque')
             return
@@ -3839,7 +3846,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 pmap[ptype] = item
 
         return repl_map
-
 
     def transform_inf_level(self, xml):
         todo = [xml.getroot()]
@@ -4665,6 +4671,26 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.do_remove_layers(xml)
 
 
+    def resize_poster(self, xml, page_width=1050):
+        target_width = page_width / .254  # mm -> inch
+        if self.clip_rect:
+            rect = self.clip_rect
+        else:
+            rect = xml.getroot()  # main document
+        width = float(rect.get('width'))
+        height = float(rect.get('height'))
+        if height < width:
+            # adapt for landscape orientation
+            target_height = target_width
+            scale = target_height / height
+        else:
+            scale = target_width / width
+        root = xml.getroot()
+        root.set('width', str(width * scale))
+        root.set('height', str(height * scale))
+        root.set('transform', 'scale(%f)' % scale)
+
+
     def remove_other(self, xml, *labels):
         self.removed_labels.update(labels)
         self.do_remove_layers(xml)
@@ -4700,77 +4726,88 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             layer.set('style', 'display:inline')
 
 
+    def shadow_text(self, xml):
+        xml2 = copy.deepcopy(xml)
+        todel = []
+
+        for layer in xml2.getroot():
+            trans = None
+            trans = self.get_transform(layer, trans)
+            # shift (-0.075, 0.075)
+            trans[0, 2] -= 0.075
+            trans[1, 2] += 0.075
+            self.set_transform(layer, trans)
+
+        todo = [(xml2.getroot(), layer) for layer in xml2.getroot()[:]
+                if layer.tag == '{http://www.w3.org/2000/svg}g']
+        while todo:
+            parent, elem = todo.pop(0)
+            tag = elem.tag
+            #if tag not in ('{http://www.w3.org/2000/svg}text',
+                           #'{http://www.w3.org/2000/svg}flowRoot',
+                           #'{http://www.w3.org/2000/svg}g'):
+                #parent.remove(elem)
+                #continue
+            todo += [(elem, sub_elem) for sub_elem in elem]
+            if tag == '{http://www.w3.org/2000/svg}g':
+                if len(elem) == 0:
+                    parent.remove(elem)
+                continue
+            # else text
+            style = self.get_style(elem)
+            if style is None:
+                style = {}
+            if style.get('fill') not in (None, 'none') or tag in (
+                    '{http://www.w3.org/2000/svg}text',
+                    '{http://www.w3.org/2000/svg}flowRoot',
+                    '{http://www.w3.org/2000/svg}tspan',
+                    '{http://www.w3.org/2000/svg}flowRegion'):
+                style['fill'] = '#ffffff'
+                style['fill-opacity'] = 0.5
+            if style.get('stroke') not in (None, 'none'):
+                style['stroke'] = '#ffffff'
+                style['stroke-opacity'] = 0.5
+            self.set_style(elem, style)
+
+        xml2.write('/tmp/shadow_text.svg')  # FIXME debug
+
+        # insert shadowed layers
+        insert_pos = 0
+        for layer in xml.getroot():
+            if layer.tag == '{http://www.w3.org/2000/svg}g':
+                break
+            insert_pos += 1
+
+        for layer in xml2.getroot():
+            if layer.tag == '{http://www.w3.org/2000/svg}g':
+                xml.getroot().insert(insert_pos, layer)
+                insert_pos += 1
+
+    def get_alt_color(self, props, colorset, conv=True):
+        col = None
+        while col is None and colorset:
+            col = CataSvgToMesh.get_alt_color_s(props, colorset, conv)
+            if col is None:
+                colorset = self.colorset_inheritance.get(colorset)
+        return col
+
     def recolor(self, xml, colorset='igc'):
-        colorsets = {
-            #'igc': {
-                ##'galeries': {'bg': '#5dd400ff'},
-                ##'galeries big sud': {'bg': '#5dd400ff'},
-                ##'galeries private': {'bg': '#5dd400ff'},
-                ##'galeries inf': {'bg': '#076552ff'},
-                ##'galeries inf private': {'bg': '#076552ff'},
-                ##'galeries techniques': {'bg': '#5c99d976',
-                                        ##'fg': '#4f5eaaff'},
-                ##'plaques de puits': {'bg': '#424242ff'},
-                ##'plaques de puits inaccessibles': {'bg': '#424242ff'},
-                ##'plaques de puits GTech': {'bg': '#424242ff'},
-                ##'annotations': {'bg': '#424242ff'},
-                ##'annotations metro': {'bg': '#424242ff'},
-                ##'zones': {'bg': '#424242ff'},
-                ##'rues sans plaques': {'bg': '#424242ff'},
-                ##'rues inf': {'bg': '#3a3c68ff'},
-                ##u'curiosités inf': {'bg': '#8c620dff'},
-                ##u'curiosités vdg': {'bg': '#5b601fff'},
-                ##u'curiosités vdg private': {'bg': '#5b601fff'},
-                ##u'curiosités': {'bg': '#5b601fff'},
-            #},
-            #'bator': {
-                ##'galeries': {'bg': '#ff9e00ff'},
-                ##'galeries big sud': {'bg': '#ff9e00ff'},
-                ##'galeries private': {'bg': '#ff9e00ff'},
-                ##'galeries techniques': {'bg': '#ece84976',
-                                        ##'fg': '#aa9f4fff'},
-                ##'metro': {'bg': '#9bc06e64',
-                          ##'fg': '#94be55ff'},
-            #},
-            #'black': {
-                ##'couleur_fond': {'bg': '#000000ff'},
-                ##'couleur_fond sud': {'bg': '#000000ff'},
-                ##'galeries': {'bg': '#0f50ffff',
-                             ##'fg': '#ffffffff',
-                             ##'stroke-width': '0.2'},
-                ##'galeries big sud': {'bg': '#0f50ffff',
-                                     ##'fg': '#ffffffff'},
-                ##'galeries private': {'bg': '#0f50ffff',
-                                     ##'fg': '#ffffffff'},
-                ##'galeries inf': {'bg': '#9abde7ff',
-                                 ##'fg': '#ffffffff'},
-                ##'galeries inf private': {'bg': '#9abde7ff',
-                                         ##'fg': '#ffffffff'},
-                ##'calcaire 2010': {'bg': '#50505000',
-                                  ##'fg': '#60606000'},
-                ##'calcaire ciel ouvert': {'bg': '#50505020',
-                                         ##'fg': '#60606000'},
-                ##'calcaire masse2': {'bg': '#000000ff',
-                                    ##'fg': '#60606000'},
-                ##'calcaire masse': {'bg': '#000000ff',
-                                   ##'fg': '#60606000'},
-                ##'calcaire med': {'bg': '#50505000',
-                                 ##'fg': '#60606000'},
-                ##'calcaire sup': {'bg': '#50505000',
-                                 ##'fg': '#60606000'},
-                ##'calcaire inf': {'bg': '#50505000',
-                                 ##'fg': '#60606000'},
-                ##'agrandissements fond': {'bg': '#01202bff',
-                                 ##'fg': '#88b0caff'},
-                ##'parcelles': {'fg': '#bee0e65d'},
-                ##'salles v1': {'bg': '#c5c5c5ff'},
-            #},
-        }
-        #for k, v in six.iteritems(colorsets):
-            #print(k, v)
-            #v['galeries big sud'] = v['galeries']
+        colorsets = {}
         colors = colorsets.setdefault(colorset, {})
         legend_layer = None
+
+        # get colorset_inheritance dict in metadata
+        if not hasattr(self, 'colorset_inheritance'):
+            self.colorset_inheritance = {}
+            meta = [layer for layer in xml.getroot()
+                    if layer.tag.endswith('}metadata')]
+            if len(meta) != 0:
+                meta = meta[0]
+                colorset_inheritance = meta.get('colorset_inheritance')
+                if colorset_inheritance:
+                    colorset_inheritance = json.loads(colorset_inheritance)
+                    self.colorset_inheritance = colorset_inheritance
+
         for layer in xml.getroot():
             props = ItemProperties()
             props.fill_properties(layer)
@@ -4786,7 +4823,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if len(item) != 0:
                     todo += [(x, parents + [props]) for x in item]
 
-                corridor_colors = CataSvgToMesh.get_alt_color_s(
+                corridor_colors = self.get_alt_color(
                     props, colorset, conv=False)
                 if not corridor_colors:
                     corridor_colors = colors.get(label)
@@ -5121,6 +5158,22 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 print('style:', layer.get('style'))
                 break
 
+    def map_layers_opacity(self, xml):
+        print('map layers opacity')
+        for layer in xml.getroot():
+            if layer.tag != '{http://www.w3.org/2000/svg}g':
+                continue
+            lay_op = layer.get('map_opacity')
+            if lay_op:
+                lay_op = json.loads(lay_op.strip())
+                if self.map_name in lay_op:
+                    opacity = lay_op[self.map_name]
+                    style = self.get_style(layer)
+                    if style is None:
+                        style = {}
+                    style['opacity'] = opacity
+                    self.set_style(layer, style)
+
     def find_clip_rect(self, xml, rect_def):
         for layer in xml.getroot():
             if layer.tag != '{http://www.w3.org/2000/svg}g':
@@ -5128,11 +5181,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label == rect_def:
-                return layer[0].get('id')
+                return layer[0]
             for child in layer:
                 if child.get('id') == rect_def \
                         or child.get('label') == rect_def:
-                    return child.get('id')
+                    return child
 
     def ensure_clip_rect(self, out_xml, rect_id, in_xml):
         ''' if rect_id is not in out_xml, then take it from in_xml and copy it
@@ -5159,6 +5212,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
     def build_2d_map(self, xml, keep_private=True, wip=False,
                      filters=[], map_name=None):
+
+        igc_colorset = 'igc'
+        if map_name.startswith('igcportail'):
+            igc_colorset = 'igcportail'
+
         all_filters = {
             'remove_private': self.remove_private,
             'remove_non_printable1': self.remove_non_printable1,
@@ -5189,52 +5247,52 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'join_layers': self.join_layers,
             'layer_opacity': self.layer_opacity,
             'remove_zooms': self.remove_zooms,
+            'resize_poster': self.resize_poster,
+            'shadow_text': self.shadow_text,
+            'map_layers_opacity': self.map_layers_opacity,
             'printable_map': ['remove_non_printable1', 'show_all',
-                              #'add_shadow',
                               'shift_inf_level', 'replace_symbols', 'date',
                               'zooms', 'remove_non_printable2', 'remove_igc',
-                              'layer_opacity=["XIII masses", "0.31"]'],
+                              'layer_opacity=["XIII masses", "0.31"]',
+                              'map_layers_opacity'],
             'poster_map': ['remove_non_printable1_main', 'show_all',
-                           #'add_shadow',
                            'shift_inf_level', 'replace_symbols', 'date',
                            'zooms', 'remove_non_printable2', 'remove_igc',
-                           'layer_opacity=["XIII masses", "0.31"]'],
+                           'layer_opacity=["XIII masses", "0.31"]',
+                           'map_layers_opacity'],
             'printable_map_public': ['remove_non_printable1_pub', 'show_all',
-                              #'add_shadow',
                               'shift_inf_level', 'replace_symbols', 'date',
                               'zooms', 'remove_non_printable2', 'remove_igc',
-                              'layer_opacity=["XIII masses", "0.31"]'],
-            #'igc': ['remove_private', 'remove_non_printable',
-                    #'remove_background', 'remove_limestone', 'remove_zooms',
-                    #'remove_other=["raccords plan 2D", "parcelles", '
-                                  #'"raccords gtech 2D"]',
-                    #'show_all', 'add_shadow', 'date', 'recolor="igc"'],
+                              'layer_opacity=["XIII masses", "0.31"]',
+                              'map_layers_opacity'],
             'igc': ['remove_private', 'remove_non_printable1_pub',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
-                    'show_all', 'add_shadow', 'date', 'recolor="igc"',
-                    'layer_opacity=["planches fond", "0.44"]',
-                    'layer_opacity=["planches IGC", "0.44"]'],
+                    'show_all', 'date',
+                    'recolor="%s"' % igc_colorset,
+                    'layer_opacity=["planches IGC", "0.44"]',
+                    'map_layers_opacity'],
             'igc_private': ['remove_wip', 'remove_non_printable_igc_private',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
-                    'show_all', 'add_shadow', 'date', 'recolor="igc"',
-                    'layer_opacity=["planches fond", "0.44"]',
-                    'layer_opacity=["planches IGC", "0.44"]'],
+                    'show_all', 'date',
+                    'recolor="%s"' % igc_colorset,
+                    'layer_opacity=["planches IGC", "0.44"]',
+                    'map_layers_opacity'],
             'aqueduc': ['remove_non_printable1', 'show_all',
-                              #'add_shadow',
-                               'shift_inf_level', 'replace_symbols', 'date',                         
-                              'remove_background', 'remove_wip', 
-                              'remove_other=["raccords plan 2D", "parcelles", '
-                                  '"raccords gtech 2D"]',
-                              'replace_symbols', 'date', 'remove_zooms', 
-                              'remove_non_printable2', 'remove_igc', 
-                              'remove_calcaire', 'remove_non_aqueduc',
-                              'layer_opacity=["XIII masses", "0.31"]'],                    
+                        'shift_inf_level', 'replace_symbols', 'date',
+                        'remove_background', 'remove_wip',
+                        'remove_other=["raccords plan 2D", "parcelles", '
+                                      '"raccords gtech 2D"]',
+                        'replace_symbols', 'date', 'remove_zooms',
+                        'remove_non_printable2', 'remove_igc',
+                        'remove_calcaire', 'remove_non_aqueduc',
+                        'layer_opacity=["XIII masses", "0.31"]',
+                        'map_layers_opacity'],
         }
 
         map_2d = copy.deepcopy(xml)
@@ -5267,7 +5325,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 result = filt_def(map_2d, *value)
                 results.append(result)
             else:
-                filters += filt_def
+                filters = filt_def + filters
 
         self.xml.result = results
         print('build_2d_map done.')
@@ -5446,19 +5504,22 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, shadows=True, do_pdf=False, do_jpg=True, georef=None):
     svg2d = CataMapTo2DMap()
-    map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
+    svg2d.clip_rect_name = clip_rect
     clip_rect_name = clip_rect
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
+    svg2d.clip_rect = clip_rect
+    map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
+    if clip_rect is not None:
+        clip_rect = clip_rect.get('id')
     yscale = 1.
-    if clip_rect:
+    if clip_rect is not None:
         svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
         svg2d.clip_page(map2d, clip_rect)
         # TODO: remove hard-coded clip here
         if georef and clip_rect_name != 'nord_sud_clip':
             # not the same clipping as the georefed one
-            cr = svg2d.find_element(xml_et, clip_rect)
+            cr = svg2d.clip_rect
             crref = svg2d.find_clip_rect(xml_et, 'nord_sud_clip')
-            crref = svg2d.find_element(xml_et, crref)
             if cr and crref:
                 yscale = float(cr[0].get('height')) \
                     / float(crref[0].get('height'))
@@ -5471,10 +5532,17 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
 
     # build bitmap and pdf versions
     # private
+    cr = svg2d.find_clip_rect(map2d, clip_rect)
     export_png(out_filename.replace('.svg', '_%s.svg' % map_name),
                dpi, clip_rect)
     if do_pdf:
         export_pdf(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
+        # TODO: add scaling
+        # for now to scale PDF:
+        # pdfjam --outfile out.pdf --papersize '{1050mm,1240.81mm}' --landscape in.pdf
+        # if needed, rotate:
+        # qpdf --rotate=270:1 plan_14_fdc_2022_11_08_poster_private_flat.pdf plan_14_fdc_2022_11_08_poster_private_flat_270.pdf
+
     os.unlink(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     if do_jpg or georef:
         if georef:
@@ -5541,8 +5609,12 @@ def main():
         'poster': '360',
         'igc': '180',
         'igc_private': '300',
+        'igcportail': '720',
+        'igcportail_txt': '720',
+        'igcportail_legend': '720',
+        'igcportail_tech': '720',
     }
-    all_maps = 'public,private,wip,poster,igc,igc_private','aqueduc','No_Gtech'
+    all_maps = 'public,private,wip,poster,igc,igc_private,aqueduc,No_Gtech'
 
     class MultilineFormatter(argparse.HelpFormatter):
         def _fill_text(self, text, width, indent):
@@ -5577,8 +5649,9 @@ The program allows to produce:
         help='specify which 2d maps should be built, ex: '
         '"public,private,igc". Values are in ("public", "private", "wip", '
         '"poster", "igc", "igc_private", "aqueduc", "No_GTech", "igcportail", '
-        '"igcportail_txt"). Default: all if --2d is used. If '
-        'this option is specified, --2d is implied (thus is not needed)')
+        '"igcportail_txt", "igcportail_legend", "igcportail_tech"). Default: '
+        'all if --2d is used. If this option is specified, --2d is implied '
+        '(thus is not needed)')
     parser.add_argument(
         '--3d', action='store_true', dest='do_3d',
         help='Build 3D map meshes in the "%s/" directory' % out_dirname)
@@ -5724,28 +5797,35 @@ The program allows to produce:
 
         maps_def = {
             'private': {
-                'name': 'imprimable_private',
+                'name': 'private',
                 'filters': ['remove_wip', 'printable_map'] + col_filter,
                 'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'poster': {
+                'name': 'poster',
+                'filters': ['remove_private', 'poster_map'] + col_filter,
+                'clip_rect': 'grs_clip',
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'poster_private': {
                 'name': 'poster_private',
                 'filters': ['remove_wip', 'poster_map'] + col_filter,
                 'clip_rect': 'grs_clip',
                 'shadows': True,
-                'do_pdf': False,
+                'do_pdf': True,
             },
             'wip': {
-                'name': 'imprimable_private_wip',
+                'name': 'private_wip',
                 'filters': ['printable_map'] + col_filter,
                 'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'public': {
-                'name': 'imprimable',
+                'name': 'public',
                 'filters': ['remove_private', 'remove_gtech',
                             'printable_map_public'] + col_filter,
                 'clip_rect': 'grs_clip',
@@ -5770,12 +5850,28 @@ The program allows to produce:
                 'name': 'igcportail',
                 'filters': ['igc_private'],
                 'clip_rect': 'nord_sud_clip',
-                'shadows': True,
+                'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_txt': {
                 'name': 'igcportail_txt',
+                'filters': ['igc_private', 'shadow_text'],
+                'clip_rect': 'nord_sud_clip',
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_legend': {
+                'name': 'igcportail_legend',
+                'filters': ['igc_private', 'shadow_text'],
+                'clip_rect': 'nord_sud_clip',
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_tech': {
+                'name': 'igcportail_tech',
                 'filters': ['igc_private'],
                 'clip_rect': 'nord_sud_clip',
                 'shadows': False,
