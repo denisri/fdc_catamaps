@@ -545,7 +545,7 @@
                   <span class="s1">&#39;depth_map&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;border&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;label_alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;marker&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">)</span>
+                  <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;visibility&#39;</span><span class="p">,</span> <span class="s1">&#39;non_visibility&#39;</span><span class="p">)</span>
 
     <span class="n">prop_types</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># will be initialized when used in get_typed_prop()</span>
 
@@ -579,6 +579,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">well_read_mode</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">grid_interval</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_visibility</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;{&#39;</span><span class="p">]</span>
@@ -663,23 +665,25 @@
 
             <span class="c1"># alternative to &quot;private: true&quot;, using &quot;visibility: private&quot;</span>
             <span class="n">visibility</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visibility&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">visibility</span><span class="p">:</span>
-                <span class="n">visibility</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">elif</span> <span class="n">visibility</span> <span class="ow">and</span> <span class="n">visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
-                <span class="n">visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">visibility</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">visibility</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">private</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1">#if not visibility:</span>
+                <span class="c1">#visibility = []</span>
+            <span class="k">if</span> <span class="n">visibility</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                    <span class="n">visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">visibility</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">visibility</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">visibility</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">private</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="n">visibility</span>
 
             <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;non_visibility&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">non_visibility</span><span class="p">:</span>
-                <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">non_visibility</span> <span class="ow">and</span> <span class="n">non_visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
-                <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">non_visibility</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">non_visibility</span><span class="p">]</span>
+            <span class="c1">#if not non_visibility:</span>
+                <span class="c1">#non_visibility = []</span>
+            <span class="k">if</span> <span class="n">non_visibility</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">non_visibility</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                    <span class="n">non_visibility</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">non_visibility</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">non_visibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">non_visibility</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">non_visibility</span> <span class="o">=</span> <span class="n">non_visibility</span>
 
             <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;corridor&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="c1"># &#39;wireframe&#39;,</span>
@@ -1212,6 +1216,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>  <span class="c1"># alt colors to translate to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>
 
         <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1286,7 +1291,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="n">item_props</span><span class="o">.</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">item_props</span>
             <span class="c1"># print(item_props.main_group)</span>
 
-        <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">hidden</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">hidden</span>
+                  <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">visibility</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                      <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">visibility</span><span class="p">)</span>
+                  <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">non_visibility</span>
+                      <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">non_visibility</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">main_group</span>
 
@@ -1454,7 +1463,6 @@
         <span class="c1">#print(&#39;well_type:&#39;, well_type, len(wells_spec))</span>
 
     <span class="k">def</span> <span class="nf">read_well_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stair_xml</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1">#print(&#39;well with group&#39;, props)</span>
         <span class="n">props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">main_group</span><span class="p">]</span>
         <span class="n">props</span><span class="o">.</span><span class="n">well</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">props</span><span class="o">.</span><span class="n">corridor</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1573,7 +1581,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">lily_mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh error:&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mesh error:&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">large_sign_mesh</span><span class="p">),</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="p">)</span>
             <span class="k">return</span>
             <span class="c1">#raise</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">lily_mesh</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
@@ -3505,10 +3514,8 @@
 
     <span class="k">def</span> <span class="nf">make_large_sign_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
-        <span class="n">protos</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">find_protos</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">protos</span><span class="p">:</span>
-            <span class="k">return</span>
-        <span class="n">lproto</span> <span class="o">=</span> <span class="n">protos</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;grande_plaque&#39;</span><span class="p">)</span>
+        <span class="n">lproto</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="s1">&#39;légende&#39;</span><span class="p">,</span>
+                                 <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s1">&#39;grande_plaque&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">lproto</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No proto for grande_plaque&#39;</span><span class="p">)</span>
             <span class="k">return</span>
@@ -3882,7 +3889,6 @@
                 <span class="n">pmap</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
 
         <span class="k">return</span> <span class="n">repl_map</span>
-
 
     <span class="k">def</span> <span class="nf">transform_inf_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()]</span>
@@ -4708,6 +4714,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
 
+    <span class="k">def</span> <span class="nf">resize_poster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">page_width</span><span class="o">=</span><span class="mi">1050</span><span class="p">):</span>
+        <span class="n">target_width</span> <span class="o">=</span> <span class="n">page_width</span> <span class="o">/</span> <span class="mf">.254</span>  <span class="c1"># mm -&gt; inch</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_rect</span><span class="p">:</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_rect</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>  <span class="c1"># main document</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">height</span> <span class="o">&lt;</span> <span class="n">width</span><span class="p">:</span>
+            <span class="c1"># adapt for landscape orientation</span>
+            <span class="n">target_height</span> <span class="o">=</span> <span class="n">target_width</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">target_height</span> <span class="o">/</span> <span class="n">height</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">target_width</span> <span class="o">/</span> <span class="n">width</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
+        <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
+        <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="s1">&#39;scale(</span><span class="si">%f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">scale</span><span class="p">)</span>
+
+
     <span class="k">def</span> <span class="nf">remove_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="o">*</span><span class="n">labels</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -4743,77 +4769,88 @@
             <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;display:inline&#39;</span><span class="p">)</span>
 
 
+    <span class="k">def</span> <span class="nf">shadow_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="n">xml2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+        <span class="n">todel</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml2</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
+            <span class="n">trans</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+            <span class="c1"># shift (-0.075, 0.075)</span>
+            <span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-=</span> <span class="mf">0.075</span>
+            <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.075</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+
+        <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xml2</span><span class="o">.</span><span class="n">getroot</span><span class="p">(),</span> <span class="n">layer</span><span class="p">)</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml2</span><span class="o">.</span><span class="n">getroot</span><span class="p">()[:]</span>
+                <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">parent</span><span class="p">,</span> <span class="n">elem</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">tag</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">tag</span>
+            <span class="c1">#if tag not in (&#39;{http://www.w3.org/2000/svg}text&#39;,</span>
+                           <span class="c1">#&#39;{http://www.w3.org/2000/svg}flowRoot&#39;,</span>
+                           <span class="c1">#&#39;{http://www.w3.org/2000/svg}g&#39;):</span>
+                <span class="c1">#parent.remove(elem)</span>
+                <span class="c1">#continue</span>
+            <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">elem</span><span class="p">,</span> <span class="n">sub_elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">sub_elem</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">parent</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># else text</span>
+            <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">style</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fill&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="s1">&#39;{http://www.w3.org/2000/svg}text&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;{http://www.w3.org/2000/svg}flowRoot&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;{http://www.w3.org/2000/svg}tspan&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;{http://www.w3.org/2000/svg}flowRegion&#39;</span><span class="p">):</span>
+                <span class="n">style</span><span class="p">[</span><span class="s1">&#39;fill&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#ffffff&#39;</span>
+                <span class="n">style</span><span class="p">[</span><span class="s1">&#39;fill-opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">):</span>
+                <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#ffffff&#39;</span>
+                <span class="n">style</span><span class="p">[</span><span class="s1">&#39;stroke-opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+        <span class="n">xml2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;/tmp/shadow_text.svg&#39;</span><span class="p">)</span>  <span class="c1"># FIXME debug</span>
+
+        <span class="c1"># insert shadowed layers</span>
+        <span class="n">insert_pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">insert_pos</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml2</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
+                <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">insert_pos</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+                <span class="n">insert_pos</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">get_alt_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">while</span> <span class="n">col</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">colorset</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="o">.</span><span class="n">get_alt_color_s</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">conv</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">colorset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colorset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">col</span>
+
     <span class="k">def</span> <span class="nf">recolor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="s1">&#39;igc&#39;</span><span class="p">):</span>
-        <span class="n">colorsets</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="c1">#&#39;igc&#39;: {</span>
-                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
-                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
-                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#5dd400ff&#39;},</span>
-                <span class="c1">##&#39;galeries inf&#39;: {&#39;bg&#39;: &#39;#076552ff&#39;},</span>
-                <span class="c1">##&#39;galeries inf private&#39;: {&#39;bg&#39;: &#39;#076552ff&#39;},</span>
-                <span class="c1">##&#39;galeries techniques&#39;: {&#39;bg&#39;: &#39;#5c99d976&#39;,</span>
-                                        <span class="c1">##&#39;fg&#39;: &#39;#4f5eaaff&#39;},</span>
-                <span class="c1">##&#39;plaques de puits&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;plaques de puits inaccessibles&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;plaques de puits GTech&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;annotations&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;annotations metro&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;zones&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;rues sans plaques&#39;: {&#39;bg&#39;: &#39;#424242ff&#39;},</span>
-                <span class="c1">##&#39;rues inf&#39;: {&#39;bg&#39;: &#39;#3a3c68ff&#39;},</span>
-                <span class="c1">##u&#39;curiosités inf&#39;: {&#39;bg&#39;: &#39;#8c620dff&#39;},</span>
-                <span class="c1">##u&#39;curiosités vdg&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
-                <span class="c1">##u&#39;curiosités vdg private&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
-                <span class="c1">##u&#39;curiosités&#39;: {&#39;bg&#39;: &#39;#5b601fff&#39;},</span>
-            <span class="c1">#},</span>
-            <span class="c1">#&#39;bator&#39;: {</span>
-                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
-                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
-                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#ff9e00ff&#39;},</span>
-                <span class="c1">##&#39;galeries techniques&#39;: {&#39;bg&#39;: &#39;#ece84976&#39;,</span>
-                                        <span class="c1">##&#39;fg&#39;: &#39;#aa9f4fff&#39;},</span>
-                <span class="c1">##&#39;metro&#39;: {&#39;bg&#39;: &#39;#9bc06e64&#39;,</span>
-                          <span class="c1">##&#39;fg&#39;: &#39;#94be55ff&#39;},</span>
-            <span class="c1">#},</span>
-            <span class="c1">#&#39;black&#39;: {</span>
-                <span class="c1">##&#39;couleur_fond&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;},</span>
-                <span class="c1">##&#39;couleur_fond sud&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;},</span>
-                <span class="c1">##&#39;galeries&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
-                             <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;,</span>
-                             <span class="c1">##&#39;stroke-width&#39;: &#39;0.2&#39;},</span>
-                <span class="c1">##&#39;galeries big sud&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
-                                     <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
-                <span class="c1">##&#39;galeries private&#39;: {&#39;bg&#39;: &#39;#0f50ffff&#39;,</span>
-                                     <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
-                <span class="c1">##&#39;galeries inf&#39;: {&#39;bg&#39;: &#39;#9abde7ff&#39;,</span>
-                                 <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
-                <span class="c1">##&#39;galeries inf private&#39;: {&#39;bg&#39;: &#39;#9abde7ff&#39;,</span>
-                                         <span class="c1">##&#39;fg&#39;: &#39;#ffffffff&#39;},</span>
-                <span class="c1">##&#39;calcaire 2010&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
-                                  <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire ciel ouvert&#39;: {&#39;bg&#39;: &#39;#50505020&#39;,</span>
-                                         <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire masse2&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;,</span>
-                                    <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire masse&#39;: {&#39;bg&#39;: &#39;#000000ff&#39;,</span>
-                                   <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire med&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
-                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire sup&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
-                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;calcaire inf&#39;: {&#39;bg&#39;: &#39;#50505000&#39;,</span>
-                                 <span class="c1">##&#39;fg&#39;: &#39;#60606000&#39;},</span>
-                <span class="c1">##&#39;agrandissements fond&#39;: {&#39;bg&#39;: &#39;#01202bff&#39;,</span>
-                                 <span class="c1">##&#39;fg&#39;: &#39;#88b0caff&#39;},</span>
-                <span class="c1">##&#39;parcelles&#39;: {&#39;fg&#39;: &#39;#bee0e65d&#39;},</span>
-                <span class="c1">##&#39;salles v1&#39;: {&#39;bg&#39;: &#39;#c5c5c5ff&#39;},</span>
-            <span class="c1">#},</span>
-        <span class="p">}</span>
-        <span class="c1">#for k, v in six.iteritems(colorsets):</span>
-            <span class="c1">#print(k, v)</span>
-            <span class="c1">#v[&#39;galeries big sud&#39;] = v[&#39;galeries&#39;]</span>
+        <span class="n">colorsets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">colors</span> <span class="o">=</span> <span class="n">colorsets</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">colorset</span><span class="p">,</span> <span class="p">{})</span>
         <span class="n">legend_layer</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># get colorset_inheritance dict in metadata</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;colorset_inheritance&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="p">[</span><span class="n">layer</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}metadata&#39;</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;colorset_inheritance&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">colorset_inheritance</span><span class="p">:</span>
+                    <span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">colorset_inheritance</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="n">colorset_inheritance</span>
+
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
             <span class="n">props</span><span class="o">.</span><span class="n">fill_properties</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
@@ -4829,7 +4866,7 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">parents</span> <span class="o">+</span> <span class="p">[</span><span class="n">props</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
 
-                <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="o">.</span><span class="n">get_alt_color_s</span><span class="p">(</span>
+                <span class="n">corridor_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span>
                     <span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">corridor_colors</span><span class="p">:</span>
                     <span class="n">corridor_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
@@ -5164,6 +5201,22 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;style:&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">))</span>
                 <span class="k">break</span>
 
+    <span class="k">def</span> <span class="nf">map_layers_opacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;map layers opacity&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">!=</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">lay_op</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;map_opacity&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lay_op</span><span class="p">:</span>
+                <span class="n">lay_op</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lay_op</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">in</span> <span class="n">lay_op</span><span class="p">:</span>
+                    <span class="n">opacity</span> <span class="o">=</span> <span class="n">lay_op</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">map_name</span><span class="p">]</span>
+                    <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">style</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">style</span><span class="p">[</span><span class="s1">&#39;opacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">opacity</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">find_clip_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">rect_def</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">!=</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
@@ -5171,11 +5224,11 @@
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">rect_def</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">rect_def</span> \
                         <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">rect_def</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">child</span>
 
 <div class="viewcode-block" id="CataMapTo2DMap.ensure_clip_rect"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataMapTo2DMap.ensure_clip_rect">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_clip_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_xml</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">,</span> <span class="n">in_xml</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; if rect_id is not in out_xml, then take it from in_xml and copy it</span>
@@ -5202,6 +5255,11 @@
 
     <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">keep_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                      <span class="n">filters</span><span class="o">=</span><span class="p">[],</span> <span class="n">map_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">igc_colorset</span> <span class="o">=</span> <span class="s1">&#39;igc&#39;</span>
+        <span class="k">if</span> <span class="n">map_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;igcportail&#39;</span><span class="p">):</span>
+            <span class="n">igc_colorset</span> <span class="o">=</span> <span class="s1">&#39;igcportail&#39;</span>
+
         <span class="n">all_filters</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;remove_private&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_private</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable1</span><span class="p">,</span>
@@ -5232,52 +5290,52 @@
             <span class="s1">&#39;join_layers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">join_layers</span><span class="p">,</span>
             <span class="s1">&#39;layer_opacity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_opacity</span><span class="p">,</span>
             <span class="s1">&#39;remove_zooms&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_zooms</span><span class="p">,</span>
+            <span class="s1">&#39;resize_poster&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">resize_poster</span><span class="p">,</span>
+            <span class="s1">&#39;shadow_text&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shadow_text</span><span class="p">,</span>
+            <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_layers_opacity</span><span class="p">,</span>
             <span class="s1">&#39;printable_map&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
-                              <span class="c1">#&#39;add_shadow&#39;,</span>
                               <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">],</span>
+                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;poster_map&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1_main&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
-                           <span class="c1">#&#39;add_shadow&#39;,</span>
                            <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
                            <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
-                           <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">],</span>
+                           <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;printable_map_public&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
-                              <span class="c1">#&#39;add_shadow&#39;,</span>
                               <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">],</span>
-            <span class="c1">#&#39;igc&#39;: [&#39;remove_private&#39;, &#39;remove_non_printable&#39;,</span>
-                    <span class="c1">#&#39;remove_background&#39;, &#39;remove_limestone&#39;, &#39;remove_zooms&#39;,</span>
-                    <span class="c1">#&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
-                                  <span class="c1">#&#39;&quot;raccords gtech 2D&quot;]&#39;,</span>
-                    <span class="c1">#&#39;show_all&#39;, &#39;add_shadow&#39;, &#39;date&#39;, &#39;recolor=&quot;igc&quot;&#39;],</span>
+                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_limestone&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
                                   <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;add_shadow&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;recolor=&quot;igc&quot;&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;layer_opacity=[&quot;planches fond&quot;, &quot;0.44&quot;]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">igc_colorset</span><span class="p">,</span>
+                    <span class="s1">&#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable_igc_private&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_limestone&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
                                   <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;add_shadow&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;recolor=&quot;igc&quot;&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;layer_opacity=[&quot;planches fond&quot;, &quot;0.44&quot;]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">igc_colorset</span><span class="p">,</span>
+                    <span class="s1">&#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
-                              <span class="c1">#&#39;add_shadow&#39;,</span>
-                               <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>                         
-                              <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> 
-                              <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
-                                  <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span> 
-                              <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span> 
-                              <span class="s1">&#39;remove_calcaire&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_aqueduc&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">],</span>                    
+                        <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
+                                      <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;remove_calcaire&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_aqueduc&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
         <span class="p">}</span>
 
         <span class="n">map_2d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -5310,7 +5368,7 @@
                 <span class="n">result</span> <span class="o">=</span> <span class="n">filt_def</span><span class="p">(</span><span class="n">map_2d</span><span class="p">,</span> <span class="o">*</span><span class="n">value</span><span class="p">)</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">filters</span> <span class="o">+=</span> <span class="n">filt_def</span>
+                <span class="n">filters</span> <span class="o">=</span> <span class="n">filt_def</span> <span class="o">+</span> <span class="n">filters</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">results</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;build_2d_map done.&#39;</span><span class="p">)</span>
@@ -5489,19 +5547,22 @@
 <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">map_name</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span>
                  <span class="n">dpi</span><span class="p">,</span> <span class="n">shadows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_pdf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">do_jpg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">georef</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">svg2d</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
-    <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
+    <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_rect_name</span> <span class="o">=</span> <span class="n">clip_rect</span>
     <span class="n">clip_rect_name</span> <span class="o">=</span> <span class="n">clip_rect</span>
     <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+    <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_rect</span> <span class="o">=</span> <span class="n">clip_rect</span>
+    <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clip_rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">clip_rect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
     <span class="n">yscale</span> <span class="o">=</span> <span class="mf">1.</span>
-    <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">clip_rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">ensure_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">)</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_page</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
         <span class="c1"># TODO: remove hard-coded clip here</span>
         <span class="k">if</span> <span class="n">georef</span> <span class="ow">and</span> <span class="n">clip_rect_name</span> <span class="o">!=</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">:</span>
             <span class="c1"># not the same clipping as the georefed one</span>
-            <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+            <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_rect</span>
             <span class="n">crref</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">)</span>
-            <span class="n">crref</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">crref</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cr</span> <span class="ow">and</span> <span class="n">crref</span><span class="p">:</span>
                 <span class="n">yscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span> \
                     <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">crref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
@@ -5514,10 +5575,17 @@
 
     <span class="c1"># build bitmap and pdf versions</span>
     <span class="c1"># private</span>
+    <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
     <span class="n">export_png</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">),</span>
                <span class="n">dpi</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">do_pdf</span><span class="p">:</span>
         <span class="n">export_pdf</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_flat.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
+        <span class="c1"># TODO: add scaling</span>
+        <span class="c1"># for now to scale PDF:</span>
+        <span class="c1"># pdfjam --outfile out.pdf --papersize &#39;{1050mm,1240.81mm}&#39; --landscape in.pdf</span>
+        <span class="c1"># if needed, rotate:</span>
+        <span class="c1"># qpdf --rotate=270:1 plan_14_fdc_2022_11_08_poster_private_flat.pdf plan_14_fdc_2022_11_08_poster_private_flat_270.pdf</span>
+
     <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_flat.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">do_jpg</span> <span class="ow">or</span> <span class="n">georef</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">georef</span><span class="p">:</span>
@@ -5584,8 +5652,12 @@
         <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="s1">&#39;180&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="s1">&#39;300&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_private&#39;</span><span class="p">,</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span><span class="s1">&#39;No_Gtech&#39;</span>
+    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_private,aqueduc,No_Gtech&#39;</span>
 
     <span class="k">class</span> <span class="nc">MultilineFormatter</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">HelpFormatter</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_fill_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
@@ -5620,8 +5692,9 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify which 2d maps should be built, ex: &#39;</span>
         <span class="s1">&#39;&quot;public,private,igc&quot;. Values are in (&quot;public&quot;, &quot;private&quot;, &quot;wip&quot;, &#39;</span>
         <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &quot;No_GTech&quot;, &quot;igcportail&quot;, &#39;</span>
-        <span class="s1">&#39;&quot;igcportail_txt&quot;). Default: all if --2d is used. If &#39;</span>
-        <span class="s1">&#39;this option is specified, --2d is implied (thus is not needed)&#39;</span><span class="p">)</span>
+        <span class="s1">&#39;&quot;igcportail_txt&quot;, &quot;igcportail_legend&quot;, &quot;igcportail_tech&quot;). Default: &#39;</span>
+        <span class="s1">&#39;all if --2d is used. If this option is specified, --2d is implied &#39;</span>
+        <span class="s1">&#39;(thus is not needed)&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--3d&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_3d&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Build 3D map meshes in the &quot;</span><span class="si">%s</span><span class="s1">/&quot; directory&#39;</span> <span class="o">%</span> <span class="n">out_dirname</span><span class="p">)</span>
@@ -5767,28 +5840,35 @@
 
         <span class="n">maps_def</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;imprimable_private&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;grs_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;poster_private&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster_private&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;grs_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;wip&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;imprimable_private_wip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private_wip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;printable_map&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;public&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;imprimable&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_gtech&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;printable_map_public&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_filter</span><span class="p">,</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;grs_clip&#39;</span><span class="p">,</span>
@@ -5813,12 +5893,28 @@
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;clip_rect&#39;</span><span class="p">:</span> <span class="s1">&#39;nord_sud_clip&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
