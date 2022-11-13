@@ -3471,14 +3471,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def make_large_sign_model(self, xml):
         cm = CataMapTo2DMap()
-        lproto = cm.find_element(xml, layer='légende',
-                                 filters={'label': 'grande_plaque'})
+        lproto = cm.find_element(xml,
+                                 filters={'layer': 'légende',
+                                          'label': 'grande_plaque'})
         if lproto is None:
             print('No proto for grande_plaque')
             return
         self.main_group = 'grande_plaque'
         lily_l = aims.AimsTimeSurface_2()
-        todo = list(lproto['element'])
+        todo = [lproto[0]]
+        trans = lproto[1]
         while todo:
             child = todo.pop(0)
             if child.tag.endswith('}g'):
@@ -3488,7 +3490,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 continue
             aims.SurfaceManip.meshMerge(
                 lily_l, self.read_path(child,
-                                         self.proto_scale * lproto['trans']))
+                                       self.proto_scale * trans))
         lily_up_l, lily_w = self.extrude(lily_l, 1.)
         lily_bk = self.tesselate(lily_l)
         lily_up = self.tesselate(lily_up_l)
