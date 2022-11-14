@@ -4732,12 +4732,21 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         xml2 = copy.deepcopy(xml)
         todel = []
 
+        shift = [-0.075, 0.075]
+        meta = [layer for layer in xml.getroot()
+                if layer.tag.endswith('}metadata')]
+        if len(meta) != 0:
+            meta = meta[0]
+            shift_txt = meta.get('text_shadow_shift')
+            if shift_txt:
+                shift = json.loads(shift_txt)
+
         for layer in xml2.getroot():
             trans = None
             trans = self.get_transform(layer, trans)
             # shift (-0.075, 0.075)
-            trans[0, 2] -= 0.075
-            trans[1, 2] += 0.075
+            trans[0, 2] += shift[0]
+            trans[1, 2] += shift[1]
             self.set_transform(layer, trans)
 
         todo = [(xml2.getroot(), layer) for layer in xml2.getroot()[:]
