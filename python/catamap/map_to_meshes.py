@@ -5522,7 +5522,10 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
     if clip_rect is not None:
         clip_rect = clip_rect.get('id')
+    xscale = 1.
     yscale = 1.
+    xoffset = 0.
+    yoffset = 0.
     if clip_rect is not None:
         svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
         svg2d.clip_page(map2d, clip_rect)
