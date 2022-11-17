@@ -5565,7 +5565,10 @@
     <span class="n">map2d</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">build_2d_map</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span> <span class="n">map_name</span><span class="o">=</span><span class="n">map_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">clip_rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">clip_rect</span> <span class="o">=</span> <span class="n">clip_rect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+    <span class="n">xscale</span> <span class="o">=</span> <span class="mf">1.</span>
     <span class="n">yscale</span> <span class="o">=</span> <span class="mf">1.</span>
+    <span class="n">xoffset</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">yoffset</span> <span class="o">=</span> <span class="mf">0.</span>
     <span class="k">if</span> <span class="n">clip_rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">ensure_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">)</span>
         <span class="n">svg2d</span><span class="o">.</span><span class="n">clip_page</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
