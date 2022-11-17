@@ -5529,12 +5529,20 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
         # TODO: remove hard-coded clip here
         if georef and clip_rect_name != 'nord_sud_clip':
             # not the same clipping as the georefed one
+            print('recalculate georef scaling')
             cr = svg2d.clip_rect
             crref = svg2d.find_clip_rect(xml_et, 'nord_sud_clip')
-            if cr and crref:
-                yscale = float(cr[0].get('height')) \
-                    / float(crref[0].get('height'))
-                print('use yscale:', yscale)
+            print(cr, crref)
+            if cr is not None and crref is not None:
+                xscale = float(cr.get('width')) \
+                    / float(crref.get('width'))
+                yscale = float(cr.get('height')) \
+                    / float(crref.get('height'))
+                xoffset = (float(cr.get('x')) - float(crref.get('x'))) \
+                    / float(crref.get('width'))
+                yoffset = (float(cr.get('y')) - float(crref.get('y'))) \
+                    / float(crref.get('height'))
+                print('use scale/offset:', xscale, yscale, xoffset, yoffset)
 
     map2d.write(out_filename.replace('.svg', '_%s_flat.svg' % map_name))
     if shadows:
@@ -5571,7 +5579,9 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                   'not be copied')
             return
         tiff_file = out_filename.replace('.svg', '_%s.tif' % map_name)
-        gdalcopyproj.copy_geo_projection(georef, tiff_file, scale_y=yscale)
+        gdalcopyproj.copy_geo_projection(
+            georef, tiff_file, scale_x=xscale, scale_y=yscale,
+            offset_x=xoffset, offset_y=yoffset)
         print('geolocalization info copied.')
 
 
