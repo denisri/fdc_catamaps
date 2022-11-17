@@ -40,8 +40,8 @@ import os.path
 from argparse import ArgumentParser
 
 
-def copy_geo_projection(input, output, scale_x=1., scale_y=None, align_x=False,
-                        align_y=False):
+def copy_geo_projection(input, output, scale_x=1., scale_y=None, offset_x=0.,
+                        offset_y=0., align_x=False, align_y=False):
     dataset = gdal.Open(input)
     if dataset is None:
         print('Unable to open', input, 'for reading')
@@ -70,7 +70,10 @@ def copy_geo_projection(input, output, scale_x=1., scale_y=None, align_x=False,
     elif align_y:
         xscale = yscale
     # print('xscale:', xscale, ', yscale:', yscale)
+    geotransform_new[0] += dataset.RasterXSize * offset_x * geotransform_new[1]
     geotransform_new[1] = geotransform_new[1] * xscale * scale_x
+    print('y shift:', dataset.RasterYSize * offset_y * geotransform_new[5])
+    geotransform_new[3] = geotransform_new[3] + dataset.RasterYSize * offset_y * geotransform_new[5]
     geotransform_new[5] = geotransform_new[5] * yscale * scale_y
     # 2nd and 6th value of GetGeoTransform() is X/Y projection unit per pixel
     # it should be changed if resolution (aka pixel / RasterSize) changed
@@ -93,6 +96,10 @@ if __name__ == '__main__':
                         help='scale for X coords')
     parser.add_argument('-y', '--yscale', type=float,
                         help='scale for Y coords (default=same as xscale)')
+    parser.add_argument('-X', '--xoffset', type=float, default=0.,
+                        help='proportional offset for X coords')
+    parser.add_argument('-Y', '--yoffset', type=float, default=0.,
+                        help='proportional offset for Y coords')
     parser.add_argument('--align_x', action='store_true',
                         help='calculate isotropic scaling between source and '
                         'destination, assuming the X field of view matches')
@@ -112,6 +119,8 @@ if __name__ == '__main__':
     output = options.destination
     scale_x = options.xscale
     scale_y = options.yscale
+    offset_x = options.xoffset
+    offset_y = options.yoffset
     align_x = options.align_x
     align_y = options.align_y
     if align_x and align_y:
@@ -119,5 +128,6 @@ if __name__ == '__main__':
         sus.exit(1)
 
     copy_geo_projection(input, output, scale_x=scale_x, scale_y=scale_y,
+                        offset_x=offset_x, offset_y=offset_y,
                         align_x=align_x, align_y=align_y)
 
