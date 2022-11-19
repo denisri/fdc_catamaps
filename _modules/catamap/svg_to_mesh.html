@@ -1703,6 +1703,18 @@
             <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">]</span>
         <span class="k">return</span> <span class="kc">None</span>
 
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">xml_et</span><span class="p">):</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">[</span><span class="n">layer</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml_et</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}metadata&#39;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">meta</span>
+
+
     <span class="k">def</span> <span class="nf">clip_rect_from_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rect_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">)</span>
