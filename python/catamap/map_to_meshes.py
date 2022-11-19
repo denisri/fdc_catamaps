@@ -468,6 +468,7 @@ import time  # just for exec time stats
 from argparse import ArgumentParser
 import textwrap as _textwrap
 import argparse
+import csv
 try:
     import PIL.Image
 except ImportError:
@@ -4528,7 +4529,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         for layer in xml.getroot():
             print('filter private in', layer.get('{http://www.inkscape.org/namespaces/inkscape}label'))
             todo = [(layer, element) for element in layer]
-            print('todo:', len(todo))
             while todo:
                 parent, element = todo.pop(0)
                 if element.get('visibility') == 'private' \
@@ -5224,9 +5224,24 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def build_2d_map(self, xml, keep_private=True, wip=False,
                      filters=[], map_name=None):
 
-        igc_colorset = 'igc'
-        if map_name.startswith('igcportail'):
-            igc_colorset = 'igcportail'
+        #igc_colorset = 'igc'
+        #if map_name.startswith('igcportail'):
+            #igc_colorset = 'igcportail'
+
+        meta = self.get_metadata(xml)
+
+        recolor = [x for x in filters if x.startswith('recolor=')]
+        if meta is not None and len(recolor) == 0:
+            colorsets = meta.get('colorsets')
+            if colorsets:
+                colorsets = json.loads(colorsets)
+                def_colorset = colorsets.get(map_name)
+                # TODO: remove the exception here:
+                if def_colorset: # and not map_name.startswith('igc'):
+                    filters.insert(0, 'recolor="%s"' % def_colorset)
+        # if forcing recolor=default, just remove the filter
+        if 'recolor="default"' in filters:
+            filters.remove('recolor="default"')
 
         all_filters = {
             'remove_private': self.remove_private,
@@ -5282,7 +5297,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
                     'show_all', 'date',
-                    'recolor="%s"' % igc_colorset,
+                    #'recolor="%s"' % igc_colorset,
                     'layer_opacity=["planches IGC", "0.44"]',
                     'map_layers_opacity'],
             'igc_private': ['remove_wip', 'remove_non_printable_igc_private',
@@ -5291,7 +5306,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'remove_other=["raccords plan 2D", "parcelles", '
                                   '"raccords gtech 2D"]',
                     'show_all', 'date',
-                    'recolor="%s"' % igc_colorset,
+                    #'recolor="%s"' % igc_colorset,
                     'layer_opacity=["planches IGC", "0.44"]',
                     'map_layers_opacity'],
             'aqueduc': ['remove_non_printable1', 'show_all',
@@ -5515,6 +5530,16 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, shadows=True, do_pdf=False, do_jpg=True, georef=None):
     svg2d = CataMapTo2DMap()
+
+    meta = svg2d.get_metadata(xml_et)
+    main_clip_rects = meta.get('main_clip_rect_id', '{}')
+    main_clip_rects = json.loads(main_clip_rects)
+    main_clip_rect = main_clip_rects.get('default')
+    if not clip_rect:
+        clip_rect = main_clip_rects.get(map_name)
+        if not clip_rect:
+            clip_rect = main_clip_rect
+
     svg2d.clip_rect_name = clip_rect
     clip_rect_name = clip_rect
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
@@ -5529,12 +5554,11 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     if clip_rect is not None:
         svg2d.ensure_clip_rect(map2d, clip_rect, xml_et)
         svg2d.clip_page(map2d, clip_rect)
-        # TODO: remove hard-coded clip here
-        if georef and clip_rect_name != 'nord_sud_clip':
+        if georef and clip_rect_name != main_clip_rect:
             # not the same clipping as the georefed one
             print('recalculate georef scaling')
             cr = svg2d.clip_rect
-            crref = svg2d.find_clip_rect(xml_et, 'nord_sud_clip')
+            crref = svg2d.find_clip_rect(xml_et, main_clip_rect)
             print(cr, crref)
             if cr is not None and crref is not None:
                 xscale = float(cr.get('width')) \
@@ -5595,7 +5619,7 @@ def scale_georef_points_file(in_filename, out_filename, scale_factor_x,
     '''
     if scale_factor_y is None:
         scale_factor_y = scale_factor_x
-    with open(filename) as f:
+    with open(in_filename) as f:
         reader = csv.reader(f)
         lines = []
         for row in reader:
@@ -5632,7 +5656,7 @@ def main():
         'private_wip': '180',
         'poster': '360',
         'igc': '180',
-        'igc_private': '300',
+        'igc_private': '360',
         'igcportail': '720',
         'igcportail_txt': '720',
         'igcportail_legend': '720',
@@ -5683,7 +5707,9 @@ The program allows to produce:
         '--color',
         help='recolor the maps using a color model. Available models are '
         '(currently): igc, bator, black (igc is used automatically in the '
-        '--igc options). The list of available colorsets for a SVG map can be '
+        '--igc options). The colorset "default" forces to use the default '
+        'colors in the map (and cancel any recolor specified in the map). The '
+        'list of available colorsets for a SVG map can be '
         'obtained using the option --list-colorsets.')
     parser.add_argument(
         '--list-colorsets', action='store_true',
@@ -5822,58 +5848,58 @@ The program allows to produce:
         maps_def = {
             'private': {
                 'name': 'private',
-                'filters': ['remove_wip', 'printable_map'] + col_filter,
-                'clip_rect': 'nord_sud_clip',
+                'filters': col_filter + ['remove_wip', 'printable_map'],
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'poster': {
                 'name': 'poster',
-                'filters': ['remove_private', 'poster_map'] + col_filter,
-                'clip_rect': 'grs_clip',
+                'filters': col_filter + ['remove_private', 'poster_map'],
+                #'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'poster_private': {
                 'name': 'poster_private',
-                'filters': ['remove_wip', 'poster_map'] + col_filter,
-                'clip_rect': 'grs_clip',
+                'filters': col_filter + ['remove_wip', 'poster_map'],
+                #'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'wip': {
                 'name': 'private_wip',
-                'filters': ['printable_map'] + col_filter,
-                'clip_rect': 'nord_sud_clip',
+                'filters': col_filter + ['printable_map'],
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'public': {
                 'name': 'public',
-                'filters': ['remove_private', 'remove_gtech',
-                            'printable_map_public'] + col_filter,
-                'clip_rect': 'grs_clip',
+                'filters': col_filter + ['remove_private', 'remove_gtech',
+                                         'printable_map_public'],
+                #'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'igc': {
                 'name': 'igc',
                 'filters': ['igc'],
-                'clip_rect': 'grs_clip',
+                #'clip_rect': 'grs_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'igc_private': {
                 'name': 'igc_private',
                 'filters': ['igc_private'],
-                'clip_rect': 'nord_sud_clip',
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': False,
             },
             'igcportail': {
                 'name': 'igcportail',
                 'filters': ['igc_private'],
-                'clip_rect': 'nord_sud_clip',
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
@@ -5881,7 +5907,7 @@ The program allows to produce:
             'igcportail_txt': {
                 'name': 'igcportail_txt',
                 'filters': ['igc_private', 'shadow_text'],
-                'clip_rect': 'nord_sud_clip',
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
@@ -5889,7 +5915,7 @@ The program allows to produce:
             'igcportail_legend': {
                 'name': 'igcportail_legend',
                 'filters': ['igc_private', 'shadow_text'],
-                'clip_rect': 'nord_sud_clip',
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
@@ -5897,23 +5923,22 @@ The program allows to produce:
             'igcportail_tech': {
                 'name': 'igcportail_tech',
                 'filters': ['igc_private'],
-                'clip_rect': 'nord_sud_clip',
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'aqueduc': {
                 'name': 'aqueduc',
-                'filters': ['aqueduc'] + col_filter,
-                'clip_rect': 'aqueduc_clip',
+                'filters': col_filter + ['aqueduc'],
+                #'clip_rect': 'aqueduc_clip',
                 'shadows': True,
                 'do_pdf': True,
             },
             'No_GTech': {
                 'name': 'No_GTech',
-                'filters': ['remove_wip', 'printable_map','remove_gtech']
-                    + col_filter,
-                'clip_rect': 'nord_sud_clip',
+                'filters': col_filter + ['remove_wip', 'printable_map','remove_gtech'],
+                #'clip_rect': 'nord_sud_clip',
                 'shadows': True,
                 'do_pdf': True,
            },
@@ -5925,7 +5950,7 @@ The program allows to produce:
                 map_def['clip_rect'] = clip_rect
             if do_pdf is not None:
                 map_def['do_pdf'] = do_pdf
-            print('clip:', map_def['clip_rect'])
+            print('clip:', map_def.get('clip_rect'))
             georef_yscale = 1.
             if georef:
                 # don't write jpg, we will use tiff
@@ -5935,8 +5960,8 @@ The program allows to produce:
                 out_filename,
                 map_name=map_def['name'],
                 filters=map_def['filters'],
-                clip_rect=map_def['clip_rect'],
-                dpi=maps_dpi.get('private', maps_dpi['default']),
+                clip_rect=map_def.get('clip_rect'),
+                dpi=maps_dpi.get(map_type, maps_dpi['default']),
                 shadows=map_def['shadows'],
                 do_pdf=map_def['do_pdf'],
                 do_jpg=map_def.get('do_jpg', True),

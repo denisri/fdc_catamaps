@@ -1660,6 +1660,18 @@ class SvgToMesh(object):
             todo += [(child, trans) for child in elem]
         return None
 
+
+    @staticmethod
+    def get_metadata(xml_et):
+        meta = [layer for layer in xml_et.getroot()
+                if layer.tag.endswith('}metadata')]
+        if len(meta) != 0:
+            meta = meta[0]
+        else:
+            meta = None
+        return meta
+
+
     def clip_rect_from_id(self, xml_et, rect_id):
         if isinstance(rect_id, str):
             elem = self.find_element(xml_et, rect_id)
