@@ -3309,7 +3309,7 @@
 
 
     <span class="k">def</span> <span class="nf">build_ground_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">border</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bord complet&#39;</span><span class="p">,</span> <span class="s1">&#39;bord_sud&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">border</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bord complet&#39;</span><span class="p">,</span> <span class="s1">&#39;bord_general&#39;</span><span class="p">,</span> <span class="s1">&#39;bord_sud&#39;</span><span class="p">):</span>
             <span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">svg</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
                      <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                         <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
@@ -3321,6 +3321,7 @@
             <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>  <span class="c1"># no layer</span>
         <span class="n">layer</span> <span class="o">=</span> <span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ground - border layer:&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="n">label</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
         <span class="c1"># print(&#39;ground grid bounds:&#39;, bounds)</span>
