@@ -3269,7 +3269,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def build_ground_grid(self):
-        for border in ('bord complet', 'bord_sud'):
+        for border in ('bord complet', 'bord_general', 'bord_sud'):
             layer = [l for l in self.svg.getroot()
                      if l.get(
                         '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -3281,6 +3281,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return aims.AimsTimeSurface_2()  # no layer
         layer = layer[0]
         label = layer.get('{http://www.inkscape.org/namespaces/inkscape}label')
+        print('ground - border layer:', label)
         self.main_group = label
         bounds = self.boundingbox(layer)
         # print('ground grid bounds:', bounds)
