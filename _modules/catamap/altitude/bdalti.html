@@ -11,9 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
     
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     
@@ -71,7 +68,7 @@
 
 
 <div class="viewcode-block" id="get_map_image"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.get_map_image">[docs]</a><span class="k">def</span> <span class="nf">get_map_image</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    get image at coords xi, yi in the map table. Lazy load and cache it.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># print(xi, yi)</span>
@@ -88,7 +85,7 @@
 
 
 <div class="viewcode-block" id="get_z"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.get_z">[docs]</a><span class="k">def</span> <span class="nf">get_z</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">meta_map</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">background_z</span><span class="o">=-</span><span class="mf">99999.00</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    get the altitude from (x, y) coords in Lambert93 coords</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">xpos</span> <span class="o">=</span> <span class="n">meta_map</span><span class="p">[</span><span class="s1">&#39;xllcorners&#39;</span><span class="p">]</span>
@@ -122,7 +119,7 @@
 
 
 <div class="viewcode-block" id="convert_raw_map"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.convert_raw_map">[docs]</a><span class="k">def</span> <span class="nf">convert_raw_map</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">out_fname</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    convert one raw map from bdalti (.asc) to .ima format</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -154,7 +151,7 @@
 
 
 <div class="viewcode-block" id="convert_raw_maps"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.convert_raw_maps">[docs]</a><span class="k">def</span> <span class="nf">convert_raw_maps</span><span class="p">(</span><span class="n">fnames</span><span class="p">,</span> <span class="n">out_fnames</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    convert all raw data files from bdalti (.asc) to .ima format</span>
 
 <span class="sd">    fnames:</span>
@@ -169,7 +166,7 @@
 
 
 <div class="viewcode-block" id="build_meta_table"><a class="viewcode-back" href="../../../index.html#catamap.altitude.bdalti.build_meta_table">[docs]</a><span class="k">def</span> <span class="nf">build_meta_table</span><span class="p">(</span><span class="n">ima_fnames</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    build the metadata table from converted .ima files</span>
 
 <span class="sd">    ima_fnames: pattern with a &quot;%s&quot;, same as out_fnames in convert_raw_maps()</span>
@@ -276,7 +273,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.2.
     </div>
   </body>
 </html>

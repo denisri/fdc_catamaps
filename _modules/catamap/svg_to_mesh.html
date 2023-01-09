@@ -11,9 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
     
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     
@@ -109,10 +106,10 @@
           <span class="s1">&#39;be present.&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="aims"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims">[docs]</a>    <span class="k">class</span> <span class="nc">aims</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Fake aims-lite module &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Fake aims-lite module &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="aims.vector"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.vector">[docs]</a>        <span class="k">class</span> <span class="nc">vector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-            <span class="sd">&#39;&#39;&#39; Fixed size vector &#39;&#39;&#39;</span>
+<span class="w">            </span><span class="sd">&#39;&#39;&#39; Fixed size vector &#39;&#39;&#39;</span>
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
               <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
               <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="mi">1</span>
@@ -132,7 +129,7 @@
 
 
 <div class="viewcode-block" id="aims.AimsTimeSurface"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-            <span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
+<span class="w">            </span><span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_vertex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_polygon</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
@@ -149,23 +146,23 @@
 
 
 <div class="viewcode-block" id="aims.AimsTimeSurface_2"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_2">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_2</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
-            <span class="sd">&#39;&#39;&#39; Segments mesh (2 points per polygon) &#39;&#39;&#39;</span>
+<span class="w">            </span><span class="sd">&#39;&#39;&#39; Segments mesh (2 points per polygon) &#39;&#39;&#39;</span>
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="aims.AimsTimeSurface_3"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_3">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_3</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
-            <span class="sd">&#39;&#39;&#39; Triangles mesh (3 points per polygon) &#39;&#39;&#39;</span>
+<span class="w">            </span><span class="sd">&#39;&#39;&#39; Triangles mesh (3 points per polygon) &#39;&#39;&#39;</span>
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_3</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="SvgToMesh"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh">[docs]</a><span class="k">class</span> <span class="nc">SvgToMesh</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Read SVG, transforms things into meshes</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Read SVG, transforms things into meshes</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concat_mesh</span><span class="o">=</span><span class="s1">&#39;bygroup&#39;</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        concat_mesh: str</span>
@@ -241,7 +238,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.read_rect"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_rect">[docs]</a>    <span class="k">def</span> <span class="nf">read_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Read a rectangle element as a mesh</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a rectangle element as a mesh</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">aims</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;aims module is not available. read_rect() &#39;</span>
@@ -283,7 +280,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.read_circle"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_circle">[docs]</a>    <span class="k">def</span> <span class="nf">read_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Read a circle element as a mesh</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a circle element as a mesh</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">aims</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;aims module is not available. read_circle() &#39;</span>
@@ -343,7 +340,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.read_polygon"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_polygon">[docs]</a>    <span class="k">def</span> <span class="nf">read_polygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Read a polygon element as a mesh</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a polygon element as a mesh</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">aims</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;aims module is not available. read_polygon() &#39;</span>
@@ -387,7 +384,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.read_path"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_path">[docs]</a>    <span class="k">def</span> <span class="nf">read_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Read a path element as mesh, apply coords transformations</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a path element as mesh, apply coords transformations</span>
 <span class="sd">        &#39;&#39;&#39;</span>
 
         <span class="k">def</span> <span class="nf">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nvert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">npoly</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -552,7 +549,7 @@
 
 <div class="viewcode-block" id="SvgToMesh.get_transform"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.get_transform">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        trans: str or XML element</span>
@@ -687,7 +684,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.transform_subtree"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_subtree">[docs]</a>    <span class="k">def</span> <span class="nf">transform_subtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">in_trans</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">otrans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; in_trans: current transform of xml subtree (out of the subtree)</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; in_trans: current transform of xml subtree (out of the subtree)</span>
 <span class="sd">        trans: transform to be applied</span>
 <span class="sd">        otrans: transform in the output subtree. default=in_trans</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -731,7 +728,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.transform_style"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_style">[docs]</a>    <span class="k">def</span> <span class="nf">transform_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; adapt style in path/rect to scale changes (stroke width etc)</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; adapt style in path/rect to scale changes (stroke width etc)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -754,7 +751,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.transform_path"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_path">[docs]</a>    <span class="k">def</span> <span class="nf">transform_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; trans: transform to be applied</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; trans: transform to be applied</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">def</span> <span class="nf">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
@@ -966,7 +963,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.filter_element"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.filter_element">[docs]</a>    <span class="k">def</span> <span class="nf">filter_element</span><span class="p">(</span><span class="n">xml_element</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Assign a processing function / method to the given element, a</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Assign a processing function / method to the given element, a</span>
 <span class="sd">        cleaning function to be called after the associated sub-tree is</span>
 <span class="sd">        processed, and a bool to tell if children should be skipped.</span>
 <span class="sd">        This method can be overloaded and is called for each XML tree element.</span>
@@ -1003,7 +1000,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.read_paths"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_paths">[docs]</a>    <span class="k">def</span> <span class="nf">read_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Parse XML tree and extract meshes, text and other objects</span>
 
 <span class="sd">        Parameters</span>
@@ -1352,7 +1349,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.replace_filter_element"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.replace_filter_element">[docs]</a>    <span class="k">def</span> <span class="nf">replace_filter_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Inside replace_elements, this function is called for each xml element,</span>
 <span class="sd">        and should return either the element itself (no replacement), or None</span>
 <span class="sd">        (element is discarded), or a replaced XML element.</span>
@@ -1826,7 +1823,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.2.
     </div>
   </body>
 </html>

@@ -11,9 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
     
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     
@@ -525,14 +522,14 @@
 
 <span class="k">class</span> <span class="nc">xml_help</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
     <span class="k">pass</span>
 
 
 <div class="viewcode-block" id="ItemProperties"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.ItemProperties">[docs]</a><span class="k">class</span> <span class="nc">ItemProperties</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    XML item properties structure, used by</span>
 <span class="sd">    :class:`~catamap.map_to_meshes.CataSvgToMesh`. They represents properties</span>
 <span class="sd">    read from the XML file elements.</span>
@@ -781,7 +778,7 @@
 
 <div class="viewcode-block" id="ItemProperties.remove_word"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.ItemProperties.remove_word">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">remove_word</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; remove word suffix to label (which may end with several</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; remove word suffix to label (which may end with several</span>
 <span class="sd">        variants, _word_0 etc)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">word</span><span class="p">:</span>
@@ -934,7 +931,7 @@
 
 
 <div class="viewcode-block" id="DefaultItemProperties"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.DefaultItemProperties">[docs]</a><span class="k">class</span> <span class="nc">DefaultItemProperties</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Defaults and constant values.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Defaults and constant values.</span>
 
 <span class="sd">    This is mainly a remaining of the v1 of the software, where fewer things</span>
 <span class="sd">    were indicated in the SVG file, and the program was written originally for</span>
@@ -1185,7 +1182,7 @@
 
 
 <div class="viewcode-block" id="CataSvgToMesh"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh">[docs]</a><span class="k">class</span> <span class="nc">CataSvgToMesh</span><span class="p">(</span><span class="n">svg_to_mesh</span><span class="o">.</span><span class="n">SvgToMesh</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Process XML tree to build 3D meshes</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
@@ -1803,7 +1800,7 @@
 
 <div class="viewcode-block" id="CataSvgToMesh.make_ps_well"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.make_ps_well">[docs]</a>    <span class="k">def</span> <span class="nf">make_ps_well</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">well_type</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span>
                      <span class="n">faces</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rotate</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;PS or PE (blue), P ossements (yellow)</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;PS or PE (blue), P ossements (yellow)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">p1</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">)</span>
         <span class="n">p2</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span> <span class="o">+</span> <span class="n">height</span><span class="p">)</span>
@@ -2110,6 +2107,7 @@
 
         <span class="n">used_texts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">missing_files</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">xml_element</span> <span class="ow">in</span> <span class="n">xml</span><span class="p">:</span>
             <span class="n">level</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">)</span>
@@ -2185,6 +2183,12 @@
                             <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">))</span>
                         <span class="n">imlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
                     <span class="n">images</span> <span class="o">+=</span> <span class="n">imlist</span>
+                    <span class="c1"># test existence of files</span>
+                    <span class="c1"># warning: only works relative to current dir</span>
+                    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">:</span>
+                        <span class="n">url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+                            <span class="n">missing_files</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
                     <span class="n">used_texts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
                 <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">level</span><span class="p">,</span> <span class="n">radius</span><span class="p">],</span>
                                 <span class="p">[</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]])</span>
@@ -2197,11 +2201,17 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dup</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Duplicate markers texts in layer&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;: **&#39;</span><span class="p">)</span>
                     <span class="n">dup</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="s1">&#39;at positions:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="s1">&#39;at positions:&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    -&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing correspondance for marker texts: **&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">missing_files</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing marker files: **&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing_files</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
 
     <span class="k">def</span> <span class="nf">read_lambert93</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2364,7 +2374,7 @@
 
 
 <div class="viewcode-block" id="CataSvgToMesh.load_ground_altitude_bdalti"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti">[docs]</a>    <span class="k">def</span> <span class="nf">load_ground_altitude_bdalti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        filename:</span>
 <span class="sd">            json map, to be used with the API module bdalti.py</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -3299,9 +3309,13 @@
 
 
     <span class="k">def</span> <span class="nf">build_ground_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">svg</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
-                 <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-                     <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bord_sud&#39;</span><span class="p">,</span> <span class="s1">&#39;bord complet&#39;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">border</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;bord complet&#39;</span><span class="p">,</span> <span class="s1">&#39;bord_sud&#39;</span><span class="p">):</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">svg</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                     <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
+                        <span class="o">==</span> <span class="n">border</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">layer</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No border layer found. Not building ground grid.&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>  <span class="c1"># no layer</span>
@@ -3806,7 +3820,7 @@
 
 
 <div class="viewcode-block" id="CataMapTo2DMap"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataMapTo2DMap">[docs]</a><span class="k">class</span> <span class="nc">CataMapTo2DMap</span><span class="p">(</span><span class="n">svg_to_mesh</span><span class="o">.</span><span class="n">SvgToMesh</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Process XML tree to build modified 2D maps</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
@@ -4256,7 +4270,7 @@
 
 <div class="viewcode-block" id="CataMapTo2DMap.box_in_region"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataMapTo2DMap.box_in_region">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">box_in_region</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; check if a box is totally inside a region, or totally outside, or</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; check if a box is totally inside a region, or totally outside, or</span>
 <span class="sd">        intersecting</span>
 
 <span class="sd">        Warning: if 4 corners are inside, the test says inside, whereas it is not always true for a non-convex clip polygon</span>
@@ -5242,7 +5256,7 @@
                     <span class="k">return</span> <span class="n">child</span>
 
 <div class="viewcode-block" id="CataMapTo2DMap.ensure_clip_rect"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataMapTo2DMap.ensure_clip_rect">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_clip_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_xml</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">,</span> <span class="n">in_xml</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; if rect_id is not in out_xml, then take it from in_xml and copy it</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; if rect_id is not in out_xml, then take it from in_xml and copy it</span>
 <span class="sd">        in a new layer un out_xml.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">out_xml</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">):</span>
@@ -5657,7 +5671,7 @@
 
 <div class="viewcode-block" id="scale_georef_points_file"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.scale_georef_points_file">[docs]</a><span class="k">def</span> <span class="nf">scale_georef_points_file</span><span class="p">(</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">scale_factor_x</span><span class="p">,</span>
                              <span class="n">scale_factor_y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Rescale source positions in a QGis .points file in order to adapt</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Rescale source positions in a QGis .points file in order to adapt</span>
 <span class="sd">    to a different resolution</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">scale_factor_y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -6067,7 +6081,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.2.
     </div>
   </body>
 </html>
