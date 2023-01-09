@@ -2067,6 +2067,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         used_texts = {}
         missing = []
+        missing_files = []
 
         for xml_element in xml:
             level = xml_element.get('level')
@@ -2142,6 +2143,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             missing.append((text, pos))
                         imlist = [text]
                     images += imlist
+                    # test existence of files
+                    # warning: only works relative to current dir
+                    for image in imlist:
+                        url = base_url + image
+                        if not os.path.exists(url):
+                            missing_files.append((text, pos, url))
                     used_texts.setdefault(text, []).append(pos)
                 markers.append([pos + [level, radius],
                                 [base_url + image for image in images]])
@@ -2154,11 +2161,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if not dup:
                     print('** Duplicate markers texts in layer', mtype, ': **')
                     dup = True
-                print('marker:', text, 'at positions:', pos)
+                print('marker:', text, 'at positions:')
+                for p in pos:
+                    print('    -', p)
         if missing:
             print('** Missing correspondance for marker texts: **')
             for m in missing:
                 print(m[0], 'at position:', m[1])
+        if missing_files:
+            print('** Missing marker files: **')
+            for m in missing_files:
+                print(m[0], 'at position:', m[1], ':', m[2])
 
 
     def read_lambert93(self, xml, trans=None):
@@ -3256,9 +3269,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def build_ground_grid(self):
-        layer = [l for l in self.svg.getroot()
-                 if l.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                     in ('bord_sud', 'bord complet')]
+        for border in ('bord complet', 'bord_sud'):
+            layer = [l for l in self.svg.getroot()
+                     if l.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}label')
+                        == border]
+            if len(layer) != 0:
+                break
         if not layer:
             print('No border layer found. Not building ground grid.')
             return aims.AimsTimeSurface_2()  # no layer
