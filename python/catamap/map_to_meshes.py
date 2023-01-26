@@ -1892,7 +1892,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh_def = self.depth_meshes_def.get(level)
         if mesh_def is not None:
             print('Warning: several depth meshes for level',
-                  level, ':', mesh_def[1])
+                  level, ', existing:\n', mesh_def[1])
+            print('current:')
+            print(self.item_props)
             depth_mesh = mesh_def[0]
         else:
             depth_mesh = self.mesh_dict.setdefault(self.main_group,
