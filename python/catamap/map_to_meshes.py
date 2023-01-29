@@ -161,6 +161,10 @@ Properties list
 
         glabel: colim
 
+**height_map:** bool (**3D maps**)
+    the layer is a height map. This is the same as **depth_map** except that
+    heights are inverted compared to depths. All related attributes are the
+    same as for **depth_map** otherwise.
 **height_shift:** float (**3D maps**)
     z shift of the element (esp. for corridor, block, wall elements, but also
     wells and arrows). An element with a height shift will not begin on the
@@ -252,8 +256,12 @@ Properties list
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
 **upper_level:** str (**3D maps**)
-    depth level for the top of elements. Only used for elements joining two levels
-    (wells, arrows)
+    depth level for the top of elements. Only used for elements joining two
+    levels (wells, arrows)
+**use_height_map:** str (**3D maps**)
+    When set on a corridor, block or wall layer, it replaces the constant
+    **item_height** when extruding the height with a height map whose level is
+    given by the value of this property.
 **visibility:** str (**2D and 3D maps**)
     may be either: ``private``: alternative to ``private: true``, or a list of
     maps types (json-like), for which this layer is kept visible. If such a
@@ -270,6 +278,13 @@ Properties list
     tells if well elements should be read in the XML file as a single "path"
     element (a circle for instance), or a group (a grop containing a circle,
     and additional lines). Thus allowed values are ``path`` or ``group``.
+**z_scale:** float or "auto" (**3D maps)
+    Can be set **in the SVG metadtadata layer**. This scale factor applies to
+    depths and heights in order to match x, y scalings which may be arbitraty.
+    The default is 0.5 and is also arbitrary. If it is set to "auto", then if
+    **lambert93** coordinates are provied in the appropriate layer, the scale
+    factor will be processed according to these "true" coordinates to match x
+    and y scales.
 
 .. _depth_maps:
 
@@ -503,7 +518,8 @@ class ItemProperties(object):
                   'depth_map', 'height', 'height_shift', 'border',
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
                   'well_read_mode', 'grid_interval', 'marker',
-                  'arrow_base_height_shift', 'visibility', 'non_visibility')
+                  'arrow_base_height_shift', 'visibility', 'non_visibility',
+                  'relative_to', 'inverse', 'use_height_map')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -539,6 +555,9 @@ class ItemProperties(object):
         self.grid_interval = None
         self.visibility = None
         self.non_visibility = None
+        self.relative_to = None
+        self.inverse = None
+        self.use_height_map = None
 
     def __str__(self):
         d = ['{']
@@ -574,6 +593,7 @@ class ItemProperties(object):
                 'border': ItemProperties.float_value,
                 'layer': ItemProperties.is_true,
                 'grid_interval': ItemProperties.float_value,
+                'inverse': ItemProperties.is_true,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -615,7 +635,7 @@ class ItemProperties(object):
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
                          'category', 'well_read_mode', 'grid_interval',
-                         'marker'):
+                         'marker', 'use_height_map'):
                 value = element.get(prop)
                 if value is not None:
                     setattr(self, prop,
@@ -652,6 +672,24 @@ class ItemProperties(object):
                 if value is not None:
                     setattr(self, kind, value)
 
+            height_map = element.get('height_map')
+            if height_map is not None:
+                height_map = ItemProperties.is_true(height_map)
+                if height_map:
+                    self.depth_map = True
+                    self.inverse = True
+            relative_to = element.get('relative_to')
+            if self.depth_map and element.get('depth_map') \
+                    and relative_to is None:
+                # exception: if a depth is relative to "surface" by default
+                relative_to = 'surface'
+            if relative_to is not None:
+                if relative_to in ('none', 'None'):
+                    relative_to = None
+                self.relative_to = relative_to
+            inverse = element.get('inverse')
+            if inverse is not None:
+                self.inverse = ItemProperties.is_true(inverse)
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
 
@@ -1175,6 +1213,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.colorset = 'map_3d'  # alt colors to translate to
         self.colorset_inheritance = {}
         self.map_name = 'map_3d'
+        self.lambert93_z_scaling = False
 
         if headless:
             try:
@@ -1205,10 +1244,18 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         '{http://www.inkscape.org/namespaces/inkscape}label'))
                 if xml_element.tag.endswith('}metadata'):
                     z_scale = xml_element.get('z_scale')
-                    if z_scale:
-                        z_scale = float(z_scale)
-                        print(z_scale)
-                        self.z_scale = z_scale
+                    if z_scale is not None:
+                        if z_scale in ('auto', 'Auto', 'AUTO'):
+                            self.lambert93_z_scaling = True
+                            print('z_scale: based on Lambert93.')
+                            if hasattr(self, 'lambert93_coords'):
+                                self.z_scale \
+                                    = 2. / (abs(self.lambert_coords.x.slope)
+                                            + abs(self.lambert_coords.y.slope))
+                                print('z_scale:', self.z_scale)
+                        else:
+                            z_scale = float(z_scale)
+                            self.z_scale = z_scale
                     colorset_inheritance = xml_element.get(
                         'colorset_inheritance')
                     if colorset_inheritance:
@@ -2239,6 +2286,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.lambert_coords = xy()
         self.lambert_coords.x = lamb_x
         self.lambert_coords.y = lamb_y
+        print('Lambert93 slope:', lamb_x.slope, lamb_y.slope)
+        if self.lambert93_z_scaling:
+            self.z_scale \
+                = 2. / (abs(self.lambert_coords.x.slope)
+                        + abs(self.lambert_coords.y.slope))
+            print('z_scale:', self.z_scale)
 
 
     def change_level(self, mesh, dz):
@@ -2391,7 +2444,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
 
     def add_ground_alt(self, mesh, verbose=False):
-        print('add_ground_alt on:', mesh)
+        # print('add_ground_alt on:', mesh)
         for v in mesh.vertex():
             if verbose: print(v[2], end=' ')
             v[2] += self.ground_altitude(v[:2])
@@ -2403,9 +2456,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.depth_meshes = {}
         self.depth_wins = {}
 
-        for level, mesh_def in self.depth_meshes_def.items():
+        todo = list(self.depth_meshes_def.items())
+        while todo:
+            level, mesh_def = todo.pop(0)
             print('building depth map', level)
             depth_mesh, props = mesh_def
+            if props.relative_to:
+                print('    rel:', props.relative_to)
+            if props.relative_to is not None \
+                    and props.relative_to != 'surface':
+                if props.relative_to in self.depth_wins:
+                    # apply dependent map
+                    if props.inverse:
+                        print('    height map')
+                        depth_mesh.vertex().np[:, 2] *= -1
+                    print('    apply relative depth:', props.relative_to)
+                    dwin = self.depth_wins[props.relative_to]
+                    view = dwin.view()
+                    for vertex in depth_mesh.vertex():
+                        vertex[2] += self.get_depth(vertex, view)
+                else:
+                    # depends on another map which has not been done
+                    # WARNING: infinite loops are possible. TODO: Detect them
+                    todo.append((level, (depth_mesh, props)))
+                    print('    delay depth map', level, 'which depends on',
+                          props.relative_to)
+                    continue
             win, amesh = self.build_depth_win(depth_mesh, size,
                                               object_win_size)
             self.depth_meshes[level] = amesh
@@ -3000,7 +3076,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         for level, mesh_def in self.depth_meshes_def.items():
             mesh, props = mesh_def
             if mesh is not None:
-                self.add_ground_alt(mesh)
+                if props.relative_to == 'surface':
+                    print('add ground alt on:', level)
+                    self.add_ground_alt(mesh)
                 self.delaunay(mesh)
 
         meshes['grille surface'] = self.build_ground_grid()
@@ -3040,10 +3118,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             props = self.group_properties.get(main_group)
             if not props:
                 continue
-            print('extrude:', main_group, props.corridor, props.block)
             # print(props)
             mesh_l = meshes[main_group]
+            height_map = props.use_height_map
             if mesh_l and props.corridor or props.block or props.wall:
+                print('extrude:', main_group, props.corridor, props.block,
+                      height_map)
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
@@ -3051,7 +3131,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # not a mesh
                         continue
                     height = props.height * self.z_scale
-                    ceil, wall = self.extrude(mesh, height)
+                    ceil, wall = self.extrude(mesh, height, height_map)
                     if 'material' not in ceil.header():
                         ceil.header()['material'] \
                             = {'diffuse': [0.3, 0.3, 0.3, 1.]}
@@ -3181,6 +3261,58 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 print('--- marker mesh:', main_group, len(mesh.vertex()), props)
             else: print('NO MARKER MESH:', mtype)
 
+
+    def extrude(self, mesh, distance, height_map=None):
+        '''
+        This is an overloaded version of the static SvgToMesh.extrude(mesh,
+        distance)
+
+        When height_map is given, use this level height map to shift Z
+        positions
+        '''
+        if height_map is None:
+            return super().extrude(mesh, distance)
+
+        print('MAP extrude:', height_map)
+
+        win = self.depth_wins.get(height_map)
+        view = win.view()
+
+        up = aims.AimsTimeSurface(mesh)
+        object_win_size = (2., 2.)
+
+        for v in up.vertex():
+            z = self.get_depth(v, view, object_win_size)
+            if z is None:
+                v[2] += distance  # fallback to default
+            else:
+                # we inverse (again) because depth maps are already inverted
+                v[2] -= z
+
+        walls = aims.AimsTimeSurface(3)
+        walls.header().update(
+            dict([(k, copy.deepcopy(v))
+                  for k, v in six.iteritems(mesh.header())]))
+        material = {}
+        if 'material' in walls.header():
+            material = walls.header()['material']
+        material['face_culling'] = 0
+        walls.header()['material'] = material
+        vert0 = mesh.vertex()
+        poly0 = mesh.polygon()
+        vert = walls.vertex()
+        poly = walls.polygon()
+
+        vert.assign(vert0 + up.vertex())
+        nv = len(vert0)
+
+        for line in poly0:
+            poly.append((line[0], line[1], nv + line[0]))
+            poly.append((line[1], nv + line[1], nv + line[0]))
+
+        walls.updateNormals()
+
+        return up, walls
 
     def attach_arrows_to_text(self, meshes, with_squares=False):
         # find text attached to each arrow
@@ -3331,7 +3463,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             aims.SurfaceManip.meshMerge(
                 skmesh_l, self.read_path(child,
                                          self.proto_scale * skproto['trans']))
-        skmesh_up_l, skmesh_w = self.extrude(skmesh_l, 1.)
+        skmesh_up_l, skmesh_w = self.extrude(skmesh_l, 0.7)
         skmesh_bk = self.tesselate(skmesh_l)
         skmesh_up = self.tesselate(skmesh_up_l)
         aims.SurfaceManip.invertSurfacePolygons(skmesh_w)
@@ -3512,7 +3644,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             aims.SurfaceManip.meshMerge(
                 lily_l, self.read_path(child,
                                        self.proto_scale * trans))
-        lily_up_l, lily_w = self.extrude(lily_l, 1.)
+        lily_up_l, lily_w = self.extrude(lily_l, 0.4)
         lily_bk = self.tesselate(lily_l)
         lily_up = self.tesselate(lily_up_l)
         aims.SurfaceManip.invertSurfacePolygons(lily_w)
@@ -3660,7 +3792,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if '.' in filename:  # remove extension
                     filename = '.'.join(filename.split('.')[:-1])
                 layer = 0
-                if 'profondeur' in filename or 'bord' in filename:
+                if 'bord' in filename or (props and props.depth_map):
                     continue  # skip
                 if props and props.category:
                     if props.category not in categories:
