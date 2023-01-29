@@ -193,6 +193,10 @@ plus the duffix <code class="docutils literal notranslate"><span class="pre">_pr
 </pre></div>
 </div>
 </dd>
+<dt><strong>height_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a height map. This is the same as <strong>depth_map</strong> except that
+heights are inverted compared to depths. All related attributes are the
+same as for <strong>depth_map</strong> otherwise.</p>
+</dd>
 <dt><strong>height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the element (esp. for corridor, block, wall elements, but also
 wells and arrows). An element with a height shift will not begin on the
 ground, but above or below as specified.</p>
@@ -277,8 +281,12 @@ recursively and their children may be replaced also.</p>
 </dd>
 <dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
 </dd>
-<dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two levels
-(wells, arrows)</p>
+<dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
+levels (wells, arrows)</p>
+</dd>
+<dt><strong>use_height_map:</strong> str (<strong>3D maps</strong>)</dt><dd><p>When set on a corridor, block or wall layer, it replaces the constant
+<strong>item_height</strong> when extruding the height with a height map whose level is
+given by the value of this property.</p>
 </dd>
 <dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be either: <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>, or a list of
 maps types (json-like), for which this layer is kept visible. If such a
@@ -296,10 +304,17 @@ or layers) shoud specify the level and upper_level.</p>
 element (a circle for instance), or a group (a grop containing a circle,
 and additional lines). Thus allowed values are <code class="docutils literal notranslate"><span class="pre">path</span></code> or <code class="docutils literal notranslate"><span class="pre">group</span></code>.</p>
 </dd>
+<dt><strong>z_scale:</strong> float or “auto” (<a href="#id3"><span class="problematic" id="id4">**</span></a>3D maps)</dt><dd><p>Can be set <strong>in the SVG metadtadata layer</strong>. This scale factor applies to
+depths and heights in order to match x, y scalings which may be arbitraty.
+The default is 0.5 and is also arbitrary. If it is set to “auto”, then if
+<strong>lambert93</strong> coordinates are provied in the appropriate layer, the scale
+factor will be processed according to these “true” coordinates to match x
+and y scales.</p>
+</dd>
 </dl>
 </section>
 <section id="depth-maps">
-<span id="id3"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this heading">¶</a></h3>
+<span id="id5"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this heading">¶</a></h3>
 <p>Depth maps are layers containing depth information, <strong>and nothing else</strong>.</p>
 <p>Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:</p>
 <ul class="simple">
@@ -309,7 +324,7 @@ and additional lines). Thus allowed values are <code class="docutils literal not
 </ul>
 </section>
 <section id="altitude-maps">
-<span id="id4"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this heading">¶</a></h3>
+<span id="id6"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this heading">¶</a></h3>
 <p>Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an <code class="docutils literal notranslate"><span class="pre">upper_level</span></code> property in depth maps which could be any other map).</p>
 <p>To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.</p>
 <section id="geolocalisation-of-the-svg-file">
@@ -327,8 +342,8 @@ and additional lines). Thus allowed values are <code class="docutils literal not
 </ul>
 <p>Lambert 93 positions can be found using <a class="reference external" href="https://www.geoportail.gouv.fr/carte">https://www.geoportail.gouv.fr/carte</a>: on the map, select “tools” on the right, and enable “display coordinates”. Then select for “reference system” the “Lambert 93” mode.</p>
 </section>
-<section id="id5">
-<h4>Altitude maps<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h4>
+<section id="id7">
+<h4>Altitude maps<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h4>
 <p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
 <p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
@@ -342,7 +357,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="colorsets">
-<span id="id6"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this heading">¶</a></h3>
+<span id="id8"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this heading">¶</a></h3>
 <p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
 <p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
 <ul class="simple">
@@ -380,7 +395,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="markers">
-<span id="id7"></span><h3>Markers<a class="headerlink" href="#markers" title="Permalink to this heading">¶</a></h3>
+<span id="id9"></span><h3>Markers<a class="headerlink" href="#markers" title="Permalink to this heading">¶</a></h3>
 <p><strong>Markers</strong> are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).</p>
 <p>Markers are recorded in dedicated layers in the SVG file. Such layer must have a <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, which value is the type of markers in the layer. Currently two types of markers are handled: <code class="docutils literal notranslate"><span class="pre">photos</span></code> (links to photographs URLS) or <code class="docutils literal notranslate"><span class="pre">sounds</span></code>.</p>
 <p>Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).</p>
@@ -492,6 +507,15 @@ and should return either the element itself (no replacement), or None
 </p>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.extrude">
+<span class="sig-name descname"><span class="pre">extrude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.extrude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.extrude" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an overloaded version of the static SvgToMesh.extrude(mesh,
+distance)</p>
+<p>When height_map is given, use this level height map to shift Z
+positions</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.filter_element">
 <span class="sig-name descname"><span class="pre">filter_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.filter_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.filter_element" title="Permalink to this definition">¶</a></dt>
@@ -832,7 +856,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#depth-maps">Depth maps</a></li>
 <li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
 <li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
-<li><a class="reference internal" href="#id5">Altitude maps</a></li>
+<li><a class="reference internal" href="#id7">Altitude maps</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
@@ -857,6 +881,7 @@ children in a readable dictionary.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a><ul>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.extrude"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.extrude()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.filter_element"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.filter_element()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.load_ground_altitude_bdalti()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.make_ps_well"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.make_ps_well()</span></code></a></li>

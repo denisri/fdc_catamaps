@@ -201,6 +201,10 @@
 
 <span class="sd">        glabel: colim</span>
 
+<span class="sd">**height_map:** bool (**3D maps**)</span>
+<span class="sd">    the layer is a height map. This is the same as **depth_map** except that</span>
+<span class="sd">    heights are inverted compared to depths. All related attributes are the</span>
+<span class="sd">    same as for **depth_map** otherwise.</span>
 <span class="sd">**height_shift:** float (**3D maps**)</span>
 <span class="sd">    z shift of the element (esp. for corridor, block, wall elements, but also</span>
 <span class="sd">    wells and arrows). An element with a height shift will not begin on the</span>
@@ -292,8 +296,12 @@
 <span class="sd">**title:** bool (**3D maps**)</span>
 <span class="sd">    The title string(s) will be used and displayed in the web site title.</span>
 <span class="sd">**upper_level:** str (**3D maps**)</span>
-<span class="sd">    depth level for the top of elements. Only used for elements joining two levels</span>
-<span class="sd">    (wells, arrows)</span>
+<span class="sd">    depth level for the top of elements. Only used for elements joining two</span>
+<span class="sd">    levels (wells, arrows)</span>
+<span class="sd">**use_height_map:** str (**3D maps**)</span>
+<span class="sd">    When set on a corridor, block or wall layer, it replaces the constant</span>
+<span class="sd">    **item_height** when extruding the height with a height map whose level is</span>
+<span class="sd">    given by the value of this property.</span>
 <span class="sd">**visibility:** str (**2D and 3D maps**)</span>
 <span class="sd">    may be either: ``private``: alternative to ``private: true``, or a list of</span>
 <span class="sd">    maps types (json-like), for which this layer is kept visible. If such a</span>
@@ -310,6 +318,13 @@
 <span class="sd">    tells if well elements should be read in the XML file as a single &quot;path&quot;</span>
 <span class="sd">    element (a circle for instance), or a group (a grop containing a circle,</span>
 <span class="sd">    and additional lines). Thus allowed values are ``path`` or ``group``.</span>
+<span class="sd">**z_scale:** float or &quot;auto&quot; (**3D maps)</span>
+<span class="sd">    Can be set **in the SVG metadtadata layer**. This scale factor applies to</span>
+<span class="sd">    depths and heights in order to match x, y scalings which may be arbitraty.</span>
+<span class="sd">    The default is 0.5 and is also arbitrary. If it is set to &quot;auto&quot;, then if</span>
+<span class="sd">    **lambert93** coordinates are provied in the appropriate layer, the scale</span>
+<span class="sd">    factor will be processed according to these &quot;true&quot; coordinates to match x</span>
+<span class="sd">    and y scales.</span>
 
 <span class="sd">.. _depth_maps:</span>
 
@@ -543,7 +558,8 @@
                   <span class="s1">&#39;depth_map&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;border&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;label_alt_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;layer&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">,</span> <span class="s1">&#39;marker&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;visibility&#39;</span><span class="p">,</span> <span class="s1">&#39;non_visibility&#39;</span><span class="p">)</span>
+                  <span class="s1">&#39;arrow_base_height_shift&#39;</span><span class="p">,</span> <span class="s1">&#39;visibility&#39;</span><span class="p">,</span> <span class="s1">&#39;non_visibility&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;relative_to&#39;</span><span class="p">,</span> <span class="s1">&#39;inverse&#39;</span><span class="p">,</span> <span class="s1">&#39;use_height_map&#39;</span><span class="p">)</span>
 
     <span class="n">prop_types</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># will be initialized when used in get_typed_prop()</span>
 
@@ -579,6 +595,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">grid_interval</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">visibility</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">non_visibility</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_height_map</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;{&#39;</span><span class="p">]</span>
@@ -614,6 +633,7 @@
                 <span class="s1">&#39;border&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
                 <span class="s1">&#39;layer&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">,</span>
                 <span class="s1">&#39;grid_interval&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">float_value</span><span class="p">,</span>
+                <span class="s1">&#39;inverse&#39;</span><span class="p">:</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="n">type_f</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">prop_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">type_f</span> <span class="ow">is</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">==</span> <span class="n">prop</span><span class="p">:</span>
@@ -655,7 +675,7 @@
             <span class="c1"># properties tags</span>
             <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span> <span class="s1">&#39;upper_level&#39;</span><span class="p">,</span> <span class="s1">&#39;private&#39;</span><span class="p">,</span> <span class="s1">&#39;inaccessible&#39;</span><span class="p">,</span>
                          <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;well_read_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_interval&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;marker&#39;</span><span class="p">):</span>
+                         <span class="s1">&#39;marker&#39;</span><span class="p">,</span> <span class="s1">&#39;use_height_map&#39;</span><span class="p">):</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span>
@@ -692,6 +712,24 @@
                 <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
+            <span class="n">height_map</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_map&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">height_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">height_map</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">height_map</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">height_map</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">depth_map</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">relative_to</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;relative_to&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_map</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;depth_map&#39;</span><span class="p">)</span> \
+                    <span class="ow">and</span> <span class="n">relative_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># exception: if a depth is relative to &quot;surface&quot; by default</span>
+                <span class="n">relative_to</span> <span class="o">=</span> <span class="s1">&#39;surface&#39;</span>
+            <span class="k">if</span> <span class="n">relative_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">relative_to</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">):</span>
+                    <span class="n">relative_to</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">=</span> <span class="n">relative_to</span>
+            <span class="n">inverse</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inverse&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">inverse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">inverse</span><span class="p">)</span>
             <span class="c1"># if style is not None and style.get(&#39;display&#39;) == &#39;none&#39;:</span>
             <span class="c1">#     self.hidden = True</span>
 
@@ -1215,6 +1253,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>  <span class="c1"># alt colors to translate to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambert93_z_scaling</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1245,10 +1284,18 @@
                         <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}metadata&#39;</span><span class="p">):</span>
                     <span class="n">z_scale</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z_scale&#39;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">z_scale</span><span class="p">:</span>
-                        <span class="n">z_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z_scale</span><span class="p">)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">z_scale</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span> <span class="o">=</span> <span class="n">z_scale</span>
+                    <span class="k">if</span> <span class="n">z_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">z_scale</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;Auto&#39;</span><span class="p">,</span> <span class="s1">&#39;AUTO&#39;</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">lambert93_z_scaling</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z_scale: based on Lambert93.&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lambert93_coords&#39;</span><span class="p">):</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span> \
+                                    <span class="o">=</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">slope</span><span class="p">)</span>
+                                            <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">slope</span><span class="p">))</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z_scale:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">z_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z_scale</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span> <span class="o">=</span> <span class="n">z_scale</span>
                     <span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                         <span class="s1">&#39;colorset_inheritance&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">colorset_inheritance</span><span class="p">:</span>
@@ -2279,6 +2326,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span> <span class="o">=</span> <span class="n">xy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">lamb_x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">lamb_y</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Lambert93 slope:&#39;</span><span class="p">,</span> <span class="n">lamb_x</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">lamb_y</span><span class="o">.</span><span class="n">slope</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambert93_z_scaling</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span> \
+                <span class="o">=</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">slope</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">slope</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z_scale:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">change_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
@@ -2431,7 +2484,7 @@
 
 
     <span class="k">def</span> <span class="nf">add_ground_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;add_ground_alt on:&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
+        <span class="c1"># print(&#39;add_ground_alt on:&#39;, mesh)</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
             <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_altitude</span><span class="p">(</span><span class="n">v</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
@@ -2443,9 +2496,32 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">mesh_def</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes_def</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">todo</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes_def</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">level</span><span class="p">,</span> <span class="n">mesh_def</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;building depth map&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
             <span class="n">depth_mesh</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">mesh_def</span>
+            <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    rel:&#39;</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">!=</span> <span class="s1">&#39;surface&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">:</span>
+                    <span class="c1"># apply dependent map</span>
+                    <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">inverse</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    height map&#39;</span><span class="p">)</span>
+                        <span class="n">depth_mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">np</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    apply relative depth:&#39;</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">)</span>
+                    <span class="n">dwin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">]</span>
+                    <span class="n">view</span> <span class="o">=</span> <span class="n">dwin</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">depth_mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
+                        <span class="n">vertex</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">view</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># depends on another map which has not been done</span>
+                    <span class="c1"># WARNING: infinite loops are possible. TODO: Detect them</span>
+                    <span class="n">todo</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">level</span><span class="p">,</span> <span class="p">(</span><span class="n">depth_mesh</span><span class="p">,</span> <span class="n">props</span><span class="p">)))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    delay depth map&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="s1">&#39;which depends on&#39;</span><span class="p">,</span>
+                          <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">)</span>
+                    <span class="k">continue</span>
             <span class="n">win</span><span class="p">,</span> <span class="n">amesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_depth_win</span><span class="p">(</span><span class="n">depth_mesh</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span>
                                               <span class="n">object_win_size</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes</span><span class="p">[</span><span class="n">level</span><span class="p">]</span> <span class="o">=</span> <span class="n">amesh</span>
@@ -3040,7 +3116,9 @@
         <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">mesh_def</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes_def</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">mesh</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">mesh_def</span>
             <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_ground_alt</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">==</span> <span class="s1">&#39;surface&#39;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;add ground alt on:&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_ground_alt</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 
         <span class="n">meshes</span><span class="p">[</span><span class="s1">&#39;grille surface&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_ground_grid</span><span class="p">()</span>
@@ -3080,10 +3158,12 @@
             <span class="n">props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">main_group</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extrude:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">corridor</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">block</span><span class="p">)</span>
             <span class="c1"># print(props)</span>
             <span class="n">mesh_l</span> <span class="o">=</span> <span class="n">meshes</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span>
+            <span class="n">height_map</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">use_height_map</span>
             <span class="k">if</span> <span class="n">mesh_l</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">corridor</span> <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">block</span> <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">wall</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extrude:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">corridor</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">block</span><span class="p">,</span>
+                      <span class="n">height_map</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh_l</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                     <span class="n">mesh_l</span> <span class="o">=</span> <span class="p">[</span><span class="n">mesh_l</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">mesh_l</span><span class="p">:</span>
@@ -3091,7 +3171,7 @@
                         <span class="c1"># not a mesh</span>
                         <span class="k">continue</span>
                     <span class="n">height</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-                    <span class="n">ceil</span><span class="p">,</span> <span class="n">wall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+                    <span class="n">ceil</span><span class="p">,</span> <span class="n">wall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">height_map</span><span class="p">)</span>
                     <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ceil</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
                         <span class="n">ceil</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> \
                             <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
@@ -3221,6 +3301,58 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- marker mesh:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()),</span> <span class="n">props</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
 
+
+<div class="viewcode-block" id="CataSvgToMesh.extrude"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.extrude">[docs]</a>    <span class="k">def</span> <span class="nf">extrude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">height_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This is an overloaded version of the static SvgToMesh.extrude(mesh,</span>
+<span class="sd">        distance)</span>
+
+<span class="sd">        When height_map is given, use this level height map to shift Z</span>
+<span class="sd">        positions</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">height_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MAP extrude:&#39;</span><span class="p">,</span> <span class="n">height_map</span><span class="p">)</span>
+
+        <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">height_map</span><span class="p">)</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+
+        <span class="n">up</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+        <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">up</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">distance</span>  <span class="c1"># fallback to default</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># we inverse (again) because depth maps are already inverted</span>
+                <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-=</span> <span class="n">z</span>
+
+        <span class="n">walls</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                  <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())]))</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">in</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
+            <span class="n">material</span> <span class="o">=</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span>
+        <span class="n">material</span><span class="p">[</span><span class="s1">&#39;face_culling&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
+        <span class="n">vert0</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">poly0</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">walls</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="n">walls</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+
+        <span class="n">vert</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert0</span> <span class="o">+</span> <span class="n">up</span><span class="o">.</span><span class="n">vertex</span><span class="p">())</span>
+        <span class="n">nv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">poly0</span><span class="p">:</span>
+            <span class="n">poly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nv</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">poly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nv</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nv</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="n">walls</span><span class="o">.</span><span class="n">updateNormals</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">up</span><span class="p">,</span> <span class="n">walls</span></div>
 
     <span class="k">def</span> <span class="nf">attach_arrows_to_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># find text attached to each arrow</span>
@@ -3371,7 +3503,7 @@
             <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span>
                 <span class="n">skmesh_l</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">child</span><span class="p">,</span>
                                          <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">skproto</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]))</span>
-        <span class="n">skmesh_up_l</span><span class="p">,</span> <span class="n">skmesh_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">skmesh_l</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">skmesh_up_l</span><span class="p">,</span> <span class="n">skmesh_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">skmesh_l</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
         <span class="n">skmesh_bk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">skmesh_l</span><span class="p">)</span>
         <span class="n">skmesh_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">skmesh_up_l</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">invertSurfacePolygons</span><span class="p">(</span><span class="n">skmesh_w</span><span class="p">)</span>
@@ -3552,7 +3684,7 @@
             <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span>
                 <span class="n">lily_l</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">child</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">trans</span><span class="p">))</span>
-        <span class="n">lily_up_l</span><span class="p">,</span> <span class="n">lily_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">lily_l</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">lily_up_l</span><span class="p">,</span> <span class="n">lily_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">lily_l</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
         <span class="n">lily_bk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">lily_l</span><span class="p">)</span>
         <span class="n">lily_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">lily_up_l</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">invertSurfacePolygons</span><span class="p">(</span><span class="n">lily_w</span><span class="p">)</span>
@@ -3700,7 +3832,7 @@
                 <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>  <span class="c1"># remove extension</span>
                     <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">layer</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">if</span> <span class="s1">&#39;profondeur&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="s1">&#39;bord&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;bord&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="p">(</span><span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">depth_map</span><span class="p">):</span>
                     <span class="k">continue</span>  <span class="c1"># skip</span>
                 <span class="k">if</span> <span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">category</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
