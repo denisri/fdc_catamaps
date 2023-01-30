@@ -1976,7 +1976,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         pos = self.depth_group.get('position')
         z = self.depth_group.get('depth')
         if pos is not None and z is not None:
-            depth_mesh.vertex().append((pos[0], pos[1], -z * self.z_scale))
+            for p in pos:
+                depth_mesh.vertex().append((p[0], p[1], -z * self.z_scale))
         del self.depth_group
 
 
@@ -1984,7 +1985,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mesh = super(CataSvgToMesh, self).read_path(child_xml, trans, style)
         if len(mesh.vertex()) != 0:
             try:
-                self.depth_group['position'] = mesh.vertex()[-1][:2]
+                position = self.depth_group.setdefault('position', [])
+                position.append(mesh.vertex()[-1][:2])
             except Exception as e:
                 print('failed depth arrow, main_group:', self.main_group,
                       ', vertices:')
