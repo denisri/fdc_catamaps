@@ -14,7 +14,9 @@
 //        or mousewheel / touch: two finger spread or squish
 //    Pan - right mouse, or arrow keys / touch: three finger swipe
 
-THREE.OrbitControls = function ( object, camera, domElement ) {
+import * as THREE from 'three'
+
+function OrbitControls( object, camera, domElement ) {
 
 	this.object = object;
         this.camera = camera;
@@ -85,7 +87,7 @@ THREE.OrbitControls = function ( object, camera, domElement ) {
             var offset = new THREE.Vector3();
             var quat = new THREE.Quaternion().setFromUnitVectors(
                 camera.up, new THREE.Vector3( 0, 1, 0 ) );
-            var quatInverse = quat.clone().inverse();
+            var quatInverse = quat.clone().invert();
 
             var lastPosition = new THREE.Vector3();
             var lastQuaternion = new THREE.Quaternion();
@@ -179,7 +181,7 @@ THREE.OrbitControls = function ( object, camera, domElement ) {
         {
             // rotate around world z
             var axis = new THREE.Vector3( 0, 0, 1. );
-            var invquat = scope.camera.quaternion.clone().inverse();
+            var invquat = scope.camera.quaternion.clone().invert();
             axis.applyQuaternion( invquat );
             axis.normalize();
             var quat = new THREE.Quaternion();
@@ -279,7 +281,7 @@ THREE.OrbitControls = function ( object, camera, domElement ) {
 
         var distanceFactor = function ( distance )
         {
-            z = scope.camera.position.z;
+            var z = scope.camera.position.z;
             return distance * ( Math.abs( z ) + 10. ) * 0.003;
         }
 
@@ -1067,10 +1069,10 @@ THREE.OrbitControls = function ( object, camera, domElement ) {
 
 };
 
-THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
-THREE.OrbitControls.prototype.constructor = THREE.OrbitControls;
+OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+OrbitControls.prototype.constructor = THREE.OrbitControls;
 
-Object.defineProperties( THREE.OrbitControls.prototype, {
+Object.defineProperties( OrbitControls.prototype, {
 
 	center: {
 
@@ -1194,3 +1196,5 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 	}
 
 } );
+
+export { OrbitControls };

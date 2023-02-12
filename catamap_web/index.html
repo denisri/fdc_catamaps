@@ -169,7 +169,27 @@
         <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
       </div>
 
-        <script>
+        <script type="importmap">
+          {
+            "imports": {
+              "three": "./three/build/three.module.js",
+              "three/addons/": "./three/examples/jsm/",
+              "../utils/": "./three/examples/jsm/utils/"
+            }
+          }
+        </script>
+        <script type="module" src="jquery.js"></script>
+
+        <script type="module">
+
+    import * as THREE from 'three'
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js'
+    import { OrbitControls } from './OrbitControls2.js'
+//           import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+    console.log('IMPORTED.')
 
     function sha1 (str) {
       //  discuss at: https://locutus.io/php/sha1/
@@ -397,17 +417,6 @@
     document.getElementById( 'all' ).addEventListener( 'click', all_clicked );
     document.getElementById( 'map_mode' ).addEventListener( 'click', map_mode_clicked );
 
-        </script>
-
-
-
-        <script src="three.js"></script>
-        <script src="OBJLoader.js"></script>
-        <script src="MTLLoader.js"></script>
-        <script src="OrbitControls2.js"></script>
-        <script src="jquery.js"></script>
-
-        <script>
 
     // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
     function fillTextMultiLine(ctx, text, x, y, hratio) {
@@ -460,7 +469,8 @@
     var light2 = new THREE.AmbientLight( 0xffffff, 0.3 );
     scene.add( light2 );
 
-    var controls = new THREE.OrbitControls( scene, camera );
+    var controls = new OrbitControls( scene, camera, renderer.domEmlement );
+//     var controls = new OrbitControls( camera, renderer.domElement );
 
 //     camera.position.x = -450;
     camera.position.x = -600;
@@ -496,7 +506,7 @@
             var fname = url + '/' + filenames[i] + '.mtl';
             // console.log('read_compass:', fname);
 
-            var mtl_loader = new THREE.MTLLoader();
+            var mtl_loader = new MTLLoader();
             mtl_loader.load(
                 // resource URL
                 fname,
@@ -505,10 +515,10 @@
                 {
                     materials.preload();
 
-                    var objLoader = new THREE.OBJLoader();
+                    var objLoader = new OBJLoader();
                     objLoader.setMaterials(materials);
                     var mlist = [];
-                    for( m in materials.materials )
+                    for( var m in materials.materials )
                     {
                         mlist.push( m.substr( 0, m.length - 2 ) );
                         if( m == 'sphere_0' )
@@ -550,7 +560,7 @@
                         // called when loading has errors
                         function ( error ) {
 
-                                console.log( 'An error happened:', this.url, error );
+                                console.log( 'An error happened:', url, error );
 
                         });
 
@@ -564,7 +574,7 @@
                 },
                 // called when loading has errors
                 function ( error ) {
-                        console.log( 'An error happened:', this.url, error );
+                        console.log( 'An error happened:', url, error );
                 }
             );
         }
@@ -619,7 +629,7 @@
     var mb = document.getElementById( 'mesh_buttons' );
     var md2 = document.getElementById( 'categories_sep' );
 
-    for( i=0; i!=categories.length; i++ )
+    for( var i=0; i!=categories.length; i++ )
     {
       var item = document.createElement( 'input' );
       item.type = 'checkbox';
@@ -685,6 +695,27 @@
             if( cat != category )
                 continue; // wrong group
 
+            if( filenames[i][1].endsWith('.gltf') )
+            {
+                var gltfname = url + filenames[i][1];
+                var loader = new GLTFLoader();
+                var dracoLoader = new DRACOLoader();
+
+                dracoLoader.setDecoderPath( '/examples/jsm/libs/draco' );
+                loader.setDRACOLoader( dracoLoader );
+
+                loader.load( gltfname, function ( gltf )
+                {
+//                     sword = gltf.scene;  // sword 3D object is loaded
+//                     sword.scale.set(2, 2, 2);
+//                     sword.position.y = 4;
+                    scene.add( gltf.scene );
+                    render();
+                } );
+            }
+            else
+            {
+
             var fname = url + filenames[i][1] + '.mtl';
             var mname = url + filenames[i][1] + '.obj';
             // console.debug('fname:', fname);
@@ -700,7 +731,7 @@
             if( mesh_cat[mname][0] != 0 )
                 continue; // loaded or loading: don't do it again
 
-            var mtl_loader = new THREE.MTLLoader();
+            var mtl_loader = new MTLLoader();
             mesh_cat[mname] = [1, null]; // loading
             mtl_loader.load(
                 // resource URL
@@ -710,10 +741,10 @@
                 {
                     materials.preload();
 
-                    var objLoader = new THREE.OBJLoader();
+                    var objLoader = new OBJLoader();
                     objLoader.setMaterials(materials);
                     var mlist = [];
-                    for( m in materials.materials )
+                    for( var m in materials.materials )
                     {
                       mlist.push( m.substr( 0, m.length - 2 ) );
                     }
@@ -751,7 +782,7 @@
                         // called when loading has errors
                         function ( error ) {
 
-                                console.log( 'An error happened:', this.url,
+                                console.log( 'An error happened:', url,
                                              ':', error );
 
                         });
@@ -766,10 +797,11 @@
                 },
                 // called when loading has errors
                 function ( error ) {
-                        console.log( 'An error happened:', this.url );
+                        console.log( 'An error happened:', url, ':', error );
                         delete mesh_cat[fname];
                 }
             );
+        } // obj
         }
 
         function nextPow2( aSize ){
@@ -792,7 +824,7 @@
                     continue; // loaded or loading: don't do it again
 
 //                 console.log('fname', i, ':', fname);
-                text_json = $.getJSON(fname,
+                var text_json = $.getJSON(fname,
                     function(json)
                     {
                       var tobjs = json.objects;
@@ -950,7 +982,7 @@
         light.position.y = -dir.y;
         light.position.z = -dir.z;
         compass.quaternion.copy( camera.quaternion );
-        compass.quaternion.inverse();
+        compass.quaternion.invert();
         renderer.render( scene, camera );
     }
 
@@ -977,7 +1009,7 @@
     {
         console.log('unload meshes category:', category);
 
-        mesh_cat = meshes[category];
+        var mesh_cat = meshes[category];
         if( mesh_cat == null )
           return;
         var fname = '';
