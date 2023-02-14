@@ -13,6 +13,8 @@
 //    Move forward/backward at constant altitude - middle mouse,
 //        or mousewheel / touch: two finger spread or squish
 //    Pan - right mouse, or arrow keys / touch: three finger swipe
+//
+// modified from https://github.com/mrdoob/three.js/raw/r100/examples/js/controls/OrbitControls.js
 
 import * as THREE from 'three'
 

@@ -172,9 +172,9 @@
         <script type="importmap">
           {
             "imports": {
-              "three": "./three/build/three.module.js",
-              "three/addons/": "./three/examples/jsm/",
-              "../utils/": "./three/examples/jsm/utils/"
+              "three": "../three/build/three.module.js",
+              "three/addons/": "../three/examples/jsm/",
+              "../utils/": "../three/examples/jsm/utils/"
             }
           }
         </script>
@@ -399,8 +399,8 @@
           ,qObj = {}
           ,i =-1;
       while(++i<qArr.length) {
-              qfrag = qArr[i].split('=');
-              qObj[qfrag[0]] = qfrag[1];
+          var qfrag = qArr[i].split('=');
+          qObj[qfrag[0]] = qfrag[1];
       }
       return qObj;
     }
@@ -698,8 +698,22 @@
             if( filenames[i][1].endsWith('.gltf') )
             {
                 var gltfname = url + filenames[i][1];
+
+                if( mesh_cat[gltfname] == null )
+                    mesh_cat[gltfname] = [0, null]; // not loaded
+
+                if( mesh_cat[gltfname][0] == 2 )
+                {
+                    scene.add( mesh_cat[gltfname][1] ); // loaded: add it in scene
+                    // console.log('display object', gltfname);
+                }
+                if( mesh_cat[gltfname][0] != 0 )
+                    continue; // loaded or loading: don't do it again
+
                 var loader = new GLTFLoader();
                 var dracoLoader = new DRACOLoader();
+
+                mesh_cat[gltfname] = [1, null]; // loading
 
                 dracoLoader.setDecoderPath( '/examples/jsm/libs/draco' );
                 loader.setDRACOLoader( dracoLoader );
@@ -709,6 +723,7 @@
 //                     sword = gltf.scene;  // sword 3D object is loaded
 //                     sword.scale.set(2, 2, 2);
 //                     sword.position.y = 4;
+                    mesh_cat[gltfname] = [2, gltf.scene]; // loaded
                     scene.add( gltf.scene );
                     render();
                 } );
@@ -958,6 +973,7 @@
     {
       for( i=0; i<title.length; i++ )
         $('#title_' + i).text(title[i]);
+      $('#main_title').text(title[0]);
     }
 
 

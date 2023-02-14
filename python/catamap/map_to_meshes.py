@@ -473,6 +473,7 @@ import datetime
 import math
 import json
 import os
+import os.path as osp
 import hashlib
 import collections
 import sys
@@ -1307,7 +1308,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
             title = [x.text for x in xml_element]
             self.title = getattr(self, 'title', []) + title
-            print('TITLE:', title)
             return (self.noop, clean_return, True)
 
         label = item_props.label
@@ -1330,7 +1330,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.read_markers(xml_element, model, sname)
                 return (self.noop, clean_return, True)
             if label == 'lambert93':
-                print('LAMBERT93')
                 self.read_lambert93(xml_element)
                 return (self.noop, clean_return, True)
 
@@ -2272,7 +2271,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     print('incorrect lambert93 coordinates:', text)
                     continue
                 lambert_map.append((pos, [float(x) for x in lamb]))
-                print('lambert93:', lambert_map[-1])
+                # print('lambert93:', lambert_map[-1])
 
         self.lambert93_coords = lambert_map
         # regress
@@ -2288,12 +2287,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.lambert_coords = xy()
         self.lambert_coords.x = lamb_x
         self.lambert_coords.y = lamb_y
-        print('Lambert93 slope:', lamb_x.slope, lamb_y.slope)
+        # print('Lambert93 slope:', lamb_x.slope, lamb_y.slope)
         if self.lambert93_z_scaling:
             self.z_scale \
                 = 2. / (abs(self.lambert_coords.x.slope)
                         + abs(self.lambert_coords.y.slope))
-            print('z_scale:', self.z_scale)
+            # print('z_scale:', self.z_scale)
 
 
     def change_level(self, mesh, dz):
@@ -3694,8 +3693,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return mesh
 
 
-    def save_mesh_dict(self, meshes, dirname, mesh_format='.mesh',
-                       mesh_wf_format='.mesh', json_filename=None,
+    def save_mesh_dict(self, meshes, dirname, mesh_format='.gltf',
+                       mesh_wf_format='.gltf', json_filename=None,
                        map2d_filename=None):
         # filter out wells definitions
         def mod_key(key, item):
@@ -3709,9 +3708,24 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         mdict = dict([(mod_key(k, v), v) for k, v in meshes.items()
                       if not k.endswith('_wells')])
+        format = mesh_format
+        mesh_wf_format = mesh_wf_format
+        use_gltf = False
+        if mesh_format == '.gltf':
+            # don't build the GLTF dict because we need to split it in
+            # categories
+            format = None
+            use_gltf = True
+        if mesh_wf_format == '.gltf':
+            wf_format = None
+            use_gltf = True
         summary = super(CataSvgToMesh, self).save_mesh_dict(
-            mdict, dirname,  mesh_format=mesh_format,
-            mesh_wf_format=mesh_wf_format)
+            mdict, dirname,  mesh_format=format, mesh_wf_format=wf_format)
+
+        if use_gltf:
+            from soma.aims import gltf_io
+            gltf_dicts = {}  # public
+            gltf_p_dicts = {}  # private
 
         # output JSON dict
         json_obj = collections.OrderedDict()
@@ -3833,19 +3847,56 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         layer = 8
                     elif 'grille surface' in filename:
                         layer = 9
-                # print('mesh:', layer, ':', filename, props)
-                size = os.stat(os.path.join(dirname,
-                                            filename + '.obj')).st_size
-                # hash
-                md5 = hashlib.md5(open(os.path.join(dirname,
-                                                    filename + '.obj'),
-                                       'rb').read()).hexdigest()
-                if 'private' in filename or (props and props.private):
-                    pmeshes.append([layer, filename, size, md5])
+                if use_gltf:
+                    if 'private' in filename or (props and props.private):
+                        gltf = gltf_p_dicts.setdefault(layer, {})
+                    else:
+                        gltf = gltf_dicts.setdefault(layer, {})
+                    if len(gltf) == 0:
+                        matrix = [-1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,
+                                  0, 0, 0, 1]
+                        gltf_io.default_gltf_scene(matrix=matrix, gltf=gltf)
+                    gltf_io.mesh_to_gltf(mdict[mesh], name=mesh, gltf=gltf)
                 else:
-                    jmeshes.append([layer, filename, size, md5])
+                    # print('mesh:', layer, ':', filename, props)
+                    size = os.stat(os.path.join(dirname,
+                                                filename + '.obj')).st_size
+                    # hash
+                    md5 = hashlib.md5(open(os.path.join(dirname,
+                                                        filename + '.obj'),
+                                          'rb').read()).hexdigest()
+                    if 'private' in filename or (props and props.private):
+                        pmeshes.append([layer, filename, size, md5])
+                    else:
+                        jmeshes.append([layer, filename, size, md5])
 
                 used_layers.add(layer)
+
+            # regroup GLTFs
+            for layer, gltf in gltf_dicts.items():
+                filename = osp.join(dirname, categories[layer] + '.gltf')
+
+                with open(filename, 'w') as f:
+                    json.dump(gltf, f, indent=4,
+                              sort_keys=False, ensure_ascii=False)
+                # print('GLTF mesh:', layer, ':', filename, props)
+                size = os.stat(filename).st_size
+                # hash
+                md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+                jmeshes.append([layer, osp.basename(filename), size, md5])
+
+            for layer, gltf in gltf_p_dicts.items():
+                filename = osp.join(dirname,
+                                    categories[layer] + '_private.gltf')
+
+                with open(filename, 'w') as f:
+                    json.dump(gltf, f, indent=4,
+                              sort_keys=False, ensure_ascii=False)
+                # print('GLTF mesh:', layer, ':', filename, props)
+                size = os.stat(filename).st_size
+                # hash
+                md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+                pmeshes.append([layer, osp.basename(filename), size, md5])
 
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
@@ -5985,9 +6036,12 @@ The program allows to produce:
         svg_mesh.postprocess(meshes)
 
         print('saving meshes...')
+        #mesh_format = ('.obj', 'WAVEFRONT')
+        #mesh_wf_format = ('.obj', 'WAVEFRONT')
+        mesh_format = '.gltf'
+        mesh_wf_format = '.gltf'
         summary = svg_mesh.save_mesh_dict(
-            meshes, out_dirname, ('.obj', 'WAVEFRONT'),
-            ('.obj', 'WAVEFRONT'),
+            meshes, out_dirname, mesh_format, mesh_wf_format,
             'map_objects.json',
             out_filename.replace('.svg', '_imprimable_private.jpg'))
 

@@ -255,7 +255,6 @@ class SvgToMesh(object):
         x = xml_path.get('cx')
         if x is None:
             x = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx')
-            print('x:', x)
         x = float(x)
         y = xml_path.get('cy')
         if y is None:
@@ -1590,18 +1589,33 @@ class SvgToMesh(object):
             xml_group.remove(xml_group[1])
 
 
-    def save_mesh_dict(self, meshes, dirname, mesh_format='.mesh',
-                       mesh_wf_format='.mesh'):
+    def save_mesh_dict(self, meshes, dirname, mesh_format='.obj',
+                       mesh_wf_format='.obj'):
+        '''
+        mesh_format may be a valid mesh extension (".obj", ".gii", ".mesh") or
+        GLTF (".gltf"), or None (not saved here).
+
+        If GLTF is used a scene dict (JSON) is returned in the output summary
+        under the key "gltf_scene".
+        '''
+        import json
+        from soma.aims import gltf_io
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         summary = {}
+        if mesh_format == '.gltf' or mesh_wf_format == '.gltf':
+            matrix = [-1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1]
+            gltf = gltf_io.default_gltf_scene(matrix)
+            summary['gltf_scene'] = gltf
         for key, mesh in meshes.items():
+            #if key is None:
+                #print('key is None, mesh:', mesh)
+                #continue
             if type(mesh) in (list, dict):
                 # dict object (text...), save as .aobj
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + '.aobj')
                 print('saving:', filename, '(', key, ')')
-                import json
                 #open(filename, 'w').write(repr(mesh) + '\n')
                 try:
                     json.dump(mesh, open(filename, 'w'))
@@ -1622,10 +1636,16 @@ class SvgToMesh(object):
                     ext, format = ext
                 else:
                     format = None
+                fext = ext
+                if ext is None:
+                    fext = ''
                 filename = os.path.join(dirname,
-                                        key.replace('/', '_') + ext)
+                                        key.replace('/', '_') + fext)
                 print('saving:', filename, '(', key, ')')
-                aims.write(mesh, filename, format=format)
+                if ext == '.gltf':
+                    gltf = gltf_io.mesh_to_gltf(mesh, name=key, gltf=gltf)
+                elif ext is not None:
+                    aims.write(mesh, filename, format=format)
                 summary.setdefault("meshes", {})[filename] = key
         return summary
 
