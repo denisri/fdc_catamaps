@@ -208,7 +208,17 @@ Properties list
     Levels are associated to depth maps, so for each level used (except
     ``surf``), a ``depth_map`` layer is supposed to be defined. See
     :ref:`depth_maps`.
-**map_transform**: SVG transformation spec (**2D maps**)
+**main_clip_rect_id:** JSON dict (**2D maps**)
+    set in the Inkscape metadata layer, it indicates the clip rectangle ID (in
+    the XML elements IDs) for each map type. A default (fallback) one can be
+    given under the key ``default`` in the dict. Ex::
+
+        {"default": "clip_general", "private": "clip_all"}
+
+    so that, in this example, the ``private`` map gets a different field of
+    view from the other ones.
+
+**map_transform:** SVG transformation spec (**2D maps**)
     additional transformation applied to elements, used for
     instance to shift lower level parts when they are superimposed under an
     upper level. Without this shift, they would not be seen because they are
