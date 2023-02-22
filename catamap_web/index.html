@@ -720,10 +720,24 @@
 
                 loader.load( gltfname, function ( gltf )
                 {
-//                     sword = gltf.scene;  // sword 3D object is loaded
-//                     sword.scale.set(2, 2, 2);
-//                     sword.position.y = 4;
                     mesh_cat[gltfname] = [2, gltf.scene]; // loaded
+
+                    gltf.scene.traverse( function ( child )
+                    {
+                        if ( child instanceof THREE.Mesh )
+                        {
+//                             child.material.side = THREE.DoubleSide;
+                            if( child.material.opacity < 1. )
+                                child.material.transparent = true;
+                            else
+                                child.material.transparent = false;
+                        }
+                        if ( child instanceof THREE.LineSegments )
+                        {
+                            child.material.lights = false;
+                        }
+                    })
+
                     scene.add( gltf.scene );
                     render();
                 } );
