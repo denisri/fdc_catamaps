@@ -1,1 +1,1 @@
-build_version = 891
+build_version = 906

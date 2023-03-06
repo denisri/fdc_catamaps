@@ -2167,6 +2167,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                 raise
                         x, y = trans_el.dot([[pos[0]], [pos[1]], [1]])[:2]
                         pos = [x[0, 0], y[0, 0]]
+                    if sub_el[0].text is None:
+                        print('marker with no text:', sub_el.get('id'), sub_el)
                     text = sub_el[0].text.strip()
                 elif tag == 'path':
                     trans3 = sub_el.get('transform')
@@ -3703,8 +3705,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return mesh
 
 
-    def save_mesh_dict(self, meshes, dirname, mesh_format='.gltf',
-                       mesh_wf_format='.gltf', json_filename=None,
+    def save_mesh_dict(self, meshes, dirname, mesh_format='.glb',
+                       mesh_wf_format='.glb', json_filename=None,
                        map2d_filename=None):
         # filter out wells definitions
         def mod_key(key, item):
@@ -3719,14 +3721,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mdict = dict([(mod_key(k, v), v) for k, v in meshes.items()
                       if not k.endswith('_wells')])
         format = mesh_format
-        mesh_wf_format = mesh_wf_format
+        wf_format = mesh_wf_format
         use_gltf = False
-        if mesh_format == '.gltf':
+        if mesh_format in ('.gltf', '.glb'):
             # don't build the GLTF dict because we need to split it in
             # categories
             format = None
             use_gltf = True
-        if mesh_wf_format == '.gltf':
+        if mesh_wf_format in ('.gltf', '.glb'):
             wf_format = None
             use_gltf = True
         summary = super(CataSvgToMesh, self).save_mesh_dict(
@@ -3866,7 +3868,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         matrix = [-1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,
                                   0, 0, 0, 1]
                         gltf_io.default_gltf_scene(matrix=matrix, gltf=gltf)
-                    gltf_io.mesh_to_gltf(mdict[mesh], name=mesh, gltf=gltf)
+                    if len(mdict[mesh].vertex()) == 0:
+                        print('mesh has 0 size:', mesh)
+                    else:
+                        gltf_io.mesh_to_gltf(mdict[mesh], name=mesh, gltf=gltf)
                 else:
                     # print('mesh:', layer, ':', filename, props)
                     size = os.stat(os.path.join(dirname,
@@ -3882,31 +3887,44 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
                 used_layers.add(layer)
 
-            # regroup GLTFs
-            for layer, gltf in gltf_dicts.items():
-                filename = osp.join(dirname, categories[layer] + '.gltf')
+        if use_gltf:
+            try:
+                from pygltflib import GLTF2, BufferFormat, ImageFormat
+            except ImportError:
+                GLTF2 = None  # no GLTF/GLB conversion support
 
-                with open(filename, 'w') as f:
-                    json.dump(gltf, f, indent=4,
-                              sort_keys=False, ensure_ascii=False)
-                # print('GLTF mesh:', layer, ':', filename, props)
-                size = os.stat(filename).st_size
-                # hash
-                md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-                jmeshes.append([layer, osp.basename(filename), size, md5])
+            for gltf_d, private, mmeshes in ((gltf_dicts, '', jmeshes),
+                                    (gltf_p_dicts, '_private', pmeshes)):
+                # regroup GLTFs
+                for layer, gltf in gltf_d.items():
+                    filename = osp.join(dirname,
+                                        categories[layer] + private + '.gltf')
 
-            for layer, gltf in gltf_p_dicts.items():
-                filename = osp.join(dirname,
-                                    categories[layer] + '_private.gltf')
+                    gltf_io.gltf_encode_buffers(gltf)
 
-                with open(filename, 'w') as f:
-                    json.dump(gltf, f, indent=4,
-                              sort_keys=False, ensure_ascii=False)
-                # print('GLTF mesh:', layer, ':', filename, props)
-                size = os.stat(filename).st_size
-                # hash
-                md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-                pmeshes.append([layer, osp.basename(filename), size, md5])
+                    if mesh_format == '.glb' and GLTF2 is not None:
+                        gltf2 = GLTF2().from_dict(gltf)
+                        gltf2.convert_images(ImageFormat.BUFFERVIEW)
+                        gltf2.convert_buffers(BufferFormat.BINARYBLOB)
+                        filename = osp.join(
+                            dirname,  categories[layer] + private + '.glb')
+                        print('saving GLB:', filename)
+                        gltf2.save(filename)
+                    else:
+                        print('saving GLTF:', filename)
+                        with open(filename, 'w') as f:
+                            json.dump(gltf, f, indent=4,
+                                      sort_keys=False, ensure_ascii=False)
+                    # compress meshes using Draco
+                    ## (too aggressive):
+                    ## gltf-transform optimize Couloirs.gltf Couloirs.glb --texture-compress webp
+                    # gltf-transform draco <filename> <filename>.glb
+
+                    # print('GLTF mesh:', layer, ':', filename, props)
+                    size = os.stat(filename).st_size
+                    # hash
+                    md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
+                    mmeshes.append([layer, osp.basename(filename), size, md5])
 
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
@@ -6048,8 +6066,8 @@ The program allows to produce:
         print('saving meshes...')
         #mesh_format = ('.obj', 'WAVEFRONT')
         #mesh_wf_format = ('.obj', 'WAVEFRONT')
-        mesh_format = '.gltf'
-        mesh_wf_format = '.gltf'
+        mesh_format = '.glb'
+        mesh_wf_format = '.glb'
         summary = svg_mesh.save_mesh_dict(
             meshes, out_dirname, mesh_format, mesh_wf_format,
             'map_objects.json',

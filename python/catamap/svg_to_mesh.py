@@ -1593,7 +1593,7 @@ class SvgToMesh(object):
                        mesh_wf_format='.obj'):
         '''
         mesh_format may be a valid mesh extension (".obj", ".gii", ".mesh") or
-        GLTF (".gltf"), or None (not saved here).
+        GLTF (".gltf" or ".glb"), or None (not saved here).
 
         If GLTF is used a scene dict (JSON) is returned in the output summary
         under the key "gltf_scene".
@@ -1603,7 +1603,8 @@ class SvgToMesh(object):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         summary = {}
-        if mesh_format == '.gltf' or mesh_wf_format == '.gltf':
+        if mesh_format in ('.gltf', '.glb') or mesh_wf_format in ('.gltf',
+                                                                  '.glb'):
             matrix = [-1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1]
             gltf = gltf_io.default_gltf_scene(matrix)
             summary['gltf_scene'] = gltf
@@ -1642,7 +1643,7 @@ class SvgToMesh(object):
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + fext)
                 print('saving:', filename, '(', key, ')')
-                if ext == '.gltf':
+                if ext in ('.gltf', '.glb'):
                     gltf = gltf_io.mesh_to_gltf(mesh, name=key, gltf=gltf)
                 elif ext is not None:
                     aims.write(mesh, filename, format=format)
