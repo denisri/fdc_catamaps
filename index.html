@@ -239,7 +239,16 @@ later.</p></li>
 <code class="docutils literal notranslate"><span class="pre">surf</span></code>), a <code class="docutils literal notranslate"><span class="pre">depth_map</span></code> layer is supposed to be defined. See
 <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a>.</p>
 </dd>
-<dt><strong>map_transform</strong>: SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
+<dt><strong>main_clip_rect_id:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>set in the Inkscape metadata layer, it indicates the clip rectangle ID (in
+the XML elements IDs) for each map type. A default (fallback) one can be
+given under the key <code class="docutils literal notranslate"><span class="pre">default</span></code> in the dict. Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_general&quot;</span><span class="p">,</span> <span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_all&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>so that, in this example, the <code class="docutils literal notranslate"><span class="pre">private</span></code> map gets a different field of
+view from the other ones.</p>
+</dd>
+<dt><strong>map_transform:</strong> SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
 instance to shift lower level parts when they are superimposed under an
 upper level. Without this shift, they would not be seen because they are
 hidden by the upper level. The transform is specified in the same way as
@@ -572,6 +581,15 @@ if skip_children is True, children are skipped.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict">
+<span class="sig-name descname"><span class="pre">save_mesh_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.glb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_wf_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.glb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map2d_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.save_mesh_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>mesh_format may be a valid mesh extension (“.obj”, “.gii”, “.mesh”) or
+GLTF (“.gltf” or “.glb”), or None (not saved here).</p>
+<p>If GLTF is used a scene dict (JSON) is returned in the output summary
+under the key “gltf_scene”.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -710,6 +728,15 @@ if element: element itself</p></li>
 and should return either the element itself (no replacement), or None
 (element is discarded), or a replaced XML element.</p>
 <p>The default method always returns the input element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.save_mesh_dict">
+<span class="sig-name descname"><span class="pre">save_mesh_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_wf_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.save_mesh_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>mesh_format may be a valid mesh extension (“.obj”, “.gii”, “.mesh”) or
+GLTF (“.gltf” or “.glb”), or None (not saved here).</p>
+<p>If GLTF is used a scene dict (JSON) is returned in the output summary
+under the key “gltf_scene”.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -887,6 +914,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.make_ps_well"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.make_ps_well()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_path"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_path()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_paths"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_paths()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.save_mesh_dict()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.DefaultItemProperties"><code class="docutils literal notranslate"><span class="pre">DefaultItemProperties</span></code></a></li>
@@ -908,6 +936,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.read_polygon"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.read_polygon()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.read_rect"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.read_rect()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.replace_filter_element"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.replace_filter_element()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.save_mesh_dict()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_path"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_path()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_style"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_style()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_subtree"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_subtree()</span></code></a></li>

@@ -248,7 +248,17 @@
 <span class="sd">    Levels are associated to depth maps, so for each level used (except</span>
 <span class="sd">    ``surf``), a ``depth_map`` layer is supposed to be defined. See</span>
 <span class="sd">    :ref:`depth_maps`.</span>
-<span class="sd">**map_transform**: SVG transformation spec (**2D maps**)</span>
+<span class="sd">**main_clip_rect_id:** JSON dict (**2D maps**)</span>
+<span class="sd">    set in the Inkscape metadata layer, it indicates the clip rectangle ID (in</span>
+<span class="sd">    the XML elements IDs) for each map type. A default (fallback) one can be</span>
+<span class="sd">    given under the key ``default`` in the dict. Ex::</span>
+
+<span class="sd">        {&quot;default&quot;: &quot;clip_general&quot;, &quot;private&quot;: &quot;clip_all&quot;}</span>
+
+<span class="sd">    so that, in this example, the ``private`` map gets a different field of</span>
+<span class="sd">    view from the other ones.</span>
+
+<span class="sd">**map_transform:** SVG transformation spec (**2D maps**)</span>
 <span class="sd">    additional transformation applied to elements, used for</span>
 <span class="sd">    instance to shift lower level parts when they are superimposed under an</span>
 <span class="sd">    upper level. Without this shift, they would not be seen because they are</span>
@@ -513,6 +523,7 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -1347,7 +1358,6 @@
         <span class="k">if</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
             <span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xml_element</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">title</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TITLE:&#39;</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
         <span class="n">label</span> <span class="o">=</span> <span class="n">item_props</span><span class="o">.</span><span class="n">label</span>
@@ -1370,7 +1380,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">read_markers</span><span class="p">(</span><span class="n">xml_element</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">sname</span><span class="p">)</span>
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LAMBERT93&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">read_lambert93</span><span class="p">(</span><span class="n">xml_element</span><span class="p">)</span>
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
@@ -2198,6 +2207,8 @@
                                 <span class="k">raise</span>
                         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">trans_el</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])[:</span><span class="mi">2</span><span class="p">]</span>
                         <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker with no text:&#39;</span><span class="p">,</span> <span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">sub_el</span><span class="p">)</span>
                     <span class="n">text</span> <span class="o">=</span> <span class="n">sub_el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;path&#39;</span><span class="p">:</span>
                     <span class="n">trans3</span> <span class="o">=</span> <span class="n">sub_el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
@@ -2312,7 +2323,7 @@
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;incorrect lambert93 coordinates:&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">lambert_map</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lamb</span><span class="p">]))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;lambert93:&#39;</span><span class="p">,</span> <span class="n">lambert_map</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="c1"># print(&#39;lambert93:&#39;, lambert_map[-1])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert93_coords</span> <span class="o">=</span> <span class="n">lambert_map</span>
         <span class="c1"># regress</span>
@@ -2328,12 +2339,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span> <span class="o">=</span> <span class="n">xy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">lamb_x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">lamb_y</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Lambert93 slope:&#39;</span><span class="p">,</span> <span class="n">lamb_x</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">lamb_y</span><span class="o">.</span><span class="n">slope</span><span class="p">)</span>
+        <span class="c1"># print(&#39;Lambert93 slope:&#39;, lamb_x.slope, lamb_y.slope)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambert93_z_scaling</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span> \
                 <span class="o">=</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">slope</span><span class="p">)</span>
                         <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">slope</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z_scale:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">)</span>
+            <span class="c1"># print(&#39;z_scale:&#39;, self.z_scale)</span>
 
 
     <span class="k">def</span> <span class="nf">change_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
@@ -3734,8 +3745,8 @@
         <span class="k">return</span> <span class="n">mesh</span>
 
 
-    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.mesh&#39;</span><span class="p">,</span>
-                       <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.mesh&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="CataSvgToMesh.save_mesh_dict"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict">[docs]</a>    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.glb&#39;</span><span class="p">,</span>
+                       <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.glb&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                        <span class="n">map2d_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># filter out wells definitions</span>
         <span class="k">def</span> <span class="nf">mod_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
@@ -3749,9 +3760,24 @@
 
         <span class="n">mdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">mod_key</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                       <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_wells&#39;</span><span class="p">)])</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="n">mesh_format</span>
+        <span class="n">wf_format</span> <span class="o">=</span> <span class="n">mesh_wf_format</span>
+        <span class="n">use_gltf</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">mesh_format</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gltf&#39;</span><span class="p">,</span> <span class="s1">&#39;.glb&#39;</span><span class="p">):</span>
+            <span class="c1"># don&#39;t build the GLTF dict because we need to split it in</span>
+            <span class="c1"># categories</span>
+            <span class="nb">format</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">use_gltf</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">mesh_wf_format</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gltf&#39;</span><span class="p">,</span> <span class="s1">&#39;.glb&#39;</span><span class="p">):</span>
+            <span class="n">wf_format</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">use_gltf</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CataSvgToMesh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
-            <span class="n">mdict</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="n">mesh_format</span><span class="p">,</span>
-            <span class="n">mesh_wf_format</span><span class="o">=</span><span class="n">mesh_wf_format</span><span class="p">)</span>
+            <span class="n">mdict</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="n">wf_format</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_gltf</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">soma.aims</span> <span class="kn">import</span> <span class="n">gltf_io</span>
+            <span class="n">gltf_dicts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># public</span>
+            <span class="n">gltf_p_dicts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># private</span>
 
         <span class="c1"># output JSON dict</span>
         <span class="n">json_obj</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
@@ -3873,19 +3899,72 @@
                         <span class="n">layer</span> <span class="o">=</span> <span class="mi">8</span>
                     <span class="k">elif</span> <span class="s1">&#39;grille surface&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
                         <span class="n">layer</span> <span class="o">=</span> <span class="mi">9</span>
-                <span class="c1"># print(&#39;mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
-                <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
-                                            <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">st_size</span>
-                <span class="c1"># hash</span>
-                <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
-                                                    <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">),</span>
-                                       <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-                <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="p">(</span><span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">private</span><span class="p">):</span>
-                    <span class="n">pmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">use_gltf</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="p">(</span><span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">private</span><span class="p">):</span>
+                        <span class="n">gltf</span> <span class="o">=</span> <span class="n">gltf_p_dicts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">gltf</span> <span class="o">=</span> <span class="n">gltf_dicts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">matrix</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">gltf_io</span><span class="o">.</span><span class="n">default_gltf_scene</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">matrix</span><span class="p">,</span> <span class="n">gltf</span><span class="o">=</span><span class="n">gltf</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mdict</span><span class="p">[</span><span class="n">mesh</span><span class="p">]</span><span class="o">.</span><span class="n">vertex</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mesh has 0 size:&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">gltf_io</span><span class="o">.</span><span class="n">mesh_to_gltf</span><span class="p">(</span><span class="n">mdict</span><span class="p">[</span><span class="n">mesh</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">gltf</span><span class="o">=</span><span class="n">gltf</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">jmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
+                    <span class="c1"># print(&#39;mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
+                                                <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">st_size</span>
+                    <span class="c1"># hash</span>
+                    <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
+                                                        <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">),</span>
+                                          <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="p">(</span><span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">private</span><span class="p">):</span>
+                        <span class="n">pmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">jmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
 
                 <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_gltf</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pygltflib</span> <span class="kn">import</span> <span class="n">GLTF2</span><span class="p">,</span> <span class="n">BufferFormat</span><span class="p">,</span> <span class="n">ImageFormat</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">GLTF2</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># no GLTF/GLB conversion support</span>
+
+            <span class="k">for</span> <span class="n">gltf_d</span><span class="p">,</span> <span class="n">private</span><span class="p">,</span> <span class="n">mmeshes</span> <span class="ow">in</span> <span class="p">((</span><span class="n">gltf_dicts</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">jmeshes</span><span class="p">),</span>
+                                    <span class="p">(</span><span class="n">gltf_p_dicts</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">pmeshes</span><span class="p">)):</span>
+                <span class="c1"># regroup GLTFs</span>
+                <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">gltf</span> <span class="ow">in</span> <span class="n">gltf_d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
+                                        <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="s1">&#39;.gltf&#39;</span><span class="p">)</span>
+
+                    <span class="n">gltf_io</span><span class="o">.</span><span class="n">gltf_encode_buffers</span><span class="p">(</span><span class="n">gltf</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">mesh_format</span> <span class="o">==</span> <span class="s1">&#39;.glb&#39;</span> <span class="ow">and</span> <span class="n">GLTF2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">gltf2</span> <span class="o">=</span> <span class="n">GLTF2</span><span class="p">()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">gltf</span><span class="p">)</span>
+                        <span class="n">gltf2</span><span class="o">.</span><span class="n">convert_images</span><span class="p">(</span><span class="n">ImageFormat</span><span class="o">.</span><span class="n">BUFFERVIEW</span><span class="p">)</span>
+                        <span class="n">gltf2</span><span class="o">.</span><span class="n">convert_buffers</span><span class="p">(</span><span class="n">BufferFormat</span><span class="o">.</span><span class="n">BINARYBLOB</span><span class="p">)</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                            <span class="n">dirname</span><span class="p">,</span>  <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="s1">&#39;.glb&#39;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving GLB:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                        <span class="n">gltf2</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving GLTF:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                      <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="c1"># compress meshes using Draco</span>
+                    <span class="c1">## (too aggressive):</span>
+                    <span class="c1">## gltf-transform optimize Couloirs.gltf Couloirs.glb --texture-compress webp</span>
+                    <span class="c1"># gltf-transform draco &lt;filename&gt; &lt;filename&gt;.glb</span>
+
+                    <span class="c1"># print(&#39;GLTF mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+                    <span class="c1"># hash</span>
+                    <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+                    <span class="n">mmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">osp</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
 
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;meshes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">jmeshes</span><span class="p">)</span>
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;meshes_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pmeshes</span><span class="p">)</span>
@@ -3952,7 +4031,7 @@
                 <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_obj</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                         <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">json_obj</span></div>
+        <span class="k">return</span> <span class="n">json_obj</span></div></div>
 
 
 
@@ -6025,9 +6104,12 @@
         <span class="n">svg_mesh</span><span class="o">.</span><span class="n">postprocess</span><span class="p">(</span><span class="n">meshes</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving meshes...&#39;</span><span class="p">)</span>
+        <span class="c1">#mesh_format = (&#39;.obj&#39;, &#39;WAVEFRONT&#39;)</span>
+        <span class="c1">#mesh_wf_format = (&#39;.obj&#39;, &#39;WAVEFRONT&#39;)</span>
+        <span class="n">mesh_format</span> <span class="o">=</span> <span class="s1">&#39;.glb&#39;</span>
+        <span class="n">mesh_wf_format</span> <span class="o">=</span> <span class="s1">&#39;.glb&#39;</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
-            <span class="n">meshes</span><span class="p">,</span> <span class="n">out_dirname</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span> <span class="s1">&#39;WAVEFRONT&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span> <span class="s1">&#39;WAVEFRONT&#39;</span><span class="p">),</span>
+            <span class="n">meshes</span><span class="p">,</span> <span class="n">out_dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="p">,</span>
             <span class="s1">&#39;map_objects.json&#39;</span><span class="p">,</span>
             <span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_imprimable_private.jpg&#39;</span><span class="p">))</span>
 
