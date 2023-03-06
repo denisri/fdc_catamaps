@@ -695,7 +695,8 @@
             if( cat != category )
                 continue; // wrong group
 
-            if( filenames[i][1].endsWith('.gltf') )
+            if( filenames[i][1].endsWith('.gltf')
+                || filenames[i][1].endsWith('.glb') )
             {
                 var gltfname = url + filenames[i][1];
 
@@ -715,122 +716,125 @@
 
                 mesh_cat[gltfname] = [1, null]; // loading
 
-                dracoLoader.setDecoderPath( '/examples/jsm/libs/draco' );
+                dracoLoader.setDecoderPath( 'three/examples/jsm/libs/draco/' );
                 loader.setDRACOLoader( dracoLoader );
 
-                loader.load( gltfname, function ( gltf )
-                {
-                    mesh_cat[gltfname] = [2, gltf.scene]; // loaded
+                function loadedFunction(url) {
+                    return function (gltf) {
+                        mesh_cat[url] = [2, gltf.scene]; // loaded
 
-                    gltf.scene.traverse( function ( child )
-                    {
-                        if ( child instanceof THREE.Mesh )
+                        gltf.scene.traverse( function ( child )
                         {
-//                             child.material.side = THREE.DoubleSide;
-                            if( child.material.opacity < 1. )
-                                child.material.transparent = true;
-                            else
-                                child.material.transparent = false;
-                        }
-                        if ( child instanceof THREE.LineSegments )
-                        {
-                            child.material.lights = false;
-                        }
-                    })
+                            if ( child instanceof THREE.Mesh )
+                            {
+                                if( child.material.opacity < 1. )
+                                    child.material.transparent = true;
+                                else
+                                    child.material.transparent = false;
+                            }
+                            if ( child instanceof THREE.LineSegments )
+                            {
+                                child.material.lights = false;
+                            }
+                        })
 
-                    scene.add( gltf.scene );
-                    render();
-                } );
+                        scene.add( gltf.scene );
+                        render();
+
+                    }
+                }
+
+                loader.load( gltfname, loadedFunction(gltfname) );
             }
             else
             {
 
-            var fname = url + filenames[i][1] + '.mtl';
-            var mname = url + filenames[i][1] + '.obj';
-            // console.debug('fname:', fname);
+                var fname = url + filenames[i][1] + '.mtl';
+                var mname = url + filenames[i][1] + '.obj';
+                // console.debug('fname:', fname);
 
-            if( mesh_cat[mname] == null )
-                mesh_cat[mname] = [0, null]; // not loaded
+                if( mesh_cat[mname] == null )
+                    mesh_cat[mname] = [0, null]; // not loaded
 
-            if( mesh_cat[mname][0] == 2 )
-            {
-                scene.add( mesh_cat[mname][1] ); // loaded: add it in scene
-                // console.log('display object', mname);
-            }
-            if( mesh_cat[mname][0] != 0 )
-                continue; // loaded or loading: don't do it again
-
-            var mtl_loader = new MTLLoader();
-            mesh_cat[mname] = [1, null]; // loading
-            mtl_loader.load(
-                // resource URL
-                fname,
-                // called when resource is loaded
-                function ( materials )
+                if( mesh_cat[mname][0] == 2 )
                 {
-                    materials.preload();
-
-                    var objLoader = new OBJLoader();
-                    objLoader.setMaterials(materials);
-                    var mlist = [];
-                    for( var m in materials.materials )
-                    {
-                      mlist.push( m.substr( 0, m.length - 2 ) );
-                    }
-
-                    var fname = url + mlist[0] + '.obj';
-                    objLoader.load( fname,
-                        function (object)
-                        {
-                            mesh_cat[fname] = [2, object]; // loaded
-                            object.traverse( function ( child )
-                            {
-                                if ( child instanceof THREE.Mesh )
-                                {
-                                    child.material.side = THREE.DoubleSide;
-                                }
-                                if ( child instanceof THREE.LineSegments )
-                                {
-                                    child.material.lights = false;
-                                }
-                            } );
-
-                            object.scale.set( -1., 1., 1. );
-
-                            // console.log('display object', fname);
-                            scene.add(object);
-                            render();
-
-                        },
-                        // called when loading is in progress
-                        function ( xhr ) {
-
-//                             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-                        },
-                        // called when loading has errors
-                        function ( error ) {
-
-                                console.log( 'An error happened:', url,
-                                             ':', error );
-
-                        });
-
-
-                },
-                // called when loading is in progresses
-                function ( xhr ) {
-
-//                         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-                },
-                // called when loading has errors
-                function ( error ) {
-                        console.log( 'An error happened:', url, ':', error );
-                        delete mesh_cat[fname];
+                    scene.add( mesh_cat[mname][1] ); // loaded: add it in scene
+                    // console.log('display object', mname);
                 }
-            );
-        } // obj
+                if( mesh_cat[mname][0] != 0 )
+                    continue; // loaded or loading: don't do it again
+
+                var mtl_loader = new MTLLoader();
+                mesh_cat[mname] = [1, null]; // loading
+                mtl_loader.load(
+                    // resource URL
+                    fname,
+                    // called when resource is loaded
+                    function ( materials )
+                    {
+                        materials.preload();
+
+                        var objLoader = new OBJLoader();
+                        objLoader.setMaterials(materials);
+                        var mlist = [];
+                        for( var m in materials.materials )
+                        {
+                          mlist.push( m.substr( 0, m.length - 2 ) );
+                        }
+
+                        var fname = url + mlist[0] + '.obj';
+                        objLoader.load( fname,
+                            function (object)
+                            {
+                                mesh_cat[fname] = [2, object]; // loaded
+                                object.traverse( function ( child )
+                                {
+                                    if ( child instanceof THREE.Mesh )
+                                    {
+                                        child.material.side = THREE.DoubleSide;
+                                    }
+                                    if ( child instanceof THREE.LineSegments )
+                                    {
+                                        child.material.lights = false;
+                                    }
+                                } );
+
+                                object.scale.set( -1., 1., 1. );
+
+                                // console.log('display object', fname);
+                                scene.add(object);
+                                render();
+
+                            },
+                            // called when loading is in progress
+                            function ( xhr ) {
+
+    //                             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                            },
+                            // called when loading has errors
+                            function ( error ) {
+
+                                    console.log( 'An error happened:', url,
+                                                ':', error );
+
+                            });
+
+
+                    },
+                    // called when loading is in progresses
+                    function ( xhr ) {
+
+    //                         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                    },
+                    // called when loading has errors
+                    function ( error ) {
+                            console.log( 'An error happened:', url, ':', error );
+                            delete mesh_cat[fname];
+                    }
+                );
+            } // obj
         }
 
         function nextPow2( aSize ){
@@ -1040,6 +1044,7 @@
         console.log('unload meshes category:', category);
 
         var mesh_cat = meshes[category];
+        // console.log('meshes:', mesh_cat);
         if( mesh_cat == null )
           return;
         var fname = '';
