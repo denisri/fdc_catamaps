@@ -3893,32 +3893,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             except ImportError:
                 GLTF2 = None  # no GLTF/GLB conversion support
 
-            for gltf_d, private, mmeshes in ((gltf_dicts, '', jmeshes),
-                                    (gltf_p_dicts, '_private', pmeshes)):
+            for gltf_d, private, mmeshes in (
+                    (gltf_dicts, '', jmeshes),
+                    (gltf_p_dicts, '_private', pmeshes)):
                 # regroup GLTFs
                 for layer, gltf in gltf_d.items():
-                    filename = osp.join(dirname,
-                                        categories[layer] + private + '.gltf')
+                    filename = osp.join(
+                        dirname, categories[layer] + private + mesh_format)
 
-                    gltf_io.gltf_encode_buffers(gltf)
-
-                    if mesh_format == '.glb' and GLTF2 is not None:
-                        gltf2 = GLTF2().from_dict(gltf)
-                        gltf2.convert_images(ImageFormat.BUFFERVIEW)
-                        gltf2.convert_buffers(BufferFormat.BINARYBLOB)
-                        filename = osp.join(
-                            dirname,  categories[layer] + private + '.glb')
-                        print('saving GLB:', filename)
-                        gltf2.save(filename)
-                    else:
-                        print('saving GLTF:', filename)
-                        with open(filename, 'w') as f:
-                            json.dump(gltf, f, indent=4,
-                                      sort_keys=False, ensure_ascii=False)
-                    # compress meshes using Draco
-                    ## (too aggressive):
-                    ## gltf-transform optimize Couloirs.gltf Couloirs.glb --texture-compress webp
-                    # gltf-transform draco <filename> <filename>.glb
+                    filename = gltf_io.save_gltf(gltf, filename,
+                                                 use_draco=True)
 
                     # print('GLTF mesh:', layer, ':', filename, props)
                     size = os.stat(filename).st_size
