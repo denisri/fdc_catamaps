@@ -3933,32 +3933,16 @@
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="n">GLTF2</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># no GLTF/GLB conversion support</span>
 
-            <span class="k">for</span> <span class="n">gltf_d</span><span class="p">,</span> <span class="n">private</span><span class="p">,</span> <span class="n">mmeshes</span> <span class="ow">in</span> <span class="p">((</span><span class="n">gltf_dicts</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">jmeshes</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="n">gltf_p_dicts</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">pmeshes</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">gltf_d</span><span class="p">,</span> <span class="n">private</span><span class="p">,</span> <span class="n">mmeshes</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">gltf_dicts</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">jmeshes</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">gltf_p_dicts</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">pmeshes</span><span class="p">)):</span>
                 <span class="c1"># regroup GLTFs</span>
                 <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">gltf</span> <span class="ow">in</span> <span class="n">gltf_d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
-                                        <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="s1">&#39;.gltf&#39;</span><span class="p">)</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">dirname</span><span class="p">,</span> <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mesh_format</span><span class="p">)</span>
 
-                    <span class="n">gltf_io</span><span class="o">.</span><span class="n">gltf_encode_buffers</span><span class="p">(</span><span class="n">gltf</span><span class="p">)</span>
-
-                    <span class="k">if</span> <span class="n">mesh_format</span> <span class="o">==</span> <span class="s1">&#39;.glb&#39;</span> <span class="ow">and</span> <span class="n">GLTF2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">gltf2</span> <span class="o">=</span> <span class="n">GLTF2</span><span class="p">()</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">gltf</span><span class="p">)</span>
-                        <span class="n">gltf2</span><span class="o">.</span><span class="n">convert_images</span><span class="p">(</span><span class="n">ImageFormat</span><span class="o">.</span><span class="n">BUFFERVIEW</span><span class="p">)</span>
-                        <span class="n">gltf2</span><span class="o">.</span><span class="n">convert_buffers</span><span class="p">(</span><span class="n">BufferFormat</span><span class="o">.</span><span class="n">BINARYBLOB</span><span class="p">)</span>
-                        <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                            <span class="n">dirname</span><span class="p">,</span>  <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="s1">&#39;.glb&#39;</span><span class="p">)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving GLB:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-                        <span class="n">gltf2</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving GLTF:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                                      <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                    <span class="c1"># compress meshes using Draco</span>
-                    <span class="c1">## (too aggressive):</span>
-                    <span class="c1">## gltf-transform optimize Couloirs.gltf Couloirs.glb --texture-compress webp</span>
-                    <span class="c1"># gltf-transform draco &lt;filename&gt; &lt;filename&gt;.glb</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">gltf_io</span><span class="o">.</span><span class="n">save_gltf</span><span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
+                                                 <span class="n">use_draco</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
                     <span class="c1"># print(&#39;GLTF mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
                     <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
