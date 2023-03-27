@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset=utf-8>
-        <title id="main_title">GRS 14 2021</title>
+        <title id="main_title">GRS 14 2023</title>
         <style>
             body {
                 margin: 0;
@@ -147,7 +147,7 @@
 
       <div class="top_row">
         <h1 id="title_0">GRAND RÉSEAU SUD</h1>
-        <h3 id="title_1">LE FOND DU CREW 2022</h3>
+        <h3 id="title_1">LE FOND DU CREW 2023</h3>
         <h3 id="title_2"></h3>
       </div>
 
@@ -722,6 +722,7 @@
                 function loadedFunction(url) {
                     return function (gltf) {
                         mesh_cat[url] = [2, gltf.scene]; // loaded
+                        // console.log('loaded:', url);
 
                         gltf.scene.traverse( function ( child )
                         {
@@ -731,6 +732,7 @@
                                     child.material.transparent = true;
                                 else
                                     child.material.transparent = false;
+                                child.material.side = THREE.DoubleSide;
                             }
                             if ( child instanceof THREE.LineSegments )
                             {

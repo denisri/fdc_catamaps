@@ -5704,10 +5704,11 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
                     # convert to RGB with alpha and white background
                     front = np.array(im)  # copy because the image in read only
                     for i in range(3):
-                        alpha = front[:, :, 3] / 255.
+                        alpha = front[:, :, 3]  # uint8
                         front[:, :, i] = (
-                            255 * (1. - alpha)
-                            + front[:, :, i] * alpha).astype(np.uint8)
+                            (255 - alpha)
+                            + (front[:, :, i].astype(np.float32)
+                               * alpha / 255).astype(np.uint8))
                     front[:,:,3] = 255
 
                     im = PIL.Image.fromarray(front, 'RGBA')
@@ -5796,6 +5797,13 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     # build bitmap and pdf versions
     # private
     cr = svg2d.find_clip_rect(map2d, clip_rect)
+    width = float(cr.get('width'))
+    height = float(cr.get('height'))
+    print('w, h:', width, height)
+    print('dpi:', dpi)
+    wpix = width * float(dpi) / 25.4
+    hpix = height * float(dpi) / 25.4
+    print('in pixels:', wpix, hpix)
     export_png(out_filename.replace('.svg', '_%s.svg' % map_name),
                dpi, clip_rect)
     if do_pdf:
@@ -5814,7 +5822,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
             format = 'jpg'
         print('convert to', format.upper())
         convert_to_format(out_filename.replace('.svg', '_%s.png' % map_name),
-                          format=format)
+                          format=format, max_pixels=(wpix+10)*(wpix+10))
     if georef:
         try:
             from . import gdalcopyproj
@@ -5872,6 +5880,7 @@ def main():
         'private': '360',
         'private_wip': '180',
         'poster': '360',
+        'poster_private': '720',
         'igc': '180',
         'igc_private': '360',
         'igcportail': '720',
@@ -5913,7 +5922,8 @@ The program allows to produce:
         '-m', '--maps', dest='do_2d_maps',
         help='specify which 2d maps should be built, ex: '
         '"public,private,igc". Values are in ("public", "private", "wip", '
-        '"poster", "igc", "igc_private", "aqueduc", "No_GTech", "igcportail", '
+        '"poster", "poster_private", "igc", "igc_private", "aqueduc", '
+        '"No_GTech", "igcportail", '
         '"igcportail_txt", "igcportail_legend", "igcportail_tech"). Default: '
         'all if --2d is used. If this option is specified, --2d is implied '
         '(thus is not needed)')
