@@ -47,7 +47,7 @@ def diff_element(el1, el2, verbose_depth=0, verbose_depth_max=1):
         keys1 = set(el1.keys())
         keys2 = set(el2.keys())
         only_k1 = keys1.difference(keys2)
-        only_k2 = keys1.difference(keys2)
+        only_k2 = keys2.difference(keys1)
         inter_k = keys1.intersection(keys2)
         props = {}
         if only_k1:
