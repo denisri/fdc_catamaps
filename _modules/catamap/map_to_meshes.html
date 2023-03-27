@@ -5744,10 +5744,11 @@
                     <span class="c1"># convert to RGB with alpha and white background</span>
                     <span class="n">front</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>  <span class="c1"># copy because the image in read only</span>
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-                        <span class="n">alpha</span> <span class="o">=</span> <span class="n">front</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="mf">255.</span>
+                        <span class="n">alpha</span> <span class="o">=</span> <span class="n">front</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span>  <span class="c1"># uint8</span>
                         <span class="n">front</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="mi">255</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
-                            <span class="o">+</span> <span class="n">front</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+                            <span class="p">(</span><span class="mi">255</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
+                            <span class="o">+</span> <span class="p">(</span><span class="n">front</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                               <span class="o">*</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
                     <span class="n">front</span><span class="p">[:,:,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">255</span>
 
                     <span class="n">im</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="s1">&#39;RGBA&#39;</span><span class="p">)</span>
@@ -5836,6 +5837,13 @@
     <span class="c1"># build bitmap and pdf versions</span>
     <span class="c1"># private</span>
     <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w, h:&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dpi:&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span>
+    <span class="n">wpix</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">dpi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">25.4</span>
+    <span class="n">hpix</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">dpi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">25.4</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in pixels:&#39;</span><span class="p">,</span> <span class="n">wpix</span><span class="p">,</span> <span class="n">hpix</span><span class="p">)</span>
     <span class="n">export_png</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.svg&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">),</span>
                <span class="n">dpi</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">do_pdf</span><span class="p">:</span>
@@ -5854,7 +5862,7 @@
             <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;jpg&#39;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;convert to&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="n">convert_to_format</span><span class="p">(</span><span class="n">out_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="n">map_name</span><span class="p">),</span>
-                          <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+                          <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">max_pixels</span><span class="o">=</span><span class="p">(</span><span class="n">wpix</span><span class="o">+</span><span class="mi">10</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">wpix</span><span class="o">+</span><span class="mi">10</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">georef</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">gdalcopyproj</span>
@@ -5912,6 +5920,7 @@
         <span class="s1">&#39;private&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
         <span class="s1">&#39;private_wip&#39;</span><span class="p">:</span> <span class="s1">&#39;180&#39;</span><span class="p">,</span>
         <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;poster_private&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="s1">&#39;180&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
@@ -5953,7 +5962,8 @@
         <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--maps&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_2d_maps&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify which 2d maps should be built, ex: &#39;</span>
         <span class="s1">&#39;&quot;public,private,igc&quot;. Values are in (&quot;public&quot;, &quot;private&quot;, &quot;wip&quot;, &#39;</span>
-        <span class="s1">&#39;&quot;poster&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &quot;No_GTech&quot;, &quot;igcportail&quot;, &#39;</span>
+        <span class="s1">&#39;&quot;poster&quot;, &quot;poster_private&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &#39;</span>
+        <span class="s1">&#39;&quot;No_GTech&quot;, &quot;igcportail&quot;, &#39;</span>
         <span class="s1">&#39;&quot;igcportail_txt&quot;, &quot;igcportail_legend&quot;, &quot;igcportail_tech&quot;). Default: &#39;</span>
         <span class="s1">&#39;all if --2d is used. If this option is specified, --2d is implied &#39;</span>
         <span class="s1">&#39;(thus is not needed)&#39;</span><span class="p">)</span>
