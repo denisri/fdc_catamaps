@@ -248,6 +248,11 @@ Properties list
     inverse of **visibility** (see below).
 **private:** bool (**2D and 3D maps**)
     private elements will only be visible if a code is provided
+**proto_scale:** float (**2D maps**)
+    Only in the legend layers elements which are prototypes for symbols
+    replacements, this is the scale to be applied when replacing. The default
+    scale is 0.5 (replaced elements will be half the size they have in the
+    legend).
 **radius:** float (**3D maps)
     used in a "marker" layer to specify the max radius between the user click
     and the marker position for it to be triggered. It can be set on the marker
@@ -1885,10 +1890,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # mesh will be created in source space, apply its source space center
         tr = aims.AffineTransformation3d(tmat)
         tr = tr.inverse()
-        center0 = tr.transform((0, 0, 0))
+        center0 = tr.transform(0, 0, 0)
         # source scale
-        scl0 = (tr.transform((1, 0, 0)) - center0).norm()
-        scl1 = (tr.transform((0, 1, 0)) - center0).norm()
+        scl0 = (tr.transform(1, 0, 0) - center0).norm()
+        scl1 = (tr.transform(0, 1, 0) - center0).norm()
         scl = (scl0 + scl1) / 2
         #print('arch:', center, ', scl:', scl, scl0, scl1, ', radius:', radius)
         radius = radius * scl * 0.5
@@ -4019,7 +4024,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 trans = transm
             else:
                 trans = trans * transm
-        trans = self.proto_scale * trans
+        trans_org = trans
+        trans = self.proto_scale * trans_org
 
         labels = {}
         ids = {}
@@ -4048,11 +4054,19 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 element = copy.deepcopy(child)
                 element.set(plabel, ptype)
                 item = {'element': element}
-                bbox = self.boundingbox(child, trans)
+                etrans = trans
+                pscale = element.get('proto_scale')
+                if pscale:
+                    pscale = float(pscale)
+                    pscalem = np.matrix(np.eye(3))
+                    pscalem[0, 0] = pscale
+                    pscalem[1, 1] = pscale
+                    etrans = pscalem * trans_org
+                bbox = self.boundingbox(child, etrans)
                 item['boundingbox'] = bbox
                 item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
                                   (bbox[0][1] + bbox[1][1]) / 2)
-                item['trans'] = trans
+                item['trans'] = etrans
                 replace_children = child.get('replace_children')
                 if replace_children:
                     if replace_children in ('1', 'True', 'true', 'TRUE'):

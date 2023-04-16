@@ -1228,7 +1228,7 @@ class SvgToMesh(object):
         if trans3d:
             trans3d = aims.AffineTransformation3d(trans3d)
             trans3d.setTranslation([0, 0, 0])
-            trans = trans3d.transform([0., 0., distance])
+            trans = trans3d.transform(0., 0., distance)
             tr.setTranslation(trans)
         aims.SurfaceManip.meshTransform(up, tr)
 
