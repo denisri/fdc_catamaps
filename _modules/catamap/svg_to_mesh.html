@@ -1268,7 +1268,7 @@
         <span class="k">if</span> <span class="n">trans3d</span><span class="p">:</span>
             <span class="n">trans3d</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">(</span><span class="n">trans3d</span><span class="p">)</span>
             <span class="n">trans3d</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">trans</span> <span class="o">=</span> <span class="n">trans3d</span><span class="o">.</span><span class="n">transform</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">distance</span><span class="p">])</span>
+            <span class="n">trans</span> <span class="o">=</span> <span class="n">trans3d</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
             <span class="n">tr</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">up</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
 

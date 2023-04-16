@@ -275,6 +275,11 @@ inverse of <strong>visibility</strong> (see below).</p>
 </dd>
 <dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
 </dd>
+<dt><strong>proto_scale:</strong> float (<strong>2D maps</strong>)</dt><dd><p>Only in the legend layers elements which are prototypes for symbols
+replacements, this is the scale to be applied when replacing. The default
+scale is 0.5 (replaced elements will be half the size they have in the
+legend).</p>
+</dd>
 <dt><strong>radius:</strong> float (<a href="#id1"><span class="problematic" id="id2">**</span></a>3D maps)</dt><dd><p>used in a “marker” layer to specify the max radius between the user click
 and the marker position for it to be triggered. It can be set on the marker
 layer itself, or on any marker item inside.</p>

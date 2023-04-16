@@ -288,6 +288,11 @@
 <span class="sd">    inverse of **visibility** (see below).</span>
 <span class="sd">**private:** bool (**2D and 3D maps**)</span>
 <span class="sd">    private elements will only be visible if a code is provided</span>
+<span class="sd">**proto_scale:** float (**2D maps**)</span>
+<span class="sd">    Only in the legend layers elements which are prototypes for symbols</span>
+<span class="sd">    replacements, this is the scale to be applied when replacing. The default</span>
+<span class="sd">    scale is 0.5 (replaced elements will be half the size they have in the</span>
+<span class="sd">    legend).</span>
 <span class="sd">**radius:** float (**3D maps)</span>
 <span class="sd">    used in a &quot;marker&quot; layer to specify the max radius between the user click</span>
 <span class="sd">    and the marker position for it to be triggered. It can be set on the marker</span>
@@ -1925,10 +1930,10 @@
         <span class="c1"># mesh will be created in source space, apply its source space center</span>
         <span class="n">tr</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">(</span><span class="n">tmat</span><span class="p">)</span>
         <span class="n">tr</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
-        <span class="n">center0</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">center0</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="c1"># source scale</span>
-        <span class="n">scl0</span> <span class="o">=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">-</span> <span class="n">center0</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span>
-        <span class="n">scl1</span> <span class="o">=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">-</span> <span class="n">center0</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span>
+        <span class="n">scl0</span> <span class="o">=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">center0</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span>
+        <span class="n">scl1</span> <span class="o">=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">center0</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span>
         <span class="n">scl</span> <span class="o">=</span> <span class="p">(</span><span class="n">scl0</span> <span class="o">+</span> <span class="n">scl1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="c1">#print(&#39;arch:&#39;, center, &#39;, scl:&#39;, scl, scl0, scl1, &#39;, radius:&#39;, radius)</span>
         <span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">scl</span> <span class="o">*</span> <span class="mf">0.5</span>
@@ -4059,7 +4064,8 @@
                 <span class="n">trans</span> <span class="o">=</span> <span class="n">transm</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">trans</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">transm</span>
-        <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">trans</span>
+        <span class="n">trans_org</span> <span class="o">=</span> <span class="n">trans</span>
+        <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">trans_org</span>
 
         <span class="n">labels</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">ids</span> <span class="o">=</span> <span class="p">{}</span>
@@ -4088,11 +4094,19 @@
                 <span class="n">element</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
                 <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">plabel</span><span class="p">,</span> <span class="n">ptype</span><span class="p">)</span>
                 <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;element&#39;</span><span class="p">:</span> <span class="n">element</span><span class="p">}</span>
-                <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+                <span class="n">etrans</span> <span class="o">=</span> <span class="n">trans</span>
+                <span class="n">pscale</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proto_scale&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pscale</span><span class="p">:</span>
+                    <span class="n">pscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pscale</span><span class="p">)</span>
+                    <span class="n">pscalem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+                    <span class="n">pscalem</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
+                    <span class="n">pscalem</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
+                    <span class="n">etrans</span> <span class="o">=</span> <span class="n">pscalem</span> <span class="o">*</span> <span class="n">trans_org</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">etrans</span><span class="p">)</span>
                 <span class="n">item</span><span class="p">[</span><span class="s1">&#39;boundingbox&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
                 <span class="n">item</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
                                   <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trans</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etrans</span>
                 <span class="n">replace_children</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replace_children&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">replace_children</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">replace_children</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
