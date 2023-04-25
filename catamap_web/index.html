@@ -454,6 +454,7 @@
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     var renderer = new THREE.WebGLRenderer();
+    // renderer.sortObjects = false;
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
@@ -729,10 +730,17 @@
                             if ( child instanceof THREE.Mesh )
                             {
                                 if( child.material.opacity < 1. )
+                                {
                                     child.material.transparent = true;
+                                    // force depth write to be correct.
+                                    child.material.depthWrite = true;
+                                }
                                 else
+                                {
                                     child.material.transparent = false;
+                                }
                                 child.material.side = THREE.DoubleSide;
+                                // console.log('double sided:', child);
                             }
                             if ( child instanceof THREE.LineSegments )
                             {
