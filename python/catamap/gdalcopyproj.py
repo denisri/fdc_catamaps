@@ -45,7 +45,7 @@ def copy_geo_projection(input, output, scale_x=1., scale_y=None, offset_x=0.,
     dataset = gdal.Open(input)
     if dataset is None:
         print('Unable to open', input, 'for reading')
-        sys.exit(1)
+        raise RuntimeError('Unable to open %s for reading' % input)
 
     if scale_y is None:
         scale_y = scale_x
