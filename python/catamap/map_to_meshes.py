@@ -3825,9 +3825,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if '.' in filename:  # remove extension
                     filename = '.'.join(filename.split('.')[:-1])
                 layer = 0
-                if 'bord' in filename or (props and props.depth_map):
+                if 'bord' in filename:
                     continue  # skip
-                if props and props.category:
+                if props and props.depth_map:
+                    print('DEPTH MAP MESH:', filename)
+                    layer = -1  # not displayed
+                elif props and props.category:
                     if props.category not in categories:
                         categories.append(props.category)
                     layer = categories.index(props.category)
@@ -3903,17 +3906,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     (gltf_p_dicts, '_private', pmeshes)):
                 # regroup GLTFs
                 for layer, gltf in gltf_d.items():
+                    if layer < 0:
+                        category = 'hidden'
+                    else:
+                        category = categories[layer]
                     filename = osp.join(
-                        dirname, categories[layer] + private + mesh_format)
+                        dirname, category + private + mesh_format)
+                    print('GLTF layer:', layer, ':', filename)
 
                     filename = gltf_io.save_gltf(gltf, filename,
                                                  use_draco=True)
 
                     # print('GLTF mesh:', layer, ':', filename, props)
                     size = os.stat(filename).st_size
-                    # hash
-                    md5 = hashlib.md5(open(filename, 'rb').read()).hexdigest()
-                    mmeshes.append([layer, osp.basename(filename), size, md5])
+                    if layer >= 0:  # layer -1 is hidden
+                        # hash
+                        md5 = hashlib.md5(
+                            open(filename, 'rb').read()).hexdigest()
+                        mmeshes.append([layer, osp.basename(filename), size,
+                                        md5])
 
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
@@ -5771,6 +5782,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
         clip_rect = main_clip_rects.get(map_name)
         if not clip_rect:
             clip_rect = main_clip_rect
+    #print('clip_rect:', clip_rect, ', main_clip_rect:', main_clip_rect)
 
     svg2d.clip_rect_name = clip_rect
     clip_rect_name = clip_rect
