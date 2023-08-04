@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>CataMap &#8212; CataMap 2.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/default.css" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="_static/default.css?v=bae79c5f" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=73cda6fb"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -166,6 +166,15 @@ to be filled.</p>
 Categories can be displayed/hidden using buttons or menus in 3D views.</p>
 </dd>
 <dt><strong>catflap:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>In catflaps, paths are replaced with striped tubes.</p>
+</dd>
+</dl>
+<dl id="colorsets-prop">
+<dt><strong>colorsets:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies which
+default colorset is associated with specific map types, for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="s2">&quot;igc&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
 </dd>
 <dt><strong>colorset_inheritance:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies colorsets
 which can inherit the colors defined by another, in order to minimally
@@ -377,6 +386,11 @@ The result in 2D is (left: original map, right: result):</p>
 <li><p>3D maps use by default the <code class="docutils literal notranslate"><span class="pre">map_3d</span></code> colorset.</p></li>
 <li><p>2D maps using “igc” mode (with ICC maps overlayed) use the <code class="docutils literal notranslate"><span class="pre">igc</span></code> colorset.</p></li>
 </ul>
+<p>The list of colorsets defined in a given SVG map file can be queried using the <code class="docutils literal notranslate"><span class="pre">--list-colorsets</span></code> option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span> <span class="o">--</span><span class="nb">list</span><span class="o">-</span><span class="n">colorsets</span> <span class="n">plan_14_fdc_2023_07_31</span><span class="o">.</span><span class="n">svg</span>
+</pre></div>
+</div>
+<p>A map file may specify which colorset is used by each map type in the <code class="docutils literal notranslate"><span class="pre">colorsets</span></code> property in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer. See <a class="reference internal" href="#colorsets-prop"><span class="std std-ref">colorsets property</span></a>.</p>
 <section id="colorsets-inheritance">
 <h4>Colorsets inheritance<a class="headerlink" href="#colorsets-inheritance" title="Permalink to this heading">¶</a></h4>
 <p>Some colorsets may be slight variants to other existing ones. To avoid redefining every element color in the SVG file, it is possible to specify some “colorset inheritances”. This is done using the <code class="docutils literal notranslate"><span class="pre">colorset_inheritance</span></code> property in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer (a hidden layer made for SVG / inkscape). This property is a JSON dictionary, with a <code class="docutils literal notranslate"><span class="pre">{'child':</span> <span class="pre">'parent'}</span></code> shape. The meaning is that a child inherits all its parent colors, and then can override some.</p>
@@ -1016,8 +1030,8 @@ children in a readable dictionary.</p>
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    &#169; Copyright 2021, FDC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
     </div>
   </body>
 </html>

@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>catamap.map_to_meshes &#8212; CataMap 2.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/default.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/default.css?v=bae79c5f" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
     
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=73cda6fb"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -173,6 +173,17 @@
 <span class="sd">    Categories can be displayed/hidden using buttons or menus in 3D views.</span>
 <span class="sd">**catflap:** bool (**3D maps**)</span>
 <span class="sd">    In catflaps, paths are replaced with striped tubes.</span>
+
+<span class="sd">.. _colorsets_prop:</span>
+
+<span class="sd">**colorsets:** JSON dict (**2D maps**)</span>
+<span class="sd">    used as a property of the ``metadata`` layer only, it specifies which</span>
+<span class="sd">    default colorset is associated with specific map types, for instance::</span>
+
+<span class="sd">        {&quot;private&quot;: &quot;black&quot;, &quot;igc&quot;: &quot;igc&quot;}</span>
+
+<span class="sd">    see also: :ref:`colorsets`</span>
+
 <span class="sd">**colorset_inheritance:** JSON dict (**2D and 3D maps**)</span>
 <span class="sd">    used as a property of the ``metadata`` layer only, it specifies colorsets</span>
 <span class="sd">    which can inherit the colors defined by another, in order to minimally</span>
@@ -416,6 +427,12 @@
 
 <span class="sd">* 3D maps use by default the ``map_3d`` colorset.</span>
 <span class="sd">* 2D maps using &quot;igc&quot; mode (with ICC maps overlayed) use the ``igc`` colorset.</span>
+
+<span class="sd">The list of colorsets defined in a given SVG map file can be queried using the ``--list-colorsets`` option::</span>
+
+<span class="sd">    python -m catamap --list-colorsets plan_14_fdc_2023_07_31.svg</span>
+
+<span class="sd">A map file may specify which colorset is used by each map type in the ``colorsets`` property in the ``metadata`` layer. See :ref:`colorsets property &lt;colorsets_prop&gt;`.</span>
 
 <span class="sd">Colorsets inheritance</span>
 <span class="sd">+++++++++++++++++++++</span>
@@ -6318,8 +6335,8 @@
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    &#169; Copyright 2021, FDC.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
     </div>
   </body>
 </html>
