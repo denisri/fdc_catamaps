@@ -134,6 +134,17 @@ Properties list
     Categories can be displayed/hidden using buttons or menus in 3D views.
 **catflap:** bool (**3D maps**)
     In catflaps, paths are replaced with striped tubes.
+
+.. _colorsets_prop:
+
+**colorsets:** JSON dict (**2D maps**)
+    used as a property of the ``metadata`` layer only, it specifies which
+    default colorset is associated with specific map types, for instance::
+
+        {"private": "black", "igc": "igc"}
+
+    see also: :ref:`colorsets`
+
 **colorset_inheritance:** JSON dict (**2D and 3D maps**)
     used as a property of the ``metadata`` layer only, it specifies colorsets
     which can inherit the colors defined by another, in order to minimally
@@ -377,6 +388,12 @@ A few "hard-coded" colorsets are expected to exist (even it it is not mandatory)
 
 * 3D maps use by default the ``map_3d`` colorset.
 * 2D maps using "igc" mode (with ICC maps overlayed) use the ``igc`` colorset.
+
+The list of colorsets defined in a given SVG map file can be queried using the ``--list-colorsets`` option::
+
+    python -m catamap --list-colorsets plan_14_fdc_2023_07_31.svg
+
+A map file may specify which colorset is used by each map type in the ``colorsets`` property in the ``metadata`` layer. See :ref:`colorsets property <colorsets_prop>`.
 
 Colorsets inheritance
 +++++++++++++++++++++
