@@ -5570,12 +5570,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'map_layers_opacity'],
             'aqueduc': ['remove_non_printable1', 'show_all',
                         'shift_inf_level', 'replace_symbols', 'date',
-                        'remove_background', 'remove_wip',
-                        'remove_other=["raccords plan 2D", "parcelles", '
-                                      '"raccords gtech 2D"]',
+                        'remove_wip',
                         'replace_symbols', 'date', 'remove_zooms',
                         'remove_non_printable2', 'remove_igc',
-                        'remove_calcaire', 'remove_non_aqueduc',
+                        'remove_non_aqueduc',
                         'layer_opacity=["XIII masses", "0.31"]',
                         'map_layers_opacity'],
         }
