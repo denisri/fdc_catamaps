@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>catamap.map_to_meshes &#8212; CataMap 2.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/default.css?v=bae79c5f" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
     
@@ -314,6 +314,11 @@
 <span class="sd">    should be set only in replacement symbols in the legend layer (wells signs,</span>
 <span class="sd">    etc) to indicate that children of matching elements should be parsed</span>
 <span class="sd">    recursively and their children may be replaced also.</span>
+<span class="sd">**shadow:** bool (**2D maps**)</span>
+<span class="sd">    marks the element (or layer...) to have a halo / shadow around it</span>
+<span class="sd">**shadow_scale:** float (2D maps)</span>
+<span class="sd">    in the metadata layer, sets a global shadow scale applied to all shadow</span>
+<span class="sd">    operations.</span>
 <span class="sd">**symbol:** bool (**3D maps**)</span>
 <span class="sd">    not sure it is used, after all...</span>
 <span class="sd">**text:** bool (**3D maps**)</span>
@@ -4362,17 +4367,18 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;shadow_filters&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shadow_filters</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">scale</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">scalei</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
 
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shadow_filters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shadow_filters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scalei</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span>
 
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">halo1</span><span class="p">(</span><span class="s1">&#39;filter14930_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">scale</span><span class="p">,</span> <span class="n">scale</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">halo1</span><span class="p">(</span><span class="s1">&#39;filter14930_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">scalei</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
         <span class="n">defs</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}defs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">defs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shadow_filters</span><span class="p">[</span><span class="n">scalei</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
         <span class="k">return</span> <span class="n">f</span>
 
 
@@ -4396,6 +4402,15 @@
             <span class="c1"># a 360dpi map, and 185 minutes with inkscape 1.1</span>
             <span class="k">return</span>
 
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lscale</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadow_scale&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lscale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lscale</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LSCALE:&#39;</span><span class="p">,</span> <span class="n">lscale</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lscale</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
@@ -4408,7 +4423,8 @@
                 <span class="n">style</span><span class="p">[</span><span class="s1">&#39;display&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;inline&#39;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
                 <span class="n">shadow</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadow&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">shadow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shadow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span> <span class="s1">&#39;FALSE&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">shadow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shadow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span>
+                                                         <span class="s1">&#39;FALSE&#39;</span><span class="p">):</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">False</span>
@@ -4426,7 +4442,9 @@
                         <span class="s1">&#39;galeries techniques&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;galeries inf private&#39;</span><span class="p">):</span>
                     <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">))</span>
-                    <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
+                    <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">trans</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
+                    <span class="k">if</span> <span class="n">lscale</span><span class="p">:</span>
+                        <span class="n">scale</span> <span class="o">/=</span> <span class="n">lscale</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_shadow_filter</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">add_shadow</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">shadow</span><span class="p">)</span>
 
