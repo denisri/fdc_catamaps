@@ -275,6 +275,11 @@ Properties list
     should be set only in replacement symbols in the legend layer (wells signs,
     etc) to indicate that children of matching elements should be parsed
     recursively and their children may be replaced also.
+**shadow:** bool (**2D maps**)
+    marks the element (or layer...) to have a halo / shadow around it
+**shadow_scale:** float (2D maps)
+    in the metadata layer, sets a global shadow scale applied to all shadow
+    operations.
 **symbol:** bool (**3D maps**)
     not sure it is used, after all...
 **text:** bool (**3D maps**)
@@ -4323,17 +4328,18 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         if not hasattr(self, 'shadow_filters'):
             self.shadow_filters = {}
 
-        scale = round(scale * 10)
+        scalei = round(scale * 100)
 
-        f = self.shadow_filters.get(scale)
+        f = self.shadow_filters.get(scalei)
         if f:
             return f
 
-        f = self.halo1('filter14930_%d' % scale, scale / 10)
+        f = self.halo1('filter14930_%d' % scalei, scale)
 
         defs = [l for l in xml.getroot()
                 if l.tag == '{http://www.w3.org/2000/svg}defs'][0]
         defs.append(f)
+        self.shadow_filters[scalei] = f
         return f
 
 
@@ -4357,6 +4363,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             # a 360dpi map, and 185 minutes with inkscape 1.1
             return
 
+        meta = self.get_metadata(xml)
+        if meta is not None:
+            lscale = meta.get('shadow_scale')
+            if lscale is not None:
+                lscale = float(lscale)
+                print('LSCALE:', lscale)
+        else:
+            lscale = None
+
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -4369,7 +4384,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 style['display'] = 'inline'
                 self.set_style(layer, style)
                 shadow = layer.get('shadow')
-                if shadow is not None and shadow not in ('0', 'false', 'False', 'FALSE'):
+                if shadow is not None and shadow not in ('0', 'false', 'False',
+                                                         'FALSE'):
                     shadow = True
                 else:
                     shadow = False
@@ -4387,7 +4403,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         'galeries techniques',
                         'galeries inf private'):
                     trans = self.get_transform(layer.get('transform'))
-                    scale = (trans[0,0] + trans[1,1]) / 2.
+                    scale = (trans[0, 0] + trans[1, 1]) / 2.
+                    if lscale:
+                        scale /= lscale
                     shadow = self.make_shadow_filter(xml, scale).get('id')
                     self.add_shadow(layer, shadow)
 
