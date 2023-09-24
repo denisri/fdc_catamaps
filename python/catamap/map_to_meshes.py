@@ -5611,6 +5611,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         while filters:
             filter = filters.pop(0)
             value = []
+            filt_def = []
             if isinstance(filter, str):
                 filt_val = filter.split('=')
                 if len(filt_val) > 1:
@@ -5792,7 +5793,7 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
                     else:
                         raise
         except OSError:
-            print("cannot convert", infile)
+            print("cannot convert", png_file)
     else:
         # use ImageMagick convert tool
         subprocess.check_call(
