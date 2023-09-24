@@ -5650,6 +5650,7 @@
         <span class="k">while</span> <span class="n">filters</span><span class="p">:</span>
             <span class="nb">filter</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">filt_def</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">filter</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">filt_val</span> <span class="o">=</span> <span class="nb">filter</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filt_val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -5831,7 +5832,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cannot convert&quot;</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cannot convert&quot;</span><span class="p">,</span> <span class="n">png_file</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># use ImageMagick convert tool</span>
         <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span>
