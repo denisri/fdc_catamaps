@@ -491,16 +491,9 @@ map_to_meshes module API
 
 '''
 
-from __future__ import print_function
-from __future__ import absolute_import
-
-#import anatomist.headless as ana
-#a = ana.HeadlessAnatomist()
-
 from . import svg_to_mesh
 from six.moves import range
 from six.moves import zip
-from .svg_to_mesh import aims, fake_aims
 import numpy as np
 from scipy.spatial import Delaunay
 import copy
@@ -531,6 +524,14 @@ try:
     from .altitude import bdalti
 except ImportError:
     bdalti = None
+try:
+    from soma import aims
+    fake_aims = False
+except ImportError:
+    # aims is not available, use the fake light one (with reduced
+    # functionalities)
+    aims = None
+    fake_aims = True
 
 
 class xml_help(object):
@@ -2049,10 +2050,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     x = float(child_xml.get('x'))
                     y = float(child_xml.get('y'))
                 except TypeError:
-                    print('error in depth text position:', child_xml,
-                          child_xml.get('x'), child_xml.get('y'),
-                          ', in element:', child_xml.get('id'))
-                    raise
+                    try:
+                        # x, y are sometimes on the tspan
+                        x = float(text_span[0].get('x'))
+                        y = float(text_span[0].get('y'))
+                    except TypeError:
+                        print('error in depth text position:', child_xml,
+                            child_xml.get('x'), child_xml.get('y'),
+                            ', in element:', child_xml.get('id'))
+                        raise
                 if trans is not None:
                     x, y = trans.dot([[x], [y], [1]])[:2]
                     x = x[0, 0]
@@ -4371,12 +4377,14 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 print('LSCALE:', lscale)
         else:
             lscale = None
+        print('add_shadows, scale:', lscale)
 
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
+            print('label:', label)
             if not (label in self.removed_labels \
                     or label.startswith('profondeurs') \
                     or label.startswith('background_bitm')):
@@ -4384,11 +4392,13 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 style['display'] = 'inline'
                 self.set_style(layer, style)
                 shadow = layer.get('shadow')
+                print('shadow:', shadow)
                 if shadow is not None and shadow not in ('0', 'false', 'False',
                                                          'FALSE'):
                     shadow = True
                 else:
                     shadow = False
+                print('shadow  :', shadow)
                 if shadow or label in (
                         'galeries inaccessibles inf',
                         'anciennes galeries inf',

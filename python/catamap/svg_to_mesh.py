@@ -1184,11 +1184,17 @@ class SvgToMesh(object):
             if font_family is not None:
                 obj_props['font_family'] = font_family
             fill = style.get('fill')
-            if fill is not None:
-                col = [float(int(fill[1:3], 16)) / 255.,
-                       float(int(fill[3:5], 16)) / 255.,
-                       float(int(fill[5:7], 16)) / 255.,
-                       1.]
+            if fill is not None and fill != 'none':
+                try:
+                    col = [float(int(fill[1:3], 16)) / 255.,
+                        float(int(fill[3:5], 16)) / 255.,
+                        float(int(fill[5:7], 16)) / 255.,
+                        1.]
+                except Exception as e:
+                    print(e)
+                    print('error while reading text color:', repr(fill))
+                    print('in element:', xml_item.get('id'))
+                    raise
                 # avoid dark colors (intensity < 0.4)
                 if col[0] * col[0] + col[1] * col[1] + col[2] * col[2] < 0.16:
                     col = [1., 1., 1., 1.]
