@@ -530,16 +530,9 @@
 
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
-
-<span class="c1">#import anatomist.headless as ana</span>
-<span class="c1">#a = ana.HeadlessAnatomist()</span>
-
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">svg_to_mesh</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">.svg_to_mesh</span> <span class="kn">import</span> <span class="n">aims</span><span class="p">,</span> <span class="n">fake_aims</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
 <span class="kn">import</span> <span class="nn">copy</span>
@@ -570,6 +563,14 @@
     <span class="kn">from</span> <span class="nn">.altitude</span> <span class="kn">import</span> <span class="n">bdalti</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">bdalti</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">soma</span> <span class="kn">import</span> <span class="n">aims</span>
+    <span class="n">fake_aims</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># aims is not available, use the fake light one (with reduced</span>
+    <span class="c1"># functionalities)</span>
+    <span class="n">aims</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fake_aims</span> <span class="o">=</span> <span class="kc">True</span>
 
 
 <span class="k">class</span> <span class="nc">xml_help</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -2088,10 +2089,15 @@
                     <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
                     <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))</span>
                 <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error in depth text position:&#39;</span><span class="p">,</span> <span class="n">child_xml</span><span class="p">,</span>
-                          <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">),</span>
-                          <span class="s1">&#39;, in element:&#39;</span><span class="p">,</span> <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
-                    <span class="k">raise</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># x, y are sometimes on the tspan</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text_span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text_span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error in depth text position:&#39;</span><span class="p">,</span> <span class="n">child_xml</span><span class="p">,</span>
+                            <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">),</span>
+                            <span class="s1">&#39;, in element:&#39;</span><span class="p">,</span> <span class="n">child_xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                        <span class="k">raise</span>
                 <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">x</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])[:</span><span class="mi">2</span><span class="p">]</span>
                     <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
@@ -4410,12 +4416,14 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LSCALE:&#39;</span><span class="p">,</span> <span class="n">lscale</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lscale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;add_shadows, scale:&#39;</span><span class="p">,</span> <span class="n">lscale</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;label:&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span> \
                     <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;profondeurs&#39;</span><span class="p">)</span> \
                     <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;background_bitm&#39;</span><span class="p">)):</span>
@@ -4423,11 +4431,13 @@
                 <span class="n">style</span><span class="p">[</span><span class="s1">&#39;display&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;inline&#39;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
                 <span class="n">shadow</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadow&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;shadow:&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">shadow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shadow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span>
                                                          <span class="s1">&#39;FALSE&#39;</span><span class="p">):</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;shadow  :&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">shadow</span> <span class="ow">or</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span>
                         <span class="s1">&#39;galeries inaccessibles inf&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;anciennes galeries inf&#39;</span><span class="p">,</span>
