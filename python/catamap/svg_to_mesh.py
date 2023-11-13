@@ -1114,8 +1114,16 @@ class SvgToMesh(object):
                     and (child.tag.endswith('}g') or child.tag == 'g'):
                 self.main_group = child.get('id')
             if not skip_children and len(child) != 0:
-                todo = [(c, trans, self.main_group)
-                        for c in child] + todo
+                # set the metadata layer, if present, first, because it may
+                # contain information used by other items
+                meta = []
+                other = []
+                for c in child:
+                    if c.tag.endswith('}metadata'):
+                        meta.append((c, trans, self.main_group))
+                    else:
+                        other.append((c, trans, self.main_group))
+                todo = meta + other + todo
 
         if self.concat_mesh in ('merge', 'time'):
             return self.mesh
