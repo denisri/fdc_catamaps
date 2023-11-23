@@ -3146,7 +3146,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 continue
             mesh_l = meshes.get(main_group)
             if not mesh_l:
-                contine
+                continue
             if not isinstance(mesh_l, list):
                 mesh_l = [mesh_l]
             for mesh in mesh_l:
@@ -3167,6 +3167,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # print(props)
             mesh_l = meshes[main_group]
             height_map = props.use_height_map
+            if height_map in ('none', 'None', 'false'):
+                height_map = None
             if mesh_l and props.corridor or props.block or props.wall:
                 print('extrude:', main_group, props.corridor, props.block,
                       height_map)
@@ -3319,7 +3321,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if height_map is None:
             return super().extrude(mesh, distance)
 
-        print('MAP extrude:', height_map)
+        # print('MAP extrude:', height_map)
 
         win = self.depth_wins.get(height_map)
         view = win.view()
