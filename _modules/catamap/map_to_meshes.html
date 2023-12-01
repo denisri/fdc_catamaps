@@ -168,6 +168,8 @@
 <span class="sd">    to be filled.</span>
 <span class="sd">**border:** bool (**3D maps**)</span>
 <span class="sd">    not used if I remember...</span>
+<span class="sd">**camera_light:** str (**3D maps**)</span>
+<span class="sd">    if set to ``off``, the camera light (headlamp) is disabled.</span>
 <span class="sd">**category:** str (**3D maps**)</span>
 <span class="sd">    the category string the element will be associated in the 3D views.</span>
 <span class="sd">    Categories can be displayed/hidden using buttons or menus in 3D views.</span>
@@ -196,6 +198,8 @@
 <span class="sd">    filled.</span>
 <span class="sd">**date:** str (**2D maps**)</span>
 <span class="sd">    the date text will be replaced with the date of the map build.</span>
+<span class="sd">**default_categories:** JSON list (**3D maps**)</span>
+<span class="sd">    list of categories which are visible by default (checked in the viewer)</span>
 <span class="sd">**depth_map:** bool (**3D maps**)</span>
 <span class="sd">    the layer is a depth map. It should contain a ``level`` property to define</span>
 <span class="sd">    the level it maps. See :ref:`depth_maps` for details.</span>
@@ -278,8 +282,9 @@
 <span class="sd">    This propery can be set to paths, groups, and arrows (which will thus point</span>
 <span class="sd">    to a shifted location).</span>
 <span class="sd">**marker:** str (**3D maps**)</span>
-<span class="sd">    set on a layer to specify that this layer is a **markers layer**. Two types</span>
-<span class="sd">    of markers are currently recognized: ``sounds`` and ``photos``.</span>
+<span class="sd">    set on a layer to specify that this layer is a **markers layer**. Three</span>
+<span class="sd">    types of markers are currently recognized: ``sounds``, ``photos``, and</span>
+<span class="sd">    ``lights``.</span>
 
 <span class="sd">    See :ref:`markers` for more details.</span>
 
@@ -1400,10 +1405,14 @@
                 <span class="n">sname</span> <span class="o">=</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span>
                 <span class="k">if</span> <span class="n">item_props</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
                     <span class="n">sname</span> <span class="o">+=</span> <span class="s1">&#39;_private&#39;</span>
-                <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_marker_model&#39;</span> <span class="o">%</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span>
-                                <span class="kc">None</span><span class="p">)</span>
+                <span class="n">mmname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_marker_model&#39;</span> <span class="o">%</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photo_marker_model</span>
+                    <span class="n">mmname</span> <span class="o">=</span> <span class="s1">&#39;photos_marker_model&#39;</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_marker_model</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;marker_types&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span> <span class="o">=</span> <span class="n">mmname</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">read_markers</span><span class="p">(</span><span class="n">xml_element</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">sname</span><span class="p">)</span>
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">:</span>
@@ -2174,7 +2183,7 @@
     <span class="k">def</span> <span class="nf">read_markers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">marker_model</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;READ&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">markers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -2196,6 +2205,11 @@
             <span class="n">layer_radius</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">layer_radius</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">layer_radius</span> <span class="o">=</span> <span class="mf">10.</span>
+        <span class="n">layer_hshift</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_shift&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">layer_hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">layer_hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">layer_hshift</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">layer_hshift</span> <span class="o">=</span> <span class="mf">0.</span>
 
         <span class="n">used_texts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2212,9 +2226,22 @@
             <span class="k">if</span> <span class="n">trans2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">transm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">)</span>
                 <span class="n">trans_el</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">transm</span>
+
+            <span class="n">radius</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">radius</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">radius</span> <span class="o">=</span> <span class="n">layer_radius</span>
+            <span class="n">hshift</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_shift&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">hshift</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hshift</span> <span class="o">=</span> <span class="n">layer_hshift</span>
+
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">xml_element</span>
             <span class="k">if</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
-                <span class="n">xml_element</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml_element</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">sub_el</span> <span class="ow">in</span> <span class="n">xml_element</span><span class="p">:</span>
+                <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml_element</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">sub_el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
                 <span class="n">tag</span> <span class="o">=</span> <span class="n">sub_el</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2258,11 +2285,6 @@
                             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed marker arrow in&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span>
                                   <span class="s1">&#39;, vertices:&#39;</span><span class="p">)</span>
                             <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
-            <span class="n">radius</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">radius</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">radius</span> <span class="o">=</span> <span class="n">layer_radius</span>
 
             <span class="k">if</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">pos</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>  <span class="c1"># list</span>
@@ -2270,43 +2292,58 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
                 <span class="n">images</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
-                    <span class="n">imlist</span> <span class="o">=</span> <span class="n">markers_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">imlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">markers_map</span><span class="p">:</span>
-                            <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">))</span>
-                        <span class="n">imlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
-                    <span class="n">images</span> <span class="o">+=</span> <span class="n">imlist</span>
-                    <span class="c1"># test existence of files</span>
-                    <span class="c1"># warning: only works relative to current dir</span>
-                    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">:</span>
-                        <span class="n">url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-                            <span class="n">missing_files</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
-                    <span class="n">used_texts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-                <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">level</span><span class="p">,</span> <span class="n">radius</span><span class="p">],</span>
-                                <span class="p">[</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]])</span>
+                <span class="k">if</span> <span class="n">mtype</span> <span class="o">==</span> <span class="s1">&#39;lights&#39;</span><span class="p">:</span>  <span class="c1"># light markers are not files</span>
+                    <span class="n">lprops</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;light_props&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">lprops</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">lprops</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;directional&#39;</span><span class="p">}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">lprops</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lprops</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;json decode error in&#39;</span><span class="p">,</span>
+                                  <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in light_props:&#39;</span><span class="p">,</span> <span class="n">lprops</span><span class="p">)</span>
+                            <span class="k">raise</span>
+                    <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">hshift</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">lprops</span><span class="p">],</span> <span class="n">texts</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
+                        <span class="n">imlist</span> <span class="o">=</span> <span class="n">markers_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">imlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">markers_map</span><span class="p">:</span>
+                                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">))</span>
+                            <span class="n">imlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">]</span>
+                        <span class="n">images</span> <span class="o">+=</span> <span class="n">imlist</span>
+                        <span class="c1"># test existence of files</span>
+                        <span class="c1"># warning: only works relative to current dir</span>
+                        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">imlist</span><span class="p">:</span>
+                            <span class="n">url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+                                <span class="n">missing_files</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
+                        <span class="n">used_texts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+                    <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">hshift</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">radius</span><span class="p">],</span>
+                                    <span class="p">[</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]])</span>
                 <span class="c1"># print(&#39;%s:&#39; % mtype, markers[-1])</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">markers</span><span class="p">),</span> <span class="n">mtype</span><span class="p">)</span>
-        <span class="c1"># check and print duplicates</span>
-        <span class="n">dup</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">used_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">dup</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Duplicate markers texts in layer&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;: **&#39;</span><span class="p">)</span>
-                    <span class="n">dup</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="s1">&#39;at positions:&#39;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    -&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing correspondance for marker texts: **&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">missing_files</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing marker files: **&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing_files</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
+        <span class="k">if</span> <span class="n">mtype</span> <span class="o">!=</span> <span class="s1">&#39;lights&#39;</span><span class="p">:</span>
+            <span class="c1"># check and print duplicates</span>
+            <span class="n">dup</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">used_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">dup</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Duplicate markers texts in layer&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span>
+                              <span class="s1">&#39;: **&#39;</span><span class="p">)</span>
+                        <span class="n">dup</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;marker:&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="s1">&#39;at positions:&#39;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    -&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing correspondance for marker texts: **&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">missing_files</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** Missing marker files: **&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing_files</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;at position:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">read_lambert93</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;READ LAMBERT93&#39;</span><span class="p">)</span>
@@ -3307,47 +3344,60 @@
         <span class="c1"># sounds and photos depth + markers meshes</span>
         <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
 
-        <span class="n">protos</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sounds&#39;</span><span class="p">:</span> <span class="s1">&#39;sounds_marker_model&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;sounds_private&#39;</span><span class="p">:</span> <span class="s1">&#39;sounds_marker_model&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;photos&#39;</span><span class="p">:</span> <span class="s1">&#39;photos_marker_model&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;photos_private&#39;</span><span class="p">:</span> <span class="s1">&#39;photos_marker_model&#39;</span><span class="p">}</span>
+        <span class="n">protos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span>
 
         <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">proto</span> <span class="ow">in</span> <span class="n">protos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">mesh_proto</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;proto:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_proto</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
-            <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
-                <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
-                <span class="n">radius</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
-                <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
-                <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
-                                    <span class="n">object_win_size</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed to get depth for:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
-                    <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
-                <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
-                <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
-                <span class="c1"># print(&#39;marker:&#39;, level, pos)</span>
-                <span class="n">mmesh</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh_proto</span><span class="p">)(</span><span class="n">mesh_proto</span><span class="p">)</span>  <span class="c1"># copy</span>
-                <span class="n">trans</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
-                <span class="n">trans</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-                <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">mmesh</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">mesh</span> <span class="o">=</span> <span class="n">mmesh</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mmesh</span><span class="p">)</span>
-                <span class="c1"># print(&#39;marker:&#39;, pos, len(mesh.vertex()))</span>
-            <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">main_group</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mesh&#39;</span> <span class="o">%</span> <span class="n">mtype</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
-                <span class="n">meshes</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
-                <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
-                <span class="n">props</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;markers&#39;</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- marker mesh:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()),</span> <span class="n">props</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
-
+            <span class="k">if</span> <span class="n">mtype</span> <span class="o">==</span> <span class="s1">&#39;lights&#39;</span><span class="p">:</span>
+                <span class="n">mesh_proto</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
+                    <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
+                                       <span class="n">object_win_size</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed to get depth for:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+                        <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
+                    <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mesh_proto</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;proto:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_proto</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
+                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
+                    <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">radius</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
+                                       <span class="n">object_win_size</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed to get depth for:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+                        <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
+                    <span class="n">z</span> <span class="o">+=</span> <span class="n">hshift</span>
+                    <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+                    <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+                    <span class="c1"># print(&#39;marker:&#39;, level, pos)</span>
+                    <span class="n">mmesh</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh_proto</span><span class="p">)(</span><span class="n">mesh_proto</span><span class="p">)</span>  <span class="c1"># copy</span>
+                    <span class="n">trans</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
+                    <span class="n">trans</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">mmesh</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">mesh</span> <span class="o">=</span> <span class="n">mmesh</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mmesh</span><span class="p">)</span>
+                    <span class="c1"># print(&#39;marker:&#39;, pos, len(mesh.vertex()))</span>
+                <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">main_group</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mesh&#39;</span> <span class="o">%</span> <span class="n">mtype</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
+                    <span class="n">meshes</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
+                    <span class="n">props</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;markers&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- marker mesh:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()),</span> <span class="n">props</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CataSvgToMesh.extrude"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.extrude">[docs]</a>    <span class="k">def</span> <span class="nf">extrude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">height_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -3805,13 +3855,26 @@
         <span class="k">if</span> <span class="n">mesh_wf_format</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gltf&#39;</span><span class="p">,</span> <span class="s1">&#39;.glb&#39;</span><span class="p">):</span>
             <span class="n">wf_format</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">use_gltf</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">summary</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CataSvgToMesh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
             <span class="n">mdict</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="n">wf_format</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_gltf</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">soma.aims</span> <span class="kn">import</span> <span class="n">gltf_io</span>
             <span class="n">gltf_dicts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># public</span>
             <span class="n">gltf_p_dicts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># private</span>
+            <span class="n">gltf_lights</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gltf_p_lights</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">lights</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lights</span><span class="p">:</span>
+                <span class="n">gltf_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
+                    <span class="p">{},</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="n">mesh_format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">lights</span><span class="o">=</span><span class="n">lights</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gltf_lights:&#39;</span><span class="p">,</span> <span class="n">gltf_lights</span><span class="p">)</span>
+            <span class="n">lights_p</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lights_private&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lights_p</span><span class="p">:</span>
+                <span class="n">gltf_p_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
+                    <span class="p">{},</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;gltf&#39;</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">lights</span><span class="o">=</span><span class="n">lights_p</span><span class="p">)</span>
 
         <span class="c1"># output JSON dict</span>
         <span class="n">json_obj</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
@@ -3954,9 +4017,9 @@
                     <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
                                                 <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">st_size</span>
                     <span class="c1"># hash</span>
-                    <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
-                                                        <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">),</span>
-                                          <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+                    <span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>
+                        <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.obj&#39;</span><span class="p">),</span>
+                             <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
                     <span class="k">if</span> <span class="s1">&#39;private&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="p">(</span><span class="n">props</span> <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">private</span><span class="p">):</span>
                         <span class="n">pmeshes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">layer</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -3965,6 +4028,19 @@
                 <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_gltf</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">light_l</span><span class="p">,</span> <span class="n">l_summary</span><span class="p">,</span> <span class="n">private</span><span class="p">,</span> <span class="n">gltf_d</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">lights</span><span class="p">,</span> <span class="n">gltf_lights</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">gltf_dicts</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">lights_p</span><span class="p">,</span> <span class="n">gltf_p_lights</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">gltf_p_dicts</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">light_l</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">light</span> <span class="ow">in</span> <span class="n">light_l</span><span class="p">:</span>
+                        <span class="n">glight</span> <span class="o">=</span> <span class="n">l_summary</span><span class="p">[</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span>
+                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Lumières&#39;</span>
+                        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+                        <span class="n">layer</span> <span class="o">=</span> <span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+                        <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+                        <span class="n">gltf_d</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">glight</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Light dict, layer&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">glight</span><span class="p">)</span>
+
             <span class="k">try</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">pygltflib</span> <span class="kn">import</span> <span class="n">GLTF2</span><span class="p">,</span> <span class="n">BufferFormat</span><span class="p">,</span> <span class="n">ImageFormat</span>
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -3975,16 +4051,25 @@
                     <span class="p">(</span><span class="n">gltf_p_dicts</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">pmeshes</span><span class="p">)):</span>
                 <span class="c1"># regroup GLTFs</span>
                 <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">gltf</span> <span class="ow">in</span> <span class="n">gltf_d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;layer:&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">layer</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;hidden&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">category</span> <span class="o">=</span> <span class="n">categories</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span>
+
+                    <span class="n">mformat</span> <span class="o">=</span> <span class="n">mesh_format</span>
+                    <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;Lumières&#39;</span><span class="p">:</span>
+                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">mformat</span> <span class="o">=</span> <span class="s1">&#39;.gltf&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">True</span>
+
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                        <span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mesh_format</span><span class="p">)</span>
+                        <span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mformat</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GLTF layer:&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">gltf_io</span><span class="o">.</span><span class="n">save_gltf</span><span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span>
-                                                 <span class="n">use_draco</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                                 <span class="n">use_draco</span><span class="o">=</span><span class="n">use_draco</span><span class="p">)</span>
 
                     <span class="c1"># print(&#39;GLTF mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
                     <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
@@ -4051,6 +4136,16 @@
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span><span class="p">:</span>
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">svg</span><span class="p">)</span>
+
+        <span class="n">cam_light</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;camera_light&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cam_light</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;camera_light&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cam_light</span>
+        <span class="n">def_cat</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;default_categories&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">def_cat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">def_cat</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">def_cat</span><span class="p">)</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;default_categories&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">def_cat</span>
 
         <span class="k">if</span> <span class="n">json_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>

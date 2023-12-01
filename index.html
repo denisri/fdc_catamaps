@@ -162,6 +162,8 @@ to be filled.</p>
 </dd>
 <dt><strong>border:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not used if I remember…</p>
 </dd>
+<dt><strong>camera_light:</strong> str (<strong>3D maps</strong>)</dt><dd><p>if set to <code class="docutils literal notranslate"><span class="pre">off</span></code>, the camera light (headlamp) is disabled.</p>
+</dd>
 <dt><strong>category:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
 Categories can be displayed/hidden using buttons or menus in 3D views.</p>
 </dd>
@@ -185,6 +187,8 @@ specialize it.</p>
 filled.</p>
 </dd>
 <dt><strong>date:</strong> str (<strong>2D maps</strong>)</dt><dd><p>the date text will be replaced with the date of the map build.</p>
+</dd>
+<dt><strong>default_categories:</strong> JSON list (<strong>3D maps</strong>)</dt><dd><p>list of categories which are visible by default (checked in the viewer)</p>
 </dd>
 <dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a <code class="docutils literal notranslate"><span class="pre">level</span></code> property to define
 the level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
@@ -264,8 +268,9 @@ the standard SVG <code class="docutils literal notranslate"><span class="pre">tr
 <p>This propery can be set to paths, groups, and arrows (which will thus point
 to a shifted location).</p>
 </dd>
-<dt><strong>marker:</strong> str (<strong>3D maps</strong>)</dt><dd><p>set on a layer to specify that this layer is a <strong>markers layer</strong>. Two types
-of markers are currently recognized: <code class="docutils literal notranslate"><span class="pre">sounds</span></code> and <code class="docutils literal notranslate"><span class="pre">photos</span></code>.</p>
+<dt><strong>marker:</strong> str (<strong>3D maps</strong>)</dt><dd><p>set on a layer to specify that this layer is a <strong>markers layer</strong>. Three
+types of markers are currently recognized: <code class="docutils literal notranslate"><span class="pre">sounds</span></code>, <code class="docutils literal notranslate"><span class="pre">photos</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
 <p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
 <dt><strong>markers_base_url:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a> to specify that marekrs in this
@@ -755,7 +760,7 @@ and should return either the element itself (no replacement), or None
 
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.save_mesh_dict">
-<span class="sig-name descname"><span class="pre">save_mesh_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_wf_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.save_mesh_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">save_mesh_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_wf_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.obj'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.save_mesh_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>mesh_format may be a valid mesh extension (“.obj”, “.gii”, “.mesh”) or
 GLTF (“.gltf” or “.glb”), or None (not saved here).</p>
 <p>If GLTF is used a scene dict (JSON) is returned in the output summary

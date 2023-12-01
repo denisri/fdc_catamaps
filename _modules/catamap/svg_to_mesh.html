@@ -1643,7 +1643,7 @@
 
 
 <div class="viewcode-block" id="SvgToMesh.save_mesh_dict"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict">[docs]</a>    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span>
-                       <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">):</span>
+                       <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span> <span class="n">lights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        mesh_format may be a valid mesh extension (&quot;.obj&quot;, &quot;.gii&quot;, &quot;.mesh&quot;) or</span>
 <span class="sd">        GLTF (&quot;.gltf&quot; or &quot;.glb&quot;), or None (not saved here).</span>
@@ -1661,6 +1661,7 @@
             <span class="n">matrix</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">gltf</span> <span class="o">=</span> <span class="n">gltf_io</span><span class="o">.</span><span class="n">default_gltf_scene</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
             <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gltf</span>
+
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1">#if key is None:</span>
                 <span class="c1">#print(&#39;key is None, mesh:&#39;, mesh)</span>
@@ -1701,8 +1702,49 @@
                 <span class="k">elif</span> <span class="n">ext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">aims</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
                 <span class="n">summary</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;meshes&quot;</span><span class="p">,</span> <span class="p">{})[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="k">return</span> <span class="n">summary</span></div>
 
+        <span class="c1"># if gltf and lights</span>
+        <span class="k">if</span> <span class="n">mesh_format</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.gltf&#39;</span><span class="p">,</span> <span class="s1">&#39;.glb&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ext</span> <span class="o">=</span> <span class="n">gltf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;extensions&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="n">lext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;KHR_lights_punctual&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="n">gltflights</span> <span class="o">=</span> <span class="n">lext</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;lights&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="n">nodes</span> <span class="o">=</span> <span class="n">gltf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="n">scnodes</span> <span class="o">=</span> <span class="n">gltf</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;scenes&#39;</span><span class="p">,</span>
+                                          <span class="p">[{</span><span class="s1">&#39;nodes&#39;</span><span class="p">:</span> <span class="p">[]}])[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;nodes&#39;</span><span class="p">]</span>
+                <span class="n">nn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scnodes</span><span class="p">)</span>
+                <span class="n">nl</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;LIGHTS:&#39;</span><span class="p">,</span> <span class="n">lights</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">light</span> <span class="ow">in</span> <span class="n">lights</span><span class="p">:</span>
+                    <span class="n">pos</span> <span class="o">=</span> <span class="n">light</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="n">light</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">gltflights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+                    <span class="n">scnodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+                    <span class="n">node</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;extensions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;KHR_lights_punctual&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;light&quot;</span><span class="p">:</span> <span class="n">nl</span>
+                            <span class="p">}</span>
+                        <span class="p">},</span>
+                        <span class="s2">&quot;translation&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                    <span class="p">}</span>
+                    <span class="n">direction</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;direction&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span>
+                        <span class="n">direction</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+                        <span class="n">direction</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+                        <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># we have inverted x</span>
+                        <span class="n">axis</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vectProduct</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">direction</span><span class="p">)</span>
+                        <span class="n">angle</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="n">axis</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>
+                        <span class="n">rotation</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">()</span>
+                        <span class="n">rotation</span><span class="o">.</span><span class="n">fromAxis</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span>
+                        <span class="n">node</span><span class="p">[</span><span class="s1">&#39;rotation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rotation</span><span class="o">.</span><span class="n">vector</span><span class="p">())</span>
+                    <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="n">nn</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">nl</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">summary</span></div>
 
     <span class="k">def</span> <span class="nf">find_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">,</span> <span class="n">filters</span><span class="p">):</span>
         <span class="n">filt_layer</span> <span class="o">=</span> <span class="kc">None</span>
