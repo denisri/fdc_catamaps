@@ -464,7 +464,7 @@
     var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
     light.position.z = 1;
     light.target.z = 0;
-    scene.add( light );
+//     scene.add( light );  // moved later
     scene.add( camera );
 
     var light2 = new THREE.AmbientLight( 0xffffff, 0.3 );
@@ -611,6 +611,10 @@
     var private_code = map_objects['code'];
     if( private_code == null )
       private_code = '776f707e19f39e6b830856a6cdf3aa605a5a283e'
+
+    console.log('camera light:', map_objects.camera_light);
+    if( map_objects.camera_light != "off" )
+      scene.add( light );
 
     if( sha1(query['code']) == private_code )
     {
@@ -1193,7 +1197,7 @@
         var y = spos[1];
         var z = point.z;
         // var z = spos[2];
-        max_dist = spos[3];
+        max_dist = spos[4];
         var fnames = photos[i][1];
         // console.log( 'photo:', x, y, z, fnames, ', radius:', max_dist );
         var photo_pos = new THREE.Vector3( x, y, z );

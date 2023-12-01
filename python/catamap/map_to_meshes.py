@@ -129,6 +129,8 @@ Properties list
     to be filled.
 **border:** bool (**3D maps**)
     not used if I remember...
+**camera_light:** str (**3D maps**)
+    if set to ``off``, the camera light (headlamp) is disabled.
 **category:** str (**3D maps**)
     the category string the element will be associated in the 3D views.
     Categories can be displayed/hidden using buttons or menus in 3D views.
@@ -157,6 +159,8 @@ Properties list
     filled.
 **date:** str (**2D maps**)
     the date text will be replaced with the date of the map build.
+**default_categories:** JSON list (**3D maps**)
+    list of categories which are visible by default (checked in the viewer)
 **depth_map:** bool (**3D maps**)
     the layer is a depth map. It should contain a ``level`` property to define
     the level it maps. See :ref:`depth_maps` for details.
@@ -239,8 +243,9 @@ Properties list
     This propery can be set to paths, groups, and arrows (which will thus point
     to a shifted location).
 **marker:** str (**3D maps**)
-    set on a layer to specify that this layer is a **markers layer**. Two types
-    of markers are currently recognized: ``sounds`` and ``photos``.
+    set on a layer to specify that this layer is a **markers layer**. Three
+    types of markers are currently recognized: ``sounds``, ``photos``, and
+    ``lights``.
 
     See :ref:`markers` for more details.
 
@@ -1361,10 +1366,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 sname = item_props.marker
                 if item_props.private:
                     sname += '_private'
-                model = getattr(self, '%s_marker_model' % item_props.marker,
-                                None)
+                mmname = '%s_marker_model' % item_props.marker
+                model = getattr(self, mmname, None)
                 if model is None:
-                    model = self.photo_marker_model
+                    mmname = 'photos_marker_model'
+                    model = self.photos_marker_model
+                if not hasattr(self, 'marker_types'):
+                    self.marker_types = {}
+                self.marker_types[sname] = mmname
                 self.read_markers(xml_element, model, sname)
                 return (self.noop, clean_return, True)
             if label == 'lambert93':
@@ -2135,7 +2144,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
         print('READ', mtype.upper())
         if not hasattr(self, mtype):
-            setattr(self, mtype, {})
+            setattr(self, mtype, [])
         markers = getattr(self, mtype)
         if trans is None:
             trans = self.get_transform(xml)
@@ -2157,6 +2166,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             layer_radius = float(layer_radius)
         else:
             layer_radius = 10.
+        layer_hshift = xml.get('height_shift')
+        if layer_hshift is not None:
+            layer_hshift = float(layer_hshift)
+        else:
+            layer_hshift = 0.
 
         used_texts = {}
         missing = []
@@ -2173,9 +2187,22 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if trans2 is not None:
                 transm = self.get_transform(trans2)
                 trans_el = trans * transm
+
+            radius = xml_element.get('radius')
+            if radius is not None:
+                radius = float(radius)
+            else:
+                radius = layer_radius
+            hshift = xml_element.get('height_shift')
+            if hshift is not None:
+                hshift = float(hshift)
+            else:
+                hshift = layer_hshift
+
+            elements = xml_element
             if xml_element.tag.split('}')[-1] != 'g':
-                xml_element = [xml_element]
-            for sub_el in xml_element:
+                elements = [xml_element]
+            for sub_el in elements:
                 tag = sub_el.tag.split('}')[-1]
                 if tag == 'text':
                     if pos is None:
@@ -2219,11 +2246,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             print('failed marker arrow in', mtype,
                                   ', vertices:')
                             print(np.array(mesh.vertex()))
-            radius = xml.get('radius')
-            if radius is not None:
-                radius = float(radius)
-            else:
-                radius = layer_radius
 
             if text and pos:
                 if text.startswith('['):  # list
@@ -2231,43 +2253,58 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     texts = [text]
                 images = []
-                for text in texts:
-                    imlist = markers_map.get(text)
-                    if imlist is None:
-                        if markers_map:
-                            missing.append((text, pos))
-                        imlist = [text]
-                    images += imlist
-                    # test existence of files
-                    # warning: only works relative to current dir
-                    for image in imlist:
-                        url = base_url + image
-                        if not os.path.exists(url):
-                            missing_files.append((text, pos, url))
-                    used_texts.setdefault(text, []).append(pos)
-                markers.append([pos + [level, radius],
-                                [base_url + image for image in images]])
+                if mtype == 'lights':  # light markers are not files
+                    lprops = xml_element.get('light_props')
+                    if lprops is None:
+                        lprops = {'type': 'directional'}
+                    else:
+                        try:
+                            lprops = json.loads(lprops)
+                        except Exception:
+                            print('json decode error in',
+                                  xml_element.get('id'))
+                            print('in light_props:', lprops)
+                            raise
+                    markers.append([pos + [hshift, level, lprops], texts])
+                else:
+                    for text in texts:
+                        imlist = markers_map.get(text)
+                        if imlist is None:
+                            if markers_map:
+                                missing.append((text, pos))
+                            imlist = [text]
+                        images += imlist
+                        # test existence of files
+                        # warning: only works relative to current dir
+                        for image in imlist:
+                            url = base_url + image
+                            if not os.path.exists(url):
+                                missing_files.append((text, pos, url))
+                        used_texts.setdefault(text, []).append(pos)
+                    markers.append([pos + [hshift, level, radius],
+                                    [base_url + image for image in images]])
                 # print('%s:' % mtype, markers[-1])
         print('read', len(markers), mtype)
-        # check and print duplicates
-        dup = False
-        for text, pos in used_texts.items():
-            if len(pos) != 1:
-                if not dup:
-                    print('** Duplicate markers texts in layer', mtype, ': **')
-                    dup = True
-                print('marker:', text, 'at positions:')
-                for p in pos:
-                    print('    -', p)
-        if missing:
-            print('** Missing correspondance for marker texts: **')
-            for m in missing:
-                print(m[0], 'at position:', m[1])
-        if missing_files:
-            print('** Missing marker files: **')
-            for m in missing_files:
-                print(m[0], 'at position:', m[1], ':', m[2])
-
+        if mtype != 'lights':
+            # check and print duplicates
+            dup = False
+            for text, pos in used_texts.items():
+                if len(pos) != 1:
+                    if not dup:
+                        print('** Duplicate markers texts in layer', mtype,
+                              ': **')
+                        dup = True
+                    print('marker:', text, 'at positions:')
+                    for p in pos:
+                        print('    -', p)
+            if missing:
+                print('** Missing correspondance for marker texts: **')
+                for m in missing:
+                    print(m[0], 'at position:', m[1])
+            if missing_files:
+                print('** Missing marker files: **')
+                for m in missing_files:
+                    print(m[0], 'at position:', m[1], ':', m[2])
 
     def read_lambert93(self, xml, trans=None):
         print('READ LAMBERT93')
@@ -3268,47 +3305,60 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # sounds and photos depth + markers meshes
         object_win_size = [8, 8]
 
-        protos = {'sounds': 'sounds_marker_model',
-                  'sounds_private': 'sounds_marker_model',
-                  'photos': 'photos_marker_model',
-                  'photos_private': 'photos_marker_model'}
+        protos = self.marker_types
 
         for mtype, proto in protos.items():
             mesh = None
-            mesh_proto = getattr(self, proto)
-            print(mtype, 'proto:', len(mesh_proto.vertex()))
-            for mpos in getattr(self, mtype):
-                pos = mpos[0][:3]
-                radius = mpos[0][3]
-                level = pos[2]
-                win = self.depth_wins[level]
-                z = self.get_depth(pos[:2] + [0.], win.view(),
-                                    object_win_size)
-                if z is None:
-                    print('failed to get depth for:', mtype, pos, level)
-                    z = 0.
-                mpos[0][2] = z
-                pos[2] = z
-                # print('marker:', level, pos)
-                mmesh = type(mesh_proto)(mesh_proto)  # copy
-                trans = aims.AffineTransformation3d()
-                trans.setTranslation(pos)
-                aims.SurfaceManip.meshTransform(mmesh, trans)
-                if mesh is None:
-                    mesh = mmesh
-                else:
-                    aims.SurfaceManip.meshMerge(mesh, mmesh)
-                # print('marker:', pos, len(mesh.vertex()))
-            if mesh is not None:
-                main_group = '%s_mesh' % mtype
-                self.mesh_dict[main_group] = mesh
-                meshes[main_group] = mesh
-                props = ItemProperties()
-                props.category = 'markers'
-                self.group_properties[main_group] = props
-                print('--- marker mesh:', main_group, len(mesh.vertex()), props)
-            else: print('NO MARKER MESH:', mtype)
-
+            if mtype == 'lights':
+                mesh_proto = None
+                for mpos in getattr(self, mtype):
+                    pos = mpos[0][:4]
+                    props = mpos[0][4]
+                    hshift = pos[2]
+                    level = pos[3]
+                    win = self.depth_wins[level]
+                    z = self.get_depth(pos[:2] + [0.], win.view(),
+                                       object_win_size)
+                    if z is None:
+                        print('failed to get depth for:', mtype, pos, level)
+                        z = 0.
+                    mpos[0][2] = z + hshift
+            else:
+                mesh_proto = getattr(self, proto)
+                print(mtype, 'proto:', len(mesh_proto.vertex()))
+                for mpos in getattr(self, mtype):
+                    pos = mpos[0][:4]
+                    hshift = pos[2]
+                    radius = mpos[0][4]
+                    level = pos[3]
+                    win = self.depth_wins[level]
+                    z = self.get_depth(pos[:2] + [0.], win.view(),
+                                       object_win_size)
+                    if z is None:
+                        print('failed to get depth for:', mtype, pos, level)
+                        z = 0.
+                    z += hshift
+                    mpos[0][2] = z
+                    pos[2] = z
+                    # print('marker:', level, pos)
+                    mmesh = type(mesh_proto)(mesh_proto)  # copy
+                    trans = aims.AffineTransformation3d()
+                    trans.setTranslation(pos[:3])
+                    aims.SurfaceManip.meshTransform(mmesh, trans)
+                    if mesh is None:
+                        mesh = mmesh
+                    else:
+                        aims.SurfaceManip.meshMerge(mesh, mmesh)
+                    # print('marker:', pos, len(mesh.vertex()))
+                if mesh is not None:
+                    main_group = '%s_mesh' % mtype
+                    self.mesh_dict[main_group] = mesh
+                    meshes[main_group] = mesh
+                    props = ItemProperties()
+                    props.category = 'markers'
+                    self.group_properties[main_group] = props
+                    print('--- marker mesh:', main_group, len(mesh.vertex()), props)
+                else: print('NO MARKER MESH:', mtype)
 
     def extrude(self, mesh, distance, height_map=None):
         '''
@@ -3766,13 +3816,26 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if mesh_wf_format in ('.gltf', '.glb'):
             wf_format = None
             use_gltf = True
-        summary = super(CataSvgToMesh, self).save_mesh_dict(
+        summary = super().save_mesh_dict(
             mdict, dirname,  mesh_format=format, mesh_wf_format=wf_format)
 
         if use_gltf:
             from soma.aims import gltf_io
             gltf_dicts = {}  # public
             gltf_p_dicts = {}  # private
+            gltf_lights = None
+            gltf_p_lights = None
+            lights = getattr(self, 'lights', None)
+            if lights:
+                gltf_lights = super().save_mesh_dict(
+                    {}, dirname,  mesh_format=mesh_format, mesh_wf_format=None,
+                    lights=lights)
+                print('gltf_lights:', gltf_lights)
+            lights_p = getattr(self, 'lights_private', None)
+            if lights_p:
+                gltf_p_lights = super().save_mesh_dict(
+                    {}, dirname,  mesh_format='gltf', mesh_wf_format=None,
+                    lights=lights_p)
 
         # output JSON dict
         json_obj = collections.OrderedDict()
@@ -3915,9 +3978,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     size = os.stat(os.path.join(dirname,
                                                 filename + '.obj')).st_size
                     # hash
-                    md5 = hashlib.md5(open(os.path.join(dirname,
-                                                        filename + '.obj'),
-                                          'rb').read()).hexdigest()
+                    md5 = hashlib.md5(
+                        open(os.path.join(dirname, filename + '.obj'),
+                             'rb').read()).hexdigest()
                     if 'private' in filename or (props and props.private):
                         pmeshes.append([layer, filename, size, md5])
                     else:
@@ -3926,6 +3989,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 used_layers.add(layer)
 
         if use_gltf:
+            for light_l, l_summary, private, gltf_d in (
+                    (lights, gltf_lights, '', gltf_dicts),
+                    (lights_p, gltf_p_lights, '_private', gltf_p_dicts)):
+                if light_l:
+                    for light in light_l:
+                        glight = l_summary['gltf_scene']
+                        category = 'Lumières'
+                        categories.append(category)
+                        layer = categories.index(category)
+                        used_layers.add(layer)
+                        gltf_d[layer] = glight
+                        print('Light dict, layer', layer, ':', glight)
+
             try:
                 from pygltflib import GLTF2, BufferFormat, ImageFormat
             except ImportError:
@@ -3936,16 +4012,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     (gltf_p_dicts, '_private', pmeshes)):
                 # regroup GLTFs
                 for layer, gltf in gltf_d.items():
+                    print('layer:', layer)
                     if layer < 0:
                         category = 'hidden'
                     else:
                         category = categories[layer]
+
+                    mformat = mesh_format
+                    if category == 'Lumières':
+                        use_draco = False
+                        mformat = '.gltf'
+                    else:
+                        use_draco = True
+
                     filename = osp.join(
-                        dirname, category + private + mesh_format)
+                        dirname, category + private + mformat)
                     print('GLTF layer:', layer, ':', filename)
 
                     filename = gltf_io.save_gltf(gltf, filename,
-                                                 use_draco=True)
+                                                 use_draco=use_draco)
 
                     # print('GLTF mesh:', layer, ':', filename, props)
                     size = os.stat(filename).st_size
@@ -4012,6 +4097,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             json_obj['photos'] = self.photos
         if self.photos_private:
             json_obj['photos_private'] = self.photos_private
+
+        metadata = self.get_metadata(self.svg)
+
+        cam_light = metadata.get('camera_light')
+        if cam_light is not None:
+            json_obj['camera_light'] = cam_light
+        def_cat = metadata.get('default_categories')
+        if def_cat is not None:
+            def_cat = json.loads(def_cat)
+            json_obj['default_categories'] = def_cat
 
         if json_filename is not None:
             if six.PY3:

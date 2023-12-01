@@ -1604,7 +1604,7 @@ class SvgToMesh(object):
 
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.obj',
-                       mesh_wf_format='.obj'):
+                       mesh_wf_format='.obj', lights=None):
         '''
         mesh_format may be a valid mesh extension (".obj", ".gii", ".mesh") or
         GLTF (".gltf" or ".glb"), or None (not saved here).
@@ -1622,6 +1622,7 @@ class SvgToMesh(object):
             matrix = [-1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1]
             gltf = gltf_io.default_gltf_scene(matrix)
             summary['gltf_scene'] = gltf
+
         for key, mesh in meshes.items():
             #if key is None:
                 #print('key is None, mesh:', mesh)
@@ -1662,8 +1663,49 @@ class SvgToMesh(object):
                 elif ext is not None:
                     aims.write(mesh, filename, format=format)
                 summary.setdefault("meshes", {})[filename] = key
-        return summary
 
+        # if gltf and lights
+        if mesh_format in ('.gltf', '.glb'):
+            if lights is not None:
+                ext = gltf.setdefault('extensions', {})
+                lext = ext.setdefault("KHR_lights_punctual", {})
+                gltflights = lext.setdefault('lights', [])
+                nodes = gltf.setdefault('nodes', [])
+                scnodes = gltf.setdefault('scenes',
+                                          [{'nodes': []}])[0]['nodes']
+                nn = len(scnodes)
+                nl = 0
+                print('LIGHTS:', lights)
+                for light in lights:
+                    pos = light[0][:3]
+                    props = light[0][4]
+                    if props is None:
+                        props = {}
+                    gltflights.append(props)
+                    scnodes.append(nn)
+                    node = {
+                        "extensions": {
+                            "KHR_lights_punctual": {
+                                "light": nl
+                            }
+                        },
+                        "translation": [-pos[0], pos[1], pos[2]],
+                    }
+                    direction = props.get('direction')
+                    if direction is not None:
+                        del props['direction']
+                        direction = aims.Point3df(direction)
+                        direction.normalize()
+                        direction[0] *= -1  # we have inverted x
+                        axis = aims.vectProduct([0, 0, -1], direction)
+                        angle = math.asin(axis.norm())
+                        rotation = aims.Quaternion()
+                        rotation.fromAxis(axis, angle)
+                        node['rotation'] = list(rotation.vector())
+                    nodes.append(node)
+                    nn += 1
+                    nl += 1
+        return summary
 
     def find_element(self, xml_et, filters):
         filt_layer = None
