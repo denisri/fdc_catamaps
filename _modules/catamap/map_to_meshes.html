@@ -2207,7 +2207,7 @@
             <span class="n">layer_radius</span> <span class="o">=</span> <span class="mf">10.</span>
         <span class="n">layer_hshift</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_shift&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">layer_hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">layer_hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">layer_hshift</span><span class="p">)</span>
+            <span class="n">layer_hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">layer_hshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">layer_hshift</span> <span class="o">=</span> <span class="mf">0.</span>
 
@@ -2234,7 +2234,7 @@
                 <span class="n">radius</span> <span class="o">=</span> <span class="n">layer_radius</span>
             <span class="n">hshift</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_shift&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">hshift</span><span class="p">)</span>
+                <span class="n">hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">hshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">hshift</span> <span class="o">=</span> <span class="n">layer_hshift</span>
 
@@ -3344,7 +3344,7 @@
         <span class="c1"># sounds and photos depth + markers meshes</span>
         <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
 
-        <span class="n">protos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span>
+        <span class="n">protos</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;marker_types&#39;</span><span class="p">,</span> <span class="p">{})</span>
 
         <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">proto</span> <span class="ow">in</span> <span class="n">protos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3869,7 +3869,7 @@
                 <span class="n">gltf_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
                     <span class="p">{},</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="n">mesh_format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">lights</span><span class="o">=</span><span class="n">lights</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gltf_lights:&#39;</span><span class="p">,</span> <span class="n">gltf_lights</span><span class="p">)</span>
+                <span class="c1"># print(&#39;gltf_lights:&#39;, gltf_lights)</span>
             <span class="n">lights_p</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lights_private&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">lights_p</span><span class="p">:</span>
                 <span class="n">gltf_p_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
@@ -4011,7 +4011,7 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mdict</span><span class="p">[</span><span class="n">mesh</span><span class="p">]</span><span class="o">.</span><span class="n">vertex</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mesh has 0 size:&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">gltf_io</span><span class="o">.</span><span class="n">mesh_to_gltf</span><span class="p">(</span><span class="n">mdict</span><span class="p">[</span><span class="n">mesh</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">gltf</span><span class="o">=</span><span class="n">gltf</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">store_gltf_texmesh</span><span class="p">(</span><span class="n">mdict</span><span class="p">[</span><span class="n">mesh</span><span class="p">],</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">gltf</span><span class="o">=</span><span class="n">gltf</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># print(&#39;mesh:&#39;, layer, &#39;:&#39;, filename, props)</span>
                     <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
@@ -4039,7 +4039,7 @@
                         <span class="n">layer</span> <span class="o">=</span> <span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
                         <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
                         <span class="n">gltf_d</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">glight</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Light dict, layer&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">glight</span><span class="p">)</span>
+                        <span class="c1"># print(&#39;Light dict, layer&#39;, layer, &#39;:&#39;, glight)</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">pygltflib</span> <span class="kn">import</span> <span class="n">GLTF2</span><span class="p">,</span> <span class="n">BufferFormat</span><span class="p">,</span> <span class="n">ImageFormat</span>
