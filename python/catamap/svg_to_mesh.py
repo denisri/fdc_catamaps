@@ -9,11 +9,7 @@ svg_to_mesh module API
 ----------------------
 '''
 
-from __future__ import print_function
-from __future__ import absolute_import
-
 import xml.etree.cElementTree as ET
-from six.moves import range
 try:
     from soma import aims
     fake_aims = False
@@ -25,11 +21,13 @@ except ImportError:
 import numpy as np
 import scipy.linalg
 import os
+import os.path as osp
 import six
 import copy
 #import traceback
 import sys
 import math
+import json
 
 '''
 SVG parsing as mesh objects
@@ -144,6 +142,10 @@ class SvgToMesh(object):
         # in 2D transform mode (replace_elements), put back these properties
         # from the source to the transformed xml items
         self.keep_transformed_properties = set()
+        self.tex_mapping_methods = {
+            'xy': self.make_texcoord_xy,
+            'geodesic_z': self.make_texcoord_geodesic_z,
+        }
 
 
     @staticmethod
@@ -160,7 +162,7 @@ class SvgToMesh(object):
 
     @staticmethod
     def set_style(xml_elem, style):
-        style_l = ['%s:%s' % (k, str(v)) for k, v in six.iteritems(style)]
+        style_l = ['%s:%s' % (k, str(v)) for k, v in style.items()]
         style_str = ';'.join(style_l)
         if not style:
             return None
@@ -496,8 +498,231 @@ class SvgToMesh(object):
 
         if material:
             mesh.header()['material'] = material
+
         return mesh
 
+    def get_textures(self, mesh, child, parents):
+        if 'textures' in mesh.header():
+            return  # already done
+        tex_types = {
+            'texture': None,
+            'ceil_texture': None,
+            'floor_texture': None,
+            'wall_texture': None,
+        }
+        found = False
+        for element in [child] + list(reversed(parents)):
+            for ttype in tex_types:
+                texture = element.get(ttype)
+                if texture is not None:
+                    found = True
+                    try:
+                        tex_def = json.loads(texture)
+                    except Exception:
+                        print(
+                            'error in JSON decoding of %s property of '
+                            'element: %s: %s'
+                            % (ttype, element.get('id'), texture))
+                        raise
+                    tex_types[ttype] = tex_def
+            if found:
+                break
+        else:
+            return
+        textures = {}
+        for ttype, tex_def in tex_types.items():
+            if tex_def is None:
+                continue
+            # coords, mapping method, scales & transform
+            tex_params = {k: v for k, v in tex_def.items()
+                          if k not in ('id', 'label', 'layer')}
+            tex_def = {k: v for k, v in tex_def.items()
+                       if k in ('id', 'label', 'layer')}
+            # TODO
+            tex_element = self.find_element(self.svg, tex_def)
+            if tex_element is None:
+                print('texture image not found for %s, %s: %s'
+                      % (element.get('id'), ttype, tex_element))
+                continue
+            # print('texture image:', tex_element)
+            tex_image = self.get_image(tex_element[0], tex_element[1])
+            # mesh is possibly not complete yet: tex coords generation
+            # must be postponed.
+            textures[ttype] = {'image': tex_image, 'params': tex_params}
+
+        print('tex params:', textures)
+        mesh.header()['textures'] = textures
+
+    def get_image(self, xml_element, trans):
+        w = float(xml_element.get('width'))
+        h = float(xml_element.get('height'))
+        x = float(xml_element.get('x'))
+        y = float(xml_element.get('y'))
+        #trans2 = self.get_transform(xml_element, trans)
+        pos = trans.dot([x, y, 1.])
+        uri = xml_element.get('{http://www.w3.org/1999/xlink}href')
+        image = aims.Volume_RGBA()
+        gltf_props = xml_element.get('gltf_properties')
+        if gltf_props is not None:
+            gltf_props = json.loads(gltf_props)
+        if uri[:6] == 'data:':
+            # bin
+            pass
+        else:
+            if not osp.isabs(uri):
+                uri_a = osp.join(osp.dirname(self.svg_filename), uri)
+                if osp.exists(uri_a):
+                    uri = uri_a
+                else:
+                    # maybe a realpath
+                    uri = osp.join(osp.dirname(osp.realpath(
+                        self.svg_filename)), uri)
+                image = aims.read(uri)
+        svg_p = image.header()
+        svg_p['svg_size'] = [w, h]
+        svg_p['svg_position'] = np.asarray(pos)[0].tolist()
+        svg_p['svg_transform'] = trans.tolist()
+        if gltf_props is not None:
+            # print('set gltf_properties:', gltf_props)
+            image.header()['gltf_properties'] = gltf_props
+        # print('image header:', image.header())
+        return image
+
+    def build_texture(self, mesh, key):
+        textures = mesh.header().get('textures')
+        if textures is None:
+            return
+        if key.endswith('wall_tri'):
+            ttype = 'wall_texture'
+        elif key.endswith('floor_tri'):
+            ttype = 'floor_texture'
+        elif key.endswith('ceil_tri'):
+            ttype = 'ceil_texture'
+        else:
+            return
+        tex_def = textures.get(ttype)
+        if tex_def is None:
+            tex_def = textures.get('texture')
+        print('tex_def for', key, ':', tex_def)
+        if tex_def is None:
+            return
+
+        if 'mapping_method' not in tex_def.get('params', {}) \
+                and ttype == 'wall_texture':
+            tex_def.setdefault('params', {})['mapping_method'] = 'geodesic_z'
+
+        tex_coords = self.make_texcoords(mesh, tex_def)
+        tex_def['coords'] = [tex_coords]
+        mesh.header()['texture'] = tex_def
+
+    def make_texcoords(self, mesh, tex_def):
+        map_meth = tex_def.get('params', {}).get('mapping_method', 'xy')
+        print('map meth:', tex_def.get('params', {}).get('mapping_method'))
+        map_method = self.tex_mapping_methods[map_meth]
+        tex_coords = map_method(mesh, tex_def)
+        tex_coords.header()['gltf_texture'] = {'teximage': tex_def['image']}
+        return tex_coords
+
+    def make_texcoord_xy(self, mesh, tex_def):
+        image = tex_def['image']
+        svg_p = image.header()
+        im_size = svg_p.get('svg_size', [1., 1.])
+        im_pos = svg_p.get('svg_position', [0., 0.])
+        im_trans = svg_p.get('svg_transform')
+        if im_trans is not None:
+            im_trans = np.matrix(im_trans)
+            im_trans = np.linalg.inv(im_trans)
+        else:
+            im_trans = np.eye(3)
+        im_trans[:, 2] = -im_trans.dot([im_pos[0], im_pos[1], 0]).T
+        ptrans = np.matrix(np.eye(3))
+        ptrans[0, 0] = 1. / im_size[0]
+        ptrans[1, 1] = 1. / im_size[1]
+        ptrans[2, 2] = 0.
+        ptrans = ptrans * im_trans
+        tex = aims.TimeTexture_POINT2DF()
+        for t in mesh.keys():
+            tx = tex[t]
+            vert = mesh.vertex(t).np.T[:2, :]
+            vert = np.vstack((vert, np.ones((1, vert.shape[1]))))
+            trans_c = ptrans.dot(vert)[:2, :].T
+            tx.assign(np.asarray(trans_c))
+        return tex
+
+    def make_texcoord_geodesic_z(self, mesh, tex_def):
+        image = tex_def['image']
+        svg_p = image.header()
+        im_size = svg_p.get('svg_size', [1., 1.])
+        im_pos = svg_p.get('svg_position', [0., 0.])
+        im_trans = svg_p.get('svg_transform')
+        if im_trans is not None:
+            im_trans = np.matrix(im_trans)
+            im_trans = np.linalg.inv(im_trans)
+        else:
+            im_trans = np.eye(3)
+        im_trans[:, 2] = -im_trans.dot([im_pos[0], im_pos[1], 0]).T
+        ptrans = np.matrix(np.eye(3))
+        ptrans[0, 0] = 1. / im_size[0]
+        ptrans[1, 1] = 1. / im_size[1]
+        ptrans[2, 2] = 0.
+        ptrans = ptrans * im_trans
+
+        geodesic = self.geodesic(mesh)
+
+        tex = aims.TimeTexture_POINT2DF()
+        for t in mesh.keys():
+            tx = tex[t]
+            vert = mesh.vertex(t).np
+            tx.resize(vert.shape[0])
+            tx = tx.np
+            tx[:, 0] = geodesic[0].np
+            tx[:, 1] = vert[:, 2]
+            pts = np.vstack((tx.T, np.ones((1, tx.shape[0]))))
+            trans_c = ptrans.dot(pts)[:2, :].T
+            # y of textures is inverted, start at 1 (bottom) at 1st vertex
+            trans_c[:, 1] = trans_c[0, 1] - trans_c[:, 1]
+            tx[:] = trans_c
+            print('TEX init:', tx[0])
+        return tex
+
+    def geodesic(self, mesh):
+        # get range of distances
+        vert2d = mesh.vertex(0).np[:, :2]
+        vdist = vert2d - vert2d[0]
+        vdist = np.sum(vdist * vdist, axis=1)
+        dmax2 = np.max(vdist) * 0.00001
+        itex = aims.TimeTexture_S16()
+        itex[0].resize(mesh.vertex(0).size())
+        itex0 = itex[0].np
+        itex0[:] = 0
+        itex0[vdist <= dmax2] = 1  # start at 1st vertex
+        dtex = aims.TimeTexture_FLOAT()
+        dtex[0].resize(mesh.vertex(0).size())
+        dtex0 = dtex[0].np
+        dtex0[:] = -1
+        print('geodesic distance map...')
+        i = 0
+        while True:
+            print('pass', i)
+            ftex = aims.meshdistance.MeshDistance(mesh, itex, False)
+            ftex0 = ftex[0].np
+            print(ftex0)
+            print('min:', np.min(ftex0))
+            dtex0[ftex0 >= 0] = ftex0[ftex0 >= 0]
+            print('where -2:', np.where(ftex0 == -2))
+            if len(np.where(ftex0 == -2)[0]) != 0:
+                # -2 is unreached
+                itex0[:] = 0
+                itex0[dtex0 >= 0] = -1  # forbidden
+                s = np.where(itex0 == 0)[0][0]  # new start
+                vdist = vert2d - vert2d[s]
+                vdist = np.sum(vdist * vdist, axis=1)
+                dmax2 = np.max(vdist) * 0.00001
+                itex0[vdist <= dmax2] = 1  # new start
+            else:
+                break  # done.
+            i += 1
+        return dtex
 
     @staticmethod
     def set_transform(xml_elem, trans):
@@ -680,10 +905,8 @@ class SvgToMesh(object):
                     ptrans = iotrans * trans * c_trans
                     self.transform_rect(element, ptrans)
 
-
     def style_to_str(self, style):
-        return ';'.join(['%s:%s' % (k, str(v))
-                         for k, v in six.iteritems(style)])
+        return ';'.join(['%s:%s' % (k, str(v)) for k, v in style.items()])
 
 
     def transform_style(self, xml_path, trans):
@@ -947,7 +1170,7 @@ class SvgToMesh(object):
             raise RuntimeError('aims module is not available. '
                                'merge_meshes_by_group() needs it.')
 
-        for key, mesh_l in six.iteritems(meshes):
+        for key, mesh_l in meshes.items():
             if isinstance(mesh_l, list) and len(mesh_l) != 0 \
                     and isinstance(mesh_l[0],
                                    (aims.AimsTimeSurface_2,
@@ -971,13 +1194,13 @@ class SvgToMesh(object):
             raise RuntimeError('aims module is not available. read_paths() '
                                'needs it.')
         trans = np.matrix(np.eye(3))
-        todo = [(xml_et.getroot(), trans, None)]
+        todo = [(xml_et.getroot(), trans, None, [])]
         self.mesh = aims.AimsTimeSurface(2)
         self.mesh_list = []
         self.mesh_dict = {}
         index = 0
         while todo:
-            child, trans, main_group = todo.pop(0)
+            child, trans, main_group, parents = todo.pop(0)
             if child is None:
                 # this is a hacked special code to call cleaner
                 cleaners = trans
@@ -1009,7 +1232,7 @@ class SvgToMesh(object):
                 reader(child, trans, style)
             if cleaner not in (None, [], ()):
                 # insert a special code to do something at the end of this tree
-                todo.insert(0, (None, cleaner, None))
+                todo.insert(0, (None, cleaner, None, parents))
             if reader is None and style and style.get('display') == 'none' \
                     and child.get('{http://www.inkscape.org/namespaces/inkscape}label') \
                         not in self.explicitly_show:
@@ -1029,10 +1252,12 @@ class SvgToMesh(object):
                 if self.concat_mesh == 'merge':
                     aims.SurfaceManip.meshMerge(self.mesh, child_mesh)
                     self.mesh.header().update(child_mesh.header())
+                    self.get_textures(self.mesh, child, parents)
                 elif self.concat_mesh == 'time':
                     self.mesh.vertex(index).assign(child_mesh.vertex())
                     self.mesh.polygon(index).assign(child_mesh.polygon())
                     self.mesh.header().update(child_mesh.header())
+                    self.get_textures(self.mesh, child, parents)
                     index += 1
                 elif self.concat_mesh == 'bygroup':
                     mesh = self.mesh_dict.setdefault(self.main_group,
@@ -1040,6 +1265,7 @@ class SvgToMesh(object):
                     aims.SurfaceManip.meshMerge(mesh, child_mesh)
                     if 'material' not in mesh.header():
                         mesh.header().update(child_mesh.header())
+                    self.get_textures(mesh, child, parents)
                 elif self.concat_mesh == 'list_bygroup':
                     meshes = self.mesh_dict.setdefault(self.main_group, [])
                     try:
@@ -1051,6 +1277,7 @@ class SvgToMesh(object):
                         print(list(child.items()))
                         #aims.SurfaceManip.meshMerge(meshes, child_mesh)
                         raise
+                    self.get_textures(child_mesh, child, parents)
                     try:
                         if 'material' not in meshes[0].header():
                             meshes[0].header().update(child_mesh.header())
@@ -1059,6 +1286,7 @@ class SvgToMesh(object):
                         raise
                 else:
                     self.mesh_list.append(child_mesh)
+                    self.get_textures(mesh, child, parents)
             elif child.tag.endswith('}clipPath') or child.tag == 'clipPath':
                 #print('clipPath')
                 # skip clipPaths
@@ -1120,9 +1348,11 @@ class SvgToMesh(object):
                 other = []
                 for c in child:
                     if c.tag.endswith('}metadata'):
-                        meta.append((c, trans, self.main_group))
+                        meta.append((c, trans, self.main_group,
+                                     parents + [child]))
                     else:
-                        other.append((c, trans, self.main_group))
+                        other.append((c, trans, self.main_group,
+                                      parents + [child]))
                 todo = meta + other + todo
 
         if self.concat_mesh in ('merge', 'time'):
@@ -1658,8 +1888,9 @@ class SvgToMesh(object):
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + fext)
                 print('saving:', filename, '(', key, ')')
+                self.build_texture(mesh, key)
                 if ext in ('.gltf', '.glb'):
-                    gltf = gltf_io.mesh_to_gltf(mesh, name=key, gltf=gltf)
+                    gltf = self.store_gltf_texmesh(mesh, key, gltf)
                 elif ext is not None:
                     aims.write(mesh, filename, format=format)
                 summary.setdefault("meshes", {})[filename] = key
@@ -1707,6 +1938,20 @@ class SvgToMesh(object):
                     nl += 1
         return summary
 
+    def store_gltf_texmesh(self, mesh, name, gltf):
+        from soma.aims import gltf_io
+        if 'texture' in mesh.header():
+            print('MESH WITH TEXTURE', name)
+            texture = mesh.header()['texture']
+            tcoords = texture['coords']
+            gltf = gltf_io.tex_mesh_to_gltf(
+                mesh, tcoords, name=name, gltf=gltf,
+                tex_format='webp', images_as_buffers=True,
+                single_buffer=True)
+        else:
+            gltf = gltf_io.mesh_to_gltf(mesh, name=name, gltf=gltf)
+        return gltf
+
     def find_element(self, xml_et, filters):
         filt_layer = None
         if isinstance(filters, str):
@@ -1745,9 +1990,8 @@ class SvgToMesh(object):
         if len(meta) != 0:
             meta = meta[0]
         else:
-            meta = None
+            meta = {}
         return meta
-
 
     def clip_rect_from_id(self, xml_et, rect_id):
         if isinstance(rect_id, str):
@@ -1775,7 +2019,6 @@ class SvgToMesh(object):
 
         return dims
 
-
     def clip_page(self, xml_et, dims_or_rect):
         dims = self.clip_rect_from_id(xml_et, dims_or_rect)
         doc = xml_et.getroot()
@@ -1795,7 +2038,6 @@ class SvgToMesh(object):
                 else:
                     ltrans = transl
                 layer.set('transform', ltrans)
-
 
     def read_xml(self, svg_filename):
         self.svg_filename = svg_filename

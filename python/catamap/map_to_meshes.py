@@ -2168,7 +2168,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             layer_radius = 10.
         layer_hshift = xml.get('height_shift')
         if layer_hshift is not None:
-            layer_hshift = float(layer_hshift)
+            layer_hshift = float(layer_hshift) * self.z_scale
         else:
             layer_hshift = 0.
 
@@ -2195,7 +2195,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 radius = layer_radius
             hshift = xml_element.get('height_shift')
             if hshift is not None:
-                hshift = float(hshift)
+                hshift = float(hshift) * self.z_scale
             else:
                 hshift = layer_hshift
 
@@ -3305,7 +3305,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # sounds and photos depth + markers meshes
         object_win_size = [8, 8]
 
-        protos = self.marker_types
+        protos = getattr(self, 'marker_types', {})
 
         for mtype, proto in protos.items():
             mesh = None
@@ -3830,7 +3830,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 gltf_lights = super().save_mesh_dict(
                     {}, dirname,  mesh_format=mesh_format, mesh_wf_format=None,
                     lights=lights)
-                print('gltf_lights:', gltf_lights)
+                # print('gltf_lights:', gltf_lights)
             lights_p = getattr(self, 'lights_private', None)
             if lights_p:
                 gltf_p_lights = super().save_mesh_dict(
@@ -3972,7 +3972,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if len(mdict[mesh].vertex()) == 0:
                         print('mesh has 0 size:', mesh)
                     else:
-                        gltf_io.mesh_to_gltf(mdict[mesh], name=mesh, gltf=gltf)
+                        self.store_gltf_texmesh(mdict[mesh], mesh, gltf=gltf)
                 else:
                     # print('mesh:', layer, ':', filename, props)
                     size = os.stat(os.path.join(dirname,
@@ -4000,7 +4000,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         layer = categories.index(category)
                         used_layers.add(layer)
                         gltf_d[layer] = glight
-                        print('Light dict, layer', layer, ':', glight)
+                        # print('Light dict, layer', layer, ':', glight)
 
             try:
                 from pygltflib import GLTF2, BufferFormat, ImageFormat
