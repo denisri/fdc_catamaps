@@ -676,6 +676,8 @@ class SvgToMesh(object):
             tx.resize(vert.shape[0])
             tx = tx.np
             tx[:, 0] = geodesic[0].np
+            ptrans[0, 2] += ptrans.dot([vert[0, 0], 0, 1])[0, 0] \
+                - ptrans.dot([tx[0, 0], 0, 1])[0, 0]
             tx[:, 1] = vert[:, 2]
             pts = np.vstack((tx.T, np.ones((1, tx.shape[0]))))
             trans_c = ptrans.dot(pts)[:2, :].T
