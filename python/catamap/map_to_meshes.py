@@ -4023,7 +4023,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         use_draco = False
                         mformat = '.gltf'
                     else:
-                        use_draco = True
+                        #use_draco = True
+                        use_draco = False
 
                     filename = osp.join(
                         dirname, category + private + mformat)
@@ -5231,6 +5232,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 # however all items with this label will be affected...
                 #if label not in colors:
                     #colors[label] = corridor_colors
+                if isinstance(corridor_colors, str):
+                    corridor_colors = {'bg': corridor_colors}
                 bg = corridor_colors.get('bg')
                 op = 1.
                 fill_op = 1.

@@ -11,7 +11,7 @@ svg_to_mesh module API
 
 import xml.etree.cElementTree as ET
 try:
-    from soma import aims
+    from soma import aims, aimsalgo
     fake_aims = False
 except ImportError:
     # aims is not available, use the fake light one (with reduced
@@ -554,6 +554,14 @@ class SvgToMesh(object):
         mesh.header()['textures'] = textures
 
     def get_image(self, xml_element, trans):
+        if not hasattr(self, 'texture_images'):
+            self.texture_images = {}
+        else:
+            image = self.texture_images.get(xml_element.get('id'))
+            if image is not None:
+                # already got this one
+                return image
+
         w = float(xml_element.get('width'))
         h = float(xml_element.get('height'))
         x = float(xml_element.get('x'))
@@ -586,6 +594,7 @@ class SvgToMesh(object):
             # print('set gltf_properties:', gltf_props)
             image.header()['gltf_properties'] = gltf_props
         # print('image header:', image.header())
+        self.texture_images[xml_element.get('id')] = image
         return image
 
     def build_texture(self, mesh, key):
@@ -667,7 +676,7 @@ class SvgToMesh(object):
         ptrans[2, 2] = 0.
         ptrans = ptrans * im_trans
 
-        geodesic = self.geodesic(mesh)
+        geodesic = self.geodesic2d(mesh)
 
         tex = aims.TimeTexture_POINT2DF()
         for t in mesh.keys():
@@ -684,46 +693,53 @@ class SvgToMesh(object):
             # y of textures is inverted, start at 1 (bottom) at 1st vertex
             trans_c[:, 1] = trans_c[0, 1] - trans_c[:, 1]
             tx[:] = trans_c
-            print('TEX init:', tx[0])
+            #print('TEX init:', tx[0])
         return tex
 
-    def geodesic(self, mesh):
+    def geodesic2d(self, mesh):
         # get range of distances
+        mesh2d = type(mesh)(mesh)  # copy mesh
+        mesh2d.vertex(0).np[:, 2] = 0  # keep x, y, set z = 0
         vert2d = mesh.vertex(0).np[:, :2]
-        vdist = vert2d - vert2d[0]
-        vdist = np.sum(vdist * vdist, axis=1)
-        dmax2 = np.max(vdist) * 0.00001
+
+        # separate disconnected components first
+        ictex = aims.TimeTexture_S16()
+        ictex[0].resize(mesh.vertex(0).size())
+        ictex[0].np[:] = 0
+        cctex = aimsalgo.AimsMeshLabelConnectedComponent(mesh, ictex, 10000)
+        ccs = np.round(cctex[0].np).astype(int)
+        del ictex, cctex
+
+        # in each connected component, set a distancemap seed
+        ncc = ccs[-1]
         itex = aims.TimeTexture_S16()
         itex[0].resize(mesh.vertex(0).size())
         itex0 = itex[0].np
         itex0[:] = 0
-        itex0[vdist <= dmax2] = 1  # start at 1st vertex
+        for seed in range(ncc):
+            w = np.where(ccs == seed + 1)[0]
+            seedp = w[0]
+            vdist = vert2d[w] - vert2d[seedp]
+            vdist = np.sum(vdist * vdist, axis=1)
+            # assume dmax / 10000 is the minimum distance to distinguish points
+            # (may be wrong...). We set seed label on vertices vertical with
+            # the seed vertex
+            dmax2 = np.max(vdist) * 0.000000001
+            # dmax = np.sqrt(dmax2)
+            itex0[w[vdist <= dmax2]] = 1  # start at 1st vertex
+
+        # then run a distance map from these seeds
         dtex = aims.TimeTexture_FLOAT()
         dtex[0].resize(mesh.vertex(0).size())
         dtex0 = dtex[0].np
         dtex0[:] = -1
         print('geodesic distance map...')
-        i = 0
-        while True:
-            print('pass', i)
-            ftex = aims.meshdistance.MeshDistance(mesh, itex, False)
-            ftex0 = ftex[0].np
-            print(ftex0)
-            print('min:', np.min(ftex0))
-            dtex0[ftex0 >= 0] = ftex0[ftex0 >= 0]
-            print('where -2:', np.where(ftex0 == -2))
-            if len(np.where(ftex0 == -2)[0]) != 0:
-                # -2 is unreached
-                itex0[:] = 0
-                itex0[dtex0 >= 0] = -1  # forbidden
-                s = np.where(itex0 == 0)[0][0]  # new start
-                vdist = vert2d - vert2d[s]
-                vdist = np.sum(vdist * vdist, axis=1)
-                dmax2 = np.max(vdist) * 0.00001
-                itex0[vdist <= dmax2] = 1  # new start
-            else:
-                break  # done.
-            i += 1
+        # print('dmax:', dmax)
+        # print('init mesh:', mesh.vertex(0).np)
+        ftex = aims.meshdistance.MeshDistance(mesh2d, itex, False)
+        ftex0 = ftex[0].np
+        dtex0[ftex0 >= -0.1] = ftex0[ftex0 >= -0.1]
+
         return dtex
 
     @staticmethod
