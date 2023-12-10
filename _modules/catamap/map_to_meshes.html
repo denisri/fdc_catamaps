@@ -4060,10 +4060,13 @@
                     <span class="n">mformat</span> <span class="o">=</span> <span class="n">mesh_format</span>
                     <span class="k">if</span> <span class="n">category</span> <span class="o">==</span> <span class="s1">&#39;Lumières&#39;</span><span class="p">:</span>
                         <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
-                        <span class="n">mformat</span> <span class="o">=</span> <span class="s1">&#39;.gltf&#39;</span>
+                        <span class="c1"># mformat = &#39;.gltf&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c1">#use_draco = True</span>
-                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="c1"># use_draco = True</span>
+                        <span class="c1"># use_draco = False</span>
+                        <span class="c1"># if texturing is ON, draco compression would move</span>
+                        <span class="c1"># mesh vertices and mess the texturing.</span>
+                        <span class="n">use_draco</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span>
 
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mformat</span><span class="p">)</span>
@@ -6191,6 +6194,10 @@
         <span class="s1">&#39;-g&#39;</span><span class="p">,</span> <span class="s1">&#39;--georef&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Copy GeoTIFF information from the given source file to a .tif &#39;</span>
         <span class="s1">&#39;export&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--texture&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;make textured meshes in 3D mode, if some are specified in the &#39;</span>
+        <span class="s1">&#39;SVG file. By default it is disabled for now.&#39;</span><span class="p">)</span>
 
     <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -6202,6 +6209,7 @@
         <span class="n">do_2d_maps</span> <span class="o">=</span> <span class="n">all_maps</span>
 
     <span class="n">do_3d</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">do_3d</span>
+    <span class="n">texturing</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">texture</span>
     <span class="n">do_split</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span>
     <span class="n">do_join</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">join</span>
     <span class="n">do_pdf</span> <span class="o">=</span> <span class="kc">None</span>
@@ -6246,6 +6254,7 @@
 
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="p">()</span>
+        <span class="n">svg_mesh</span><span class="o">.</span><span class="n">enable_texturing</span> <span class="o">=</span> <span class="n">texturing</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
     <span class="c1">#svg_mesh.debug = True</span>

@@ -185,6 +185,7 @@
             <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_texcoord_xy</span><span class="p">,</span>
             <span class="s1">&#39;geodesic_z&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_texcoord_geodesic_z</span><span class="p">,</span>
         <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span> <span class="o">=</span> <span class="kc">False</span>
 
 
     <span class="nd">@staticmethod</span>
@@ -541,6 +542,10 @@
         <span class="k">return</span> <span class="n">mesh</span></div>
 
     <span class="k">def</span> <span class="nf">get_textures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span><span class="p">:</span>
+            <span class="c1"># if texturing is not enabled, don&#39;t look for them.</span>
+            <span class="k">return</span>
+
         <span class="k">if</span> <span class="s1">&#39;textures&#39;</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
             <span class="k">return</span>  <span class="c1"># already done</span>
         <span class="n">tex_types</span> <span class="o">=</span> <span class="p">{</span>
