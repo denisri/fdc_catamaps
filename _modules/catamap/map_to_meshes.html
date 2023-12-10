@@ -4062,7 +4062,8 @@
                         <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
                         <span class="n">mformat</span> <span class="o">=</span> <span class="s1">&#39;.gltf&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="c1">#use_draco = True</span>
+                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
 
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mformat</span><span class="p">)</span>
@@ -5270,6 +5271,8 @@
                 <span class="c1"># however all items with this label will be affected...</span>
                 <span class="c1">#if label not in colors:</span>
                     <span class="c1">#colors[label] = corridor_colors</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corridor_colors</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">corridor_colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="n">corridor_colors</span><span class="p">}</span>
                 <span class="n">bg</span> <span class="o">=</span> <span class="n">corridor_colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">)</span>
                 <span class="n">op</span> <span class="o">=</span> <span class="mf">1.</span>
                 <span class="n">fill_op</span> <span class="o">=</span> <span class="mf">1.</span>

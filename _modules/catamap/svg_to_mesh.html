@@ -50,7 +50,7 @@
 
 <span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">soma</span> <span class="kn">import</span> <span class="n">aims</span>
+    <span class="kn">from</span> <span class="nn">soma</span> <span class="kn">import</span> <span class="n">aims</span><span class="p">,</span> <span class="n">aimsalgo</span>
     <span class="n">fake_aims</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="c1"># aims is not available, use the fake light one (with reduced</span>
@@ -593,6 +593,14 @@
         <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;textures&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">textures</span>
 
     <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_element</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;texture_images&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texture_images</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">texture_images</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># already got this one</span>
+                <span class="k">return</span> <span class="n">image</span>
+
         <span class="n">w</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
         <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
@@ -625,6 +633,7 @@
             <span class="c1"># print(&#39;set gltf_properties:&#39;, gltf_props)</span>
             <span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;gltf_properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gltf_props</span>
         <span class="c1"># print(&#39;image header:&#39;, image.header())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texture_images</span><span class="p">[</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">image</span>
         <span class="k">return</span> <span class="n">image</span>
 
     <span class="k">def</span> <span class="nf">build_texture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
@@ -706,7 +715,7 @@
         <span class="n">ptrans</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="n">ptrans</span> <span class="o">=</span> <span class="n">ptrans</span> <span class="o">*</span> <span class="n">im_trans</span>
 
-        <span class="n">geodesic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geodesic</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+        <span class="n">geodesic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geodesic2d</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 
         <span class="n">tex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">TimeTexture_POINT2DF</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -723,46 +732,53 @@
             <span class="c1"># y of textures is inverted, start at 1 (bottom) at 1st vertex</span>
             <span class="n">trans_c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">trans_c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">trans_c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">tx</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trans_c</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TEX init:&#39;</span><span class="p">,</span> <span class="n">tx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1">#print(&#39;TEX init:&#39;, tx[0])</span>
         <span class="k">return</span> <span class="n">tex</span>
 
-    <span class="k">def</span> <span class="nf">geodesic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">geodesic2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
         <span class="c1"># get range of distances</span>
+        <span class="n">mesh2d</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh</span><span class="p">)(</span><span class="n">mesh</span><span class="p">)</span>  <span class="c1"># copy mesh</span>
+        <span class="n">mesh2d</span><span class="o">.</span><span class="n">vertex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">np</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># keep x, y, set z = 0</span>
         <span class="n">vert2d</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">np</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">vdist</span> <span class="o">=</span> <span class="n">vert2d</span> <span class="o">-</span> <span class="n">vert2d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">vdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vdist</span> <span class="o">*</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">dmax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vdist</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.00001</span>
+
+        <span class="c1"># separate disconnected components first</span>
+        <span class="n">ictex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">TimeTexture_S16</span><span class="p">()</span>
+        <span class="n">ictex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+        <span class="n">ictex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cctex</span> <span class="o">=</span> <span class="n">aimsalgo</span><span class="o">.</span><span class="n">AimsMeshLabelConnectedComponent</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ictex</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+        <span class="n">ccs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">cctex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">ictex</span><span class="p">,</span> <span class="n">cctex</span>
+
+        <span class="c1"># in each connected component, set a distancemap seed</span>
+        <span class="n">ncc</span> <span class="o">=</span> <span class="n">ccs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">itex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">TimeTexture_S16</span><span class="p">()</span>
         <span class="n">itex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
         <span class="n">itex0</span> <span class="o">=</span> <span class="n">itex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span>
         <span class="n">itex0</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">itex0</span><span class="p">[</span><span class="n">vdist</span> <span class="o">&lt;=</span> <span class="n">dmax2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># start at 1st vertex</span>
+        <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncc</span><span class="p">):</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ccs</span> <span class="o">==</span> <span class="n">seed</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">seedp</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">vdist</span> <span class="o">=</span> <span class="n">vert2d</span><span class="p">[</span><span class="n">w</span><span class="p">]</span> <span class="o">-</span> <span class="n">vert2d</span><span class="p">[</span><span class="n">seedp</span><span class="p">]</span>
+            <span class="n">vdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vdist</span> <span class="o">*</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># assume dmax / 10000 is the minimum distance to distinguish points</span>
+            <span class="c1"># (may be wrong...). We set seed label on vertices vertical with</span>
+            <span class="c1"># the seed vertex</span>
+            <span class="n">dmax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vdist</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.000000001</span>
+            <span class="c1"># dmax = np.sqrt(dmax2)</span>
+            <span class="n">itex0</span><span class="p">[</span><span class="n">w</span><span class="p">[</span><span class="n">vdist</span> <span class="o">&lt;=</span> <span class="n">dmax2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># start at 1st vertex</span>
+
+        <span class="c1"># then run a distance map from these seeds</span>
         <span class="n">dtex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">TimeTexture_FLOAT</span><span class="p">()</span>
         <span class="n">dtex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
         <span class="n">dtex0</span> <span class="o">=</span> <span class="n">dtex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span>
         <span class="n">dtex0</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;geodesic distance map...&#39;</span><span class="p">)</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pass&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-            <span class="n">ftex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">meshdistance</span><span class="o">.</span><span class="n">MeshDistance</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">itex</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-            <span class="n">ftex0</span> <span class="o">=</span> <span class="n">ftex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ftex0</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;min:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">ftex0</span><span class="p">))</span>
-            <span class="n">dtex0</span><span class="p">[</span><span class="n">ftex0</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ftex0</span><span class="p">[</span><span class="n">ftex0</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;where -2:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ftex0</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ftex0</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># -2 is unreached</span>
-                <span class="n">itex0</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">itex0</span><span class="p">[</span><span class="n">dtex0</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># forbidden</span>
-                <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">itex0</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># new start</span>
-                <span class="n">vdist</span> <span class="o">=</span> <span class="n">vert2d</span> <span class="o">-</span> <span class="n">vert2d</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
-                <span class="n">vdist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vdist</span> <span class="o">*</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">dmax2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vdist</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.00001</span>
-                <span class="n">itex0</span><span class="p">[</span><span class="n">vdist</span> <span class="o">&lt;=</span> <span class="n">dmax2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># new start</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">break</span>  <span class="c1"># done.</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># print(&#39;dmax:&#39;, dmax)</span>
+        <span class="c1"># print(&#39;init mesh:&#39;, mesh.vertex(0).np)</span>
+        <span class="n">ftex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">meshdistance</span><span class="o">.</span><span class="n">MeshDistance</span><span class="p">(</span><span class="n">mesh2d</span><span class="p">,</span> <span class="n">itex</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">ftex0</span> <span class="o">=</span> <span class="n">ftex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">np</span>
+        <span class="n">dtex0</span><span class="p">[</span><span class="n">ftex0</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ftex0</span><span class="p">[</span><span class="n">ftex0</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">]</span>
+
         <span class="k">return</span> <span class="n">dtex</span>
 
     <span class="nd">@staticmethod</span>
