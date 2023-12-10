@@ -4021,10 +4021,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     mformat = mesh_format
                     if category == 'Lumières':
                         use_draco = False
-                        mformat = '.gltf'
+                        # mformat = '.gltf'
                     else:
-                        #use_draco = True
-                        use_draco = False
+                        # use_draco = True
+                        # use_draco = False
+                        # if texturing is ON, draco compression would move
+                        # mesh vertices and mess the texturing.
+                        use_draco = not self.enable_texturing
 
                     filename = osp.join(
                         dirname, category + private + mformat)
@@ -6152,6 +6155,10 @@ The program allows to produce:
         '-g', '--georef',
         help='Copy GeoTIFF information from the given source file to a .tif '
         'export')
+    parser.add_argument(
+        '--texture', action='store_true', default=None,
+        help='make textured meshes in 3D mode, if some are specified in the '
+        'SVG file. By default it is disabled for now.')
 
     options = parser.parse_args()
 
@@ -6163,6 +6170,7 @@ The program allows to produce:
         do_2d_maps = all_maps
 
     do_3d = options.do_3d
+    texturing = options.texture
     do_split = options.split
     do_join = options.join
     do_pdf = None
@@ -6207,6 +6215,7 @@ The program allows to produce:
 
     if do_3d:
         svg_mesh = CataSvgToMesh()
+        svg_mesh.enable_texturing = texturing
     else:
         svg_mesh = CataMapTo2DMap()
     #svg_mesh.debug = True

@@ -146,6 +146,7 @@ class SvgToMesh(object):
             'xy': self.make_texcoord_xy,
             'geodesic_z': self.make_texcoord_geodesic_z,
         }
+        self.enable_texturing = False
 
 
     @staticmethod
@@ -502,6 +503,10 @@ class SvgToMesh(object):
         return mesh
 
     def get_textures(self, mesh, child, parents):
+        if not self.enable_texturing:
+            # if texturing is not enabled, don't look for them.
+            return
+
         if 'textures' in mesh.header():
             return  # already done
         tex_types = {
