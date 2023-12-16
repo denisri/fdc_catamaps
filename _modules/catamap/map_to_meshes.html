@@ -4062,11 +4062,7 @@
                         <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
                         <span class="c1"># mformat = &#39;.gltf&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># use_draco = True</span>
-                        <span class="c1"># use_draco = False</span>
-                        <span class="c1"># if texturing is ON, draco compression would move</span>
-                        <span class="c1"># mesh vertices and mess the texturing.</span>
-                        <span class="n">use_draco</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span>
+                        <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">True</span>
 
                     <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                         <span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private</span> <span class="o">+</span> <span class="n">mformat</span><span class="p">)</span>
