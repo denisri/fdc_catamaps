@@ -4023,11 +4023,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         use_draco = False
                         # mformat = '.gltf'
                     else:
-                        # use_draco = True
-                        # use_draco = False
-                        # if texturing is ON, draco compression would move
-                        # mesh vertices and mess the texturing.
-                        use_draco = not self.enable_texturing
+                        use_draco = True
 
                     filename = osp.join(
                         dirname, category + private + mformat)
