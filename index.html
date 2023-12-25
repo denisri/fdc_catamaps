@@ -169,6 +169,9 @@ Categories can be displayed/hidden using buttons or menus in 3D views.</p>
 </dd>
 <dt><strong>catflap:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>In catflaps, paths are replaced with striped tubes.</p>
 </dd>
+<dt><strong>ceil_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the ceiling part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
 </dl>
 <dl id="colorsets-prop">
 <dt><strong>colorsets:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies which
@@ -193,6 +196,9 @@ filled.</p>
 <dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a <code class="docutils literal notranslate"><span class="pre">level</span></code> property to define
 the level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
 </dd>
+<dt><em>floor_texture:*</em> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the floor part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
 <dt><strong>glabel:</strong> str (<strong>2D maps</strong>)</dt><dd><p>“group label” used to replace elements with ones from the legends layer.
 The <code class="docutils literal notranslate"><span class="pre">glabel</span></code> is associated to one legends element if the legends element
 <code class="docutils literal notranslate"><span class="pre">label</span></code> property has the value of the <code class="docutils literal notranslate"><span class="pre">glabel</span></code> property of the element
@@ -204,6 +210,10 @@ plus the duffix <code class="docutils literal notranslate"><span class="pre">_pr
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">glabel</span><span class="p">:</span> <span class="n">colim</span>
 </pre></div>
 </div>
+</dd>
+<dt><strong>gltf_properties:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>optionally set on texture image elements, they specify how the texture
+image is mapped and repeaded on the meshes. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a> for
+details.</p>
 </dd>
 <dt><strong>height_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a height map. This is the same as <strong>depth_map</strong> except that
 heights are inverted compared to depths. All related attributes are the
@@ -268,6 +278,10 @@ the standard SVG <code class="docutils literal notranslate"><span class="pre">tr
 <p>This propery can be set to paths, groups, and arrows (which will thus point
 to a shifted location).</p>
 </dd>
+<dt><strong>maps_def:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p><strong>In the SVG metadtadata layer</strong>.
+Definition of 2D maps types (to be used with the -m commandline option).
+See <a class="reference internal" href="#maps-types"><span class="std std-ref">maps types later</span></a> for details.</p>
+</dd>
 <dt><strong>marker:</strong> str (<strong>3D maps</strong>)</dt><dd><p>set on a layer to specify that this layer is a <strong>markers layer</strong>. Three
 types of markers are currently recognized: <code class="docutils literal notranslate"><span class="pre">sounds</span></code>, <code class="docutils literal notranslate"><span class="pre">photos</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
@@ -311,6 +325,9 @@ operations.</p>
 </dd>
 <dt><strong>text:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>text layers.</p>
 </dd>
+<dt><strong>texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
 <dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
 </dd>
 <dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
@@ -327,6 +344,9 @@ As <code class="docutils literal notranslate"><span class="pre">visibility</span
 <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code> for private things, to avoid ambiguities.</p>
 </dd>
 <dt><strong>wall:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wall elements have only side walls (no floor or ceiling).</p>
+</dd>
+<dt><strong>wall_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the walls part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
 </dd>
 <dt><strong>well:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wells are replaced with custom elements, which type is the element label
 (PE, PS, PSh, échelle, sans, P ossements, …). Well elements (or groups,
@@ -345,8 +365,42 @@ and y scales.</p>
 </dd>
 </dl>
 </section>
+<section id="maps-types">
+<span id="id5"></span><h3>Maps types<a class="headerlink" href="#maps-types" title="Permalink to this heading">¶</a></h3>
+<p>Most common types, such as “public”, “private” are (for now at least) builtin
+in the program, but the <code class="docutils literal notranslate"><span class="pre">maps_def</span></code> property dict in the metadata layer allows
+to define new maps types associated with specific filters. Each map type is a
+dictionary which defines the following:</p>
+<p>Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;igcportail&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;igcportail&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;igc_private&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;shadows&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">&quot;do_pdf&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">&quot;do_jpg&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>name: str</dt><dd><p>name of the map type, usually the same as the map type key.</p>
+</dd>
+<dt>filters: list</dt><dd><p>list of filters used for this map type. Several filters are available in
+the program. The filters list is available using the <code class="docutils literal notranslate"><span class="pre">--list-filters</span></code>
+option of the commandline.</p>
+</dd>
+<dt>shadows: bool</dt><dd><p>if true, shadows are applied in layers or objects which define the
+<code class="docutils literal notranslate"><span class="pre">shadow</span></code> property. If false, shadows are disabled.</p>
+</dd>
+<dt>do_pdf: bool</dt><dd><p>if false, PDF output is not processed.</p>
+</dd>
+<dt>do_jpg: bool</dt><dd><p>if false, JPEG or TIFF bitmap output is not processed.</p>
+</dd>
+</dl>
+</section>
 <section id="depth-maps">
-<span id="id5"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this heading">¶</a></h3>
+<span id="id6"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Permalink to this heading">¶</a></h3>
 <p>Depth maps are layers containing depth information, <strong>and nothing else</strong>.</p>
 <p>Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:</p>
 <ul class="simple">
@@ -356,7 +410,7 @@ and y scales.</p>
 </ul>
 </section>
 <section id="altitude-maps">
-<span id="id6"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this heading">¶</a></h3>
+<span id="id7"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Permalink to this heading">¶</a></h3>
 <p>Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an <code class="docutils literal notranslate"><span class="pre">upper_level</span></code> property in depth maps which could be any other map).</p>
 <p>To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.</p>
 <section id="geolocalisation-of-the-svg-file">
@@ -374,8 +428,8 @@ and y scales.</p>
 </ul>
 <p>Lambert 93 positions can be found using <a class="reference external" href="https://www.geoportail.gouv.fr/carte">https://www.geoportail.gouv.fr/carte</a>: on the map, select “tools” on the right, and enable “display coordinates”. Then select for “reference system” the “Lambert 93” mode.</p>
 </section>
-<section id="id7">
-<h4>Altitude maps<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h4>
+<section id="id8">
+<h4>Altitude maps<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h4>
 <p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
 <p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
@@ -389,7 +443,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="colorsets">
-<span id="id8"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this heading">¶</a></h3>
+<span id="id9"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Permalink to this heading">¶</a></h3>
 <p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
 <p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
 <ul class="simple">
@@ -432,7 +486,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="markers">
-<span id="id9"></span><h3>Markers<a class="headerlink" href="#markers" title="Permalink to this heading">¶</a></h3>
+<span id="id10"></span><h3>Markers<a class="headerlink" href="#markers" title="Permalink to this heading">¶</a></h3>
 <p><strong>Markers</strong> are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).</p>
 <p>Markers are recorded in dedicated layers in the SVG file. Such layer must have a <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, which value is the type of markers in the layer. Currently two types of markers are handled: <code class="docutils literal notranslate"><span class="pre">photos</span></code> (links to photographs URLS) or <code class="docutils literal notranslate"><span class="pre">sounds</span></code>.</p>
 <p>Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).</p>
@@ -462,6 +516,51 @@ The result in 2D is (left: original map, right: result):</p>
 </pre></div>
 </div>
 <p>will assign to marker <code class="docutils literal notranslate"><span class="pre">1</span></code> the files: <code class="docutils literal notranslate"><span class="pre">20220304_201758.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_201804.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_202810.jpg</span></code>, and so on. Each of the file names will undergo the prefix/suffix transformations using <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> etc.</p>
+</section>
+</section>
+<section id="texturing">
+<span id="id11"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Permalink to this heading">¶</a></h3>
+<p>In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</p>
+<p>Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.</p>
+<section id="texture-images">
+<h4>Texture images<a class="headerlink" href="#texture-images" title="Permalink to this heading">¶</a></h4>
+<p>They are images inserted in the Inkscape SVG file, and meant to be used for texturing. They are generally inserted into one or several separate layers, which are hidden in normal display modes.</p>
+<p>Texture image elements may optionally contain texture mapping properties, in the <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> property (see below, texturing properties).</p>
+</section>
+<section id="mesh-image-mapping">
+<h4>Mesh-image mapping<a class="headerlink" href="#mesh-image-mapping" title="Permalink to this heading">¶</a></h4>
+<p>Texture may be associated with an individual polygon element, or to a group or a layer, like most other properties. To be textured, an element shoud have either <code class="docutils literal notranslate"><span class="pre">texture</span></code>, <code class="docutils literal notranslate"><span class="pre">ceil_texture</span></code>, <code class="docutils literal notranslate"><span class="pre">wall_texture</span></code> or <code class="docutils literal notranslate"><span class="pre">floor_texture</span></code> properties defined, or several of them. <code class="docutils literal notranslate"><span class="pre">ceil_texture</span></code>, <code class="docutils literal notranslate"><span class="pre">wall_texture</span></code> or <code class="docutils literal notranslate"><span class="pre">floor_texture</span></code> represent texturing properties for (respectively) the ceiling, walls, or floor part of an element. <code class="docutils literal notranslate"><span class="pre">texture</span></code> is the default texturing properties used for all of them (walls, ceil, floor) if other parts specifications are not given. Each of those texturing definition properties is a JSON dictionary, structured like the following:</p>
+<dl class="simple">
+<dt>id: string (mandatory)</dt><dd><p>SVG ID of the texture image to be mapped. The image element itself is generally in a different SVG layer, as explained above.</p>
+</dd>
+<dt>mapping_method: string (optional)</dt><dd><p>specifies how the image is mapped on the mesh. Available methods are, for now, <code class="docutils literal notranslate"><span class="pre">geodesic_z</span></code> and <code class="docutils literal notranslate"><span class="pre">xy</span></code>. These are described below. The defautl value for ceilings and floors is <code class="docutils literal notranslate"><span class="pre">xy</span></code> and <code class="docutils literal notranslate"><span class="pre">geodesic_z</span></code> is the default for walls.</p>
+</dd>
+</dl>
+</section>
+<section id="texture-mapping-modes">
+<h4>Texture mapping modes<a class="headerlink" href="#texture-mapping-modes" title="Permalink to this heading">¶</a></h4>
+<dl class="simple">
+<dt>xy:</dt><dd><p>used for horizontal (or semi-horizontal) meshes. Texture coordinates are the x,y projection (2D) of mesh coordinates, with appropriate scaling factors, in order to have the texture image exactly where it is in the SVG file.</p>
+</dd>
+<dt>geodesic_z:</dt><dd><p>used for vertical meshes. Walls are generally not all in the same plane, and can contain bifurcations. To be correctly mapped (as a wallpaper), texture images should follow a geodesic alignment, starting at the first mesh point, in order to follow curves and bifurcations.</p>
+</dd>
+</dl>
+</section>
+<section id="texturing-properties">
+<h4>Texturing properties<a class="headerlink" href="#texturing-properties" title="Permalink to this heading">¶</a></h4>
+<p>They describe how a texture image is colored, and repeated on a mesh.
+At the moment, only limited support for properties is implemented, and such properties are only associated with the texture image elements. In the future we could also specify it in the mesh-image mapping. Anyway this is given via the optional <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> property on the texture image element.</p>
+<p>We use <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> because these properties are based on the GLTF format. See <a class="reference external" href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler">https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler</a> for details. This property is a JSON dictionary, which may contain the following:</p>
+<dl>
+<dt>sampler: JSON dict</dt><dd><p>specified how the image wraps around the mesh texture coordinates. The fll description is fund at:  <a class="reference external" href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler">https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler</a>, but mainly, the following sub-properties are used:</p>
+<dl class="simple">
+<dt>wrapS: int</dt><dd><p>1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values…)</p>
+</dd>
+<dt>wrapT: int</dt><dd><p>2nd texture coord mapping. Same values as for <code class="docutils literal notranslate"><span class="pre">wrapS</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </section>
 </section>
@@ -908,10 +1007,11 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#usage">Usage</a></li>
 <li><a class="reference internal" href="#inkscape-svg-files">Inkscape SVG files</a><ul>
 <li><a class="reference internal" href="#properties-list">Properties list</a></li>
+<li><a class="reference internal" href="#maps-types">Maps types</a></li>
 <li><a class="reference internal" href="#depth-maps">Depth maps</a></li>
 <li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
 <li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
-<li><a class="reference internal" href="#id7">Altitude maps</a></li>
+<li><a class="reference internal" href="#id8">Altitude maps</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
@@ -921,6 +1021,13 @@ children in a readable dictionary.</p>
 </li>
 <li><a class="reference internal" href="#markers">Markers</a><ul>
 <li><a class="reference internal" href="#markers-text-syntax">Markers text syntax</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#texturing">Texturing</a><ul>
+<li><a class="reference internal" href="#texture-images">Texture images</a></li>
+<li><a class="reference internal" href="#mesh-image-mapping">Mesh-image mapping</a></li>
+<li><a class="reference internal" href="#texture-mapping-modes">Texture mapping modes</a></li>
+<li><a class="reference internal" href="#texturing-properties">Texturing properties</a></li>
 </ul>
 </li>
 </ul>

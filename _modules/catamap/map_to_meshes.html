@@ -176,6 +176,10 @@
 <span class="sd">**catflap:** bool (**3D maps**)</span>
 <span class="sd">    In catflaps, paths are replaced with striped tubes.</span>
 
+<span class="sd">**ceil_texture:** JSON dict (**3D maps**)</span>
+<span class="sd">    Texture definition for the ceiling part of elements. See :ref:`texturing`</span>
+<span class="sd">    below for details.</span>
+
 <span class="sd">.. _colorsets_prop:</span>
 
 <span class="sd">**colorsets:** JSON dict (**2D maps**)</span>
@@ -203,6 +207,9 @@
 <span class="sd">**depth_map:** bool (**3D maps**)</span>
 <span class="sd">    the layer is a depth map. It should contain a ``level`` property to define</span>
 <span class="sd">    the level it maps. See :ref:`depth_maps` for details.</span>
+<span class="sd">*floor_texture:** JSON dict (**3D maps**)</span>
+<span class="sd">    Texture definition for the floor part of elements. See :ref:`texturing`</span>
+<span class="sd">    below for details.</span>
 <span class="sd">**glabel:** str (**2D maps**)</span>
 <span class="sd">    &quot;group label&quot; used to replace elements with ones from the legends layer.</span>
 <span class="sd">    The ``glabel`` is associated to one legends element if the legends element</span>
@@ -214,6 +221,11 @@
 <span class="sd">    in the map elements::</span>
 
 <span class="sd">        glabel: colim</span>
+
+<span class="sd">**gltf_properties:** JSON dict (**3D maps**)</span>
+<span class="sd">    optionally set on texture image elements, they specify how the texture</span>
+<span class="sd">    image is mapped and repeaded on the meshes. See :ref:`texturing` for</span>
+<span class="sd">    details.</span>
 
 <span class="sd">**height_map:** bool (**3D maps**)</span>
 <span class="sd">    the layer is a height map. This is the same as **depth_map** except that</span>
@@ -281,6 +293,12 @@
 
 <span class="sd">    This propery can be set to paths, groups, and arrows (which will thus point</span>
 <span class="sd">    to a shifted location).</span>
+
+<span class="sd">**maps_def:** JSON dict (**2D maps**)</span>
+<span class="sd">    **In the SVG metadtadata layer**.</span>
+<span class="sd">    Definition of 2D maps types (to be used with the -m commandline option).</span>
+<span class="sd">    See :ref:`maps types later &lt;maps_types&gt;` for details.</span>
+
 <span class="sd">**marker:** str (**3D maps**)</span>
 <span class="sd">    set on a layer to specify that this layer is a **markers layer**. Three</span>
 <span class="sd">    types of markers are currently recognized: ``sounds``, ``photos``, and</span>
@@ -328,6 +346,9 @@
 <span class="sd">    not sure it is used, after all...</span>
 <span class="sd">**text:** bool (**3D maps**)</span>
 <span class="sd">    text layers.</span>
+<span class="sd">**texture:** JSON dict (**3D maps**)</span>
+<span class="sd">    Texture definition for elements. See :ref:`texturing`</span>
+<span class="sd">    below for details.</span>
 <span class="sd">**title:** bool (**3D maps**)</span>
 <span class="sd">    The title string(s) will be used and displayed in the web site title.</span>
 <span class="sd">**upper_level:** str (**3D maps**)</span>
@@ -345,6 +366,9 @@
 <span class="sd">    ``private: true`` for private things, to avoid ambiguities.</span>
 <span class="sd">**wall:** bool (**3D maps**)</span>
 <span class="sd">    wall elements have only side walls (no floor or ceiling).</span>
+<span class="sd">**wall_texture:** JSON dict (**3D maps**)</span>
+<span class="sd">    Texture definition for the walls part of elements. See :ref:`texturing`</span>
+<span class="sd">    below for details.</span>
 <span class="sd">**well:** bool (**3D maps**)</span>
 <span class="sd">    wells are replaced with custom elements, which type is the element label</span>
 <span class="sd">    (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,</span>
@@ -360,6 +384,47 @@
 <span class="sd">    **lambert93** coordinates are provied in the appropriate layer, the scale</span>
 <span class="sd">    factor will be processed according to these &quot;true&quot; coordinates to match x</span>
 <span class="sd">    and y scales.</span>
+
+<span class="sd">.. _maps_types:</span>
+
+<span class="sd">Maps types</span>
+<span class="sd">----------</span>
+
+<span class="sd">Most common types, such as &quot;public&quot;, &quot;private&quot; are (for now at least) builtin</span>
+<span class="sd">in the program, but the ``maps_def`` property dict in the metadata layer allows</span>
+<span class="sd">to define new maps types associated with specific filters. Each map type is a</span>
+<span class="sd">dictionary which defines the following:</span>
+
+<span class="sd">Ex::</span>
+
+<span class="sd">    {</span>
+<span class="sd">        &quot;igcportail&quot;: {</span>
+<span class="sd">            &quot;name&quot;: &quot;igcportail&quot;,</span>
+<span class="sd">            &quot;filters&quot;: [&quot;igc_private&quot;],</span>
+<span class="sd">            &quot;shadows&quot;: false,</span>
+<span class="sd">            &quot;do_pdf&quot;: false,</span>
+<span class="sd">            &quot;do_jpg&quot;: false,</span>
+<span class="sd">        },</span>
+<span class="sd">    }</span>
+
+<span class="sd">name: str</span>
+<span class="sd">    name of the map type, usually the same as the map type key.</span>
+
+<span class="sd">filters: list</span>
+<span class="sd">    list of filters used for this map type. Several filters are available in</span>
+<span class="sd">    the program. The filters list is available using the ``--list-filters``</span>
+<span class="sd">    option of the commandline.</span>
+
+<span class="sd">shadows: bool</span>
+<span class="sd">    if true, shadows are applied in layers or objects which define the</span>
+<span class="sd">    ``shadow`` property. If false, shadows are disabled.</span>
+
+<span class="sd">do_pdf: bool</span>
+<span class="sd">    if false, PDF output is not processed.</span>
+
+<span class="sd">do_jpg: bool</span>
+<span class="sd">    if false, JPEG or TIFF bitmap output is not processed.</span>
+
 
 <span class="sd">.. _depth_maps:</span>
 
@@ -520,6 +585,57 @@
 <span class="sd">will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.</span>
 
 
+<span class="sd">.. _texturing:</span>
+
+<span class="sd">Texturing</span>
+<span class="sd">---------</span>
+
+<span class="sd">In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</span>
+
+<span class="sd">Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.</span>
+
+<span class="sd">Texture images</span>
+<span class="sd">++++++++++++++</span>
+
+<span class="sd">They are images inserted in the Inkscape SVG file, and meant to be used for texturing. They are generally inserted into one or several separate layers, which are hidden in normal display modes.</span>
+
+<span class="sd">Texture image elements may optionally contain texture mapping properties, in the ``gltf_properties`` property (see below, texturing properties).</span>
+
+<span class="sd">Mesh-image mapping</span>
+<span class="sd">++++++++++++++++++</span>
+
+<span class="sd">Texture may be associated with an individual polygon element, or to a group or a layer, like most other properties. To be textured, an element shoud have either ``texture``, ``ceil_texture``, ``wall_texture`` or ``floor_texture`` properties defined, or several of them. ``ceil_texture``, ``wall_texture`` or ``floor_texture`` represent texturing properties for (respectively) the ceiling, walls, or floor part of an element. ``texture`` is the default texturing properties used for all of them (walls, ceil, floor) if other parts specifications are not given. Each of those texturing definition properties is a JSON dictionary, structured like the following:</span>
+
+<span class="sd">id: string (mandatory)</span>
+<span class="sd">    SVG ID of the texture image to be mapped. The image element itself is generally in a different SVG layer, as explained above.</span>
+<span class="sd">mapping_method: string (optional)</span>
+<span class="sd">    specifies how the image is mapped on the mesh. Available methods are, for now, ``geodesic_z`` and ``xy``. These are described below. The defautl value for ceilings and floors is ``xy`` and ``geodesic_z`` is the default for walls.</span>
+
+<span class="sd">Texture mapping modes</span>
+<span class="sd">+++++++++++++++++++++</span>
+
+<span class="sd">xy:</span>
+<span class="sd">    used for horizontal (or semi-horizontal) meshes. Texture coordinates are the x,y projection (2D) of mesh coordinates, with appropriate scaling factors, in order to have the texture image exactly where it is in the SVG file.</span>
+
+<span class="sd">geodesic_z:</span>
+<span class="sd">    used for vertical meshes. Walls are generally not all in the same plane, and can contain bifurcations. To be correctly mapped (as a wallpaper), texture images should follow a geodesic alignment, starting at the first mesh point, in order to follow curves and bifurcations.</span>
+
+<span class="sd">Texturing properties</span>
+<span class="sd">++++++++++++++++++++</span>
+
+<span class="sd">They describe how a texture image is colored, and repeated on a mesh.</span>
+<span class="sd">At the moment, only limited support for properties is implemented, and such properties are only associated with the texture image elements. In the future we could also specify it in the mesh-image mapping. Anyway this is given via the optional ``gltf_properties`` property on the texture image element.</span>
+
+<span class="sd">We use ``gltf_properties`` because these properties are based on the GLTF format. See https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler for details. This property is a JSON dictionary, which may contain the following:</span>
+
+<span class="sd">sampler: JSON dict</span>
+<span class="sd">    specified how the image wraps around the mesh texture coordinates. The fll description is fund at:  https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler, but mainly, the following sub-properties are used:</span>
+
+<span class="sd">    wrapS: int</span>
+<span class="sd">        1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values...)</span>
+<span class="sd">    wrapT: int</span>
+<span class="sd">        2nd texture coord mapping. Same values as for ``wrapS``.</span>
+
 <span class="sd">map_to_meshes module</span>
 <span class="sd">====================</span>
 
@@ -559,6 +675,7 @@
 <span class="kn">import</span> <span class="nn">textwrap</span> <span class="k">as</span> <span class="nn">_textwrap</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">PIL.Image</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -5359,6 +5476,125 @@
         <span class="nb">print</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">colorsets</span>
 
+    <span class="k">def</span> <span class="nf">list_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">,</span> <span class="n">maps_def</span><span class="p">,</span> <span class="n">details</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">maps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">maps_def</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;available maps:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">map_t</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">maps</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">map_t</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">details</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">maps_def</span><span class="p">[</span><span class="n">map_t</span><span class="p">],</span> <span class="n">indent</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">maps</span>
+
+    <span class="k">def</span> <span class="nf">read_maps_def</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">do_recolor</span><span class="p">):</span>
+        <span class="n">col_filter</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">do_recolor</span><span class="p">:</span>
+            <span class="n">col_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">colorset</span><span class="p">]</span>
+
+        <span class="n">maps_def</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;private&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;poster_private&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster_private&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;wip&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private_wip&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;printable_map&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;public&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_gtech&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;printable_map_public&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc_private&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;No_GTech&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;No_GTech&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;printable_map&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_gtech&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
+        <span class="n">user_map_defs</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maps_def&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">user_map_defs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">replacements</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;col_filter&#39;</span><span class="p">:</span> <span class="n">col_filter</span><span class="p">,</span>
+                            <span class="s1">&#39;colorset&#39;</span><span class="p">:</span> <span class="n">colorset</span><span class="p">}</span>
+            <span class="n">user_map_defs</span> <span class="o">%</span> <span class="n">replacements</span>
+            <span class="n">user_map_defs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">user_map_defs</span><span class="p">)</span>
+            <span class="n">maps_def</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_map_defs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">maps_def</span>
+
+    <span class="k">def</span> <span class="nf">list_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">all_filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filters</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;available filters:&#39;</span><span class="p">)</span>
+        <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">all_filters</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">split_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
         <span class="n">layer_setups</span> <span class="o">=</span> <span class="p">{</span>
@@ -5531,7 +5767,6 @@
 
         <span class="k">return</span> <span class="n">maps</span>
 
-
     <span class="k">def</span> <span class="nf">join_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_dummy</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="n">pattern</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.svg&#39;</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%d</span><span class="s1">.svg&#39;</span><span class="p">)</span>
 
@@ -5631,7 +5866,7 @@
             <span class="k">return</span>  <span class="c1"># OK</span>
         <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">in_xml</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">elem</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;element not found: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dims_or_rect</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;element not found: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">rect_id</span><span class="p">)</span>
         <span class="n">rect</span><span class="p">,</span> <span class="n">trans</span> <span class="o">=</span> <span class="n">elem</span>
         <span class="n">layer</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">)</span>
         <span class="n">out_xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
@@ -5646,28 +5881,7 @@
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">keep_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                     <span class="n">filters</span><span class="o">=</span><span class="p">[],</span> <span class="n">map_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
-        <span class="c1">#igc_colorset = &#39;igc&#39;</span>
-        <span class="c1">#if map_name.startswith(&#39;igcportail&#39;):</span>
-            <span class="c1">#igc_colorset = &#39;igcportail&#39;</span>
-
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
-
-        <span class="n">recolor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filters</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;recolor=&#39;</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">recolor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">colorsets</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;colorsets&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">colorsets</span><span class="p">:</span>
-                <span class="n">colorsets</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">colorsets</span><span class="p">)</span>
-                <span class="n">def_colorset</span> <span class="o">=</span> <span class="n">colorsets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">map_name</span><span class="p">)</span>
-                <span class="c1"># TODO: remove the exception here:</span>
-                <span class="k">if</span> <span class="n">def_colorset</span><span class="p">:</span> <span class="c1"># and not map_name.startswith(&#39;igc&#39;):</span>
-                    <span class="n">filters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">def_colorset</span><span class="p">)</span>
-        <span class="c1"># if forcing recolor=default, just remove the filter</span>
-        <span class="k">if</span> <span class="s1">&#39;recolor=&quot;default&quot;&#39;</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
-            <span class="n">filters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;recolor=&quot;default&quot;&#39;</span><span class="p">)</span>
-
+    <span class="k">def</span> <span class="nf">get_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">all_filters</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;remove_private&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_private</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable1</span><span class="p">,</span>
@@ -5711,18 +5925,19 @@
                            <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
                            <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
                            <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;printable_map_public&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;printable_map_public&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">,</span> <span class="s1">&#39;show_all&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;shift_inf_level&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;zooms&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_limestone&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
-                                  <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;&quot;raccords gtech 2D&quot;]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;show_all&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">,</span>
-                    <span class="c1">#&#39;recolor=&quot;%s&quot;&#39; % igc_colorset,</span>
+                    <span class="c1"># &#39;recolor=&quot;%s&quot;&#39; % igc_colorset,</span>
                     <span class="c1"># &#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;,</span>
                     <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
             <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">[</span>
@@ -5744,6 +5959,32 @@
                         <span class="s1">&#39;layer_opacity=[&quot;XIII masses&quot;, &quot;0.31&quot;]&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">],</span>
         <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">all_filters</span>
+
+    <span class="k">def</span> <span class="nf">build_2d_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">keep_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                     <span class="n">filters</span><span class="o">=</span><span class="p">[],</span> <span class="n">map_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1">#igc_colorset = &#39;igc&#39;</span>
+        <span class="c1">#if map_name.startswith(&#39;igcportail&#39;):</span>
+            <span class="c1">#igc_colorset = &#39;igcportail&#39;</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+        <span class="n">recolor</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filters</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;recolor=&#39;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">recolor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">colorsets</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;colorsets&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">colorsets</span><span class="p">:</span>
+                <span class="n">colorsets</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">colorsets</span><span class="p">)</span>
+                <span class="n">def_colorset</span> <span class="o">=</span> <span class="n">colorsets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">map_name</span><span class="p">)</span>
+                <span class="c1"># TODO: remove the exception here:</span>
+                <span class="k">if</span> <span class="n">def_colorset</span><span class="p">:</span> <span class="c1"># and not map_name.startswith(&#39;igc&#39;):</span>
+                    <span class="n">filters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">def_colorset</span><span class="p">)</span>
+        <span class="c1"># if forcing recolor=default, just remove the filter</span>
+        <span class="k">if</span> <span class="s1">&#39;recolor=&quot;default&quot;&#39;</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+            <span class="n">filters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;recolor=&quot;default&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">all_filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filters</span><span class="p">()</span>
 
         <span class="n">map_2d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xml</span> <span class="o">=</span> <span class="n">map_2d</span>
@@ -6151,6 +6392,15 @@
         <span class="s1">&#39;--list-colorsets&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available colorsets in this map&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--list-maps&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available maps types&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--list-maps-details&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available maps types and theif full definition&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--list-filters&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available filters in 2D maps&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--split&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;split the SVG file into 4 smaller ones, each containing a &#39;</span>
         <span class="s1">&#39;subset of the layers&#39;</span><span class="p">)</span>
@@ -6210,6 +6460,9 @@
     <span class="n">do_join</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">join</span>
     <span class="n">do_pdf</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">do_list_colorsets</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_colorsets</span>
+    <span class="n">do_list_maps</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_maps</span>
+    <span class="n">do_list_maps_details</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_maps_details</span>
+    <span class="n">do_list_filters</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">list_filters</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">do_pdf</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">no_pdf</span>
     <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -6260,12 +6513,22 @@
     <span class="k">if</span> <span class="n">colorset</span><span class="p">:</span>
         <span class="n">svg_mesh</span><span class="o">.</span><span class="n">colorset</span> <span class="o">=</span> <span class="n">colorset</span>
 
-    <span class="k">if</span> <span class="n">do_3d</span> <span class="ow">or</span> <span class="n">do_2d</span> <span class="ow">or</span> <span class="n">do_split</span> <span class="ow">or</span> <span class="n">do_recolor</span> <span class="ow">or</span> <span class="n">do_list_colorsets</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">do_3d</span> <span class="ow">or</span> <span class="n">do_2d</span> <span class="ow">or</span> <span class="n">do_split</span> <span class="ow">or</span> <span class="n">do_recolor</span> <span class="ow">or</span> <span class="n">do_list_colorsets</span> \
+            <span class="ow">or</span> <span class="n">do_list_maps</span> <span class="ow">or</span> <span class="n">do_list_maps_details</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;reading SVG...&#39;</span><span class="p">)</span>
         <span class="n">xml_et</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_xml</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">do_list_colorsets</span><span class="p">:</span>
         <span class="n">svg_mesh</span><span class="o">.</span><span class="n">list_colorsets</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_2d</span> <span class="ow">or</span> <span class="n">do_list_maps</span> <span class="ow">or</span> <span class="n">do_list_maps_details</span><span class="p">:</span>
+        <span class="n">maps_def</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_maps_def</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">do_recolor</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_list_maps</span> <span class="ow">or</span> <span class="n">do_list_maps_details</span><span class="p">:</span>
+        <span class="n">svg_mesh</span><span class="o">.</span><span class="n">list_maps</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">maps_def</span><span class="p">,</span> <span class="n">details</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_list_filters</span><span class="p">:</span>
+        <span class="n">svg_mesh</span><span class="o">.</span><span class="n">list_filters</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extracting meshes...&#39;</span><span class="p">)</span>
@@ -6286,109 +6549,6 @@
         <span class="n">do_2d_maps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">do_2d_maps</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;build 2D maps:&#39;</span><span class="p">,</span> <span class="n">do_2d_maps</span><span class="p">)</span>
 
-        <span class="n">col_filter</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">do_recolor</span><span class="p">:</span>
-            <span class="n">col_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;recolor=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">colorset</span><span class="p">]</span>
-
-        <span class="n">maps_def</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;grs_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;poster_private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;poster_private&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;poster_map&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;grs_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;wip&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;private_wip&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;printable_map&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;public&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_gtech&#39;</span><span class="p">,</span>
-                                         <span class="s1">&#39;printable_map_public&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;grs_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;grs_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc_private&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;aqueduc&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;aqueduc&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;aqueduc&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;aqueduc_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;No_GTech&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;No_GTech&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;printable_map&#39;</span><span class="p">,</span><span class="s1">&#39;remove_gtech&#39;</span><span class="p">],</span>
-                <span class="c1">#&#39;clip_rect&#39;: &#39;nord_sud_clip&#39;,</span>
-                <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-           <span class="p">},</span>
-        <span class="p">}</span>
-
         <span class="k">for</span> <span class="n">map_type</span> <span class="ow">in</span> <span class="n">do_2d_maps</span><span class="p">:</span>
             <span class="n">map_def</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">maps_def</span><span class="p">[</span><span class="n">map_type</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
@@ -6396,7 +6556,6 @@
             <span class="k">if</span> <span class="n">do_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">do_pdf</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip:&#39;</span><span class="p">,</span> <span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">))</span>
-            <span class="n">georef_yscale</span> <span class="o">=</span> <span class="mf">1.</span>
             <span class="k">if</span> <span class="n">georef</span><span class="p">:</span>
                 <span class="c1"># don&#39;t write jpg, we will use tiff</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_jpg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
