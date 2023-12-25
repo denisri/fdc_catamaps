@@ -137,6 +137,10 @@ Properties list
 **catflap:** bool (**3D maps**)
     In catflaps, paths are replaced with striped tubes.
 
+**ceil_texture:** JSON dict (**3D maps**)
+    Texture definition for the ceiling part of elements. See :ref:`texturing`
+    below for details.
+
 .. _colorsets_prop:
 
 **colorsets:** JSON dict (**2D maps**)
@@ -164,6 +168,9 @@ Properties list
 **depth_map:** bool (**3D maps**)
     the layer is a depth map. It should contain a ``level`` property to define
     the level it maps. See :ref:`depth_maps` for details.
+*floor_texture:** JSON dict (**3D maps**)
+    Texture definition for the floor part of elements. See :ref:`texturing`
+    below for details.
 **glabel:** str (**2D maps**)
     "group label" used to replace elements with ones from the legends layer.
     The ``glabel`` is associated to one legends element if the legends element
@@ -175,6 +182,11 @@ Properties list
     in the map elements::
 
         glabel: colim
+
+**gltf_properties:** JSON dict (**3D maps**)
+    optionally set on texture image elements, they specify how the texture
+    image is mapped and repeaded on the meshes. See :ref:`texturing` for
+    details.
 
 **height_map:** bool (**3D maps**)
     the layer is a height map. This is the same as **depth_map** except that
@@ -242,6 +254,12 @@ Properties list
 
     This propery can be set to paths, groups, and arrows (which will thus point
     to a shifted location).
+
+**maps_def:** JSON dict (**2D maps**)
+    **In the SVG metadtadata layer**.
+    Definition of 2D maps types (to be used with the -m commandline option).
+    See :ref:`maps types later <maps_types>` for details.
+
 **marker:** str (**3D maps**)
     set on a layer to specify that this layer is a **markers layer**. Three
     types of markers are currently recognized: ``sounds``, ``photos``, and
@@ -289,6 +307,9 @@ Properties list
     not sure it is used, after all...
 **text:** bool (**3D maps**)
     text layers.
+**texture:** JSON dict (**3D maps**)
+    Texture definition for elements. See :ref:`texturing`
+    below for details.
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
 **upper_level:** str (**3D maps**)
@@ -306,6 +327,9 @@ Properties list
     ``private: true`` for private things, to avoid ambiguities.
 **wall:** bool (**3D maps**)
     wall elements have only side walls (no floor or ceiling).
+**wall_texture:** JSON dict (**3D maps**)
+    Texture definition for the walls part of elements. See :ref:`texturing`
+    below for details.
 **well:** bool (**3D maps**)
     wells are replaced with custom elements, which type is the element label
     (PE, PS, PSh, échelle, sans, P ossements, ...). Well elements (or groups,
@@ -321,6 +345,47 @@ Properties list
     **lambert93** coordinates are provied in the appropriate layer, the scale
     factor will be processed according to these "true" coordinates to match x
     and y scales.
+
+.. _maps_types:
+
+Maps types
+----------
+
+Most common types, such as "public", "private" are (for now at least) builtin
+in the program, but the ``maps_def`` property dict in the metadata layer allows
+to define new maps types associated with specific filters. Each map type is a
+dictionary which defines the following:
+
+Ex::
+
+    {
+        "igcportail": {
+            "name": "igcportail",
+            "filters": ["igc_private"],
+            "shadows": false,
+            "do_pdf": false,
+            "do_jpg": false,
+        },
+    }
+
+name: str
+    name of the map type, usually the same as the map type key.
+
+filters: list
+    list of filters used for this map type. Several filters are available in
+    the program. The filters list is available using the ``--list-filters``
+    option of the commandline.
+
+shadows: bool
+    if true, shadows are applied in layers or objects which define the
+    ``shadow`` property. If false, shadows are disabled.
+
+do_pdf: bool
+    if false, PDF output is not processed.
+
+do_jpg: bool
+    if false, JPEG or TIFF bitmap output is not processed.
+
 
 .. _depth_maps:
 
@@ -481,6 +546,57 @@ In addition to the "direct URL" mechanism above, it is also possible to specify,
 will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.
 
 
+.. _texturing:
+
+Texturing
+---------
+
+In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.
+
+Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.
+
+Texture images
+++++++++++++++
+
+They are images inserted in the Inkscape SVG file, and meant to be used for texturing. They are generally inserted into one or several separate layers, which are hidden in normal display modes.
+
+Texture image elements may optionally contain texture mapping properties, in the ``gltf_properties`` property (see below, texturing properties).
+
+Mesh-image mapping
+++++++++++++++++++
+
+Texture may be associated with an individual polygon element, or to a group or a layer, like most other properties. To be textured, an element shoud have either ``texture``, ``ceil_texture``, ``wall_texture`` or ``floor_texture`` properties defined, or several of them. ``ceil_texture``, ``wall_texture`` or ``floor_texture`` represent texturing properties for (respectively) the ceiling, walls, or floor part of an element. ``texture`` is the default texturing properties used for all of them (walls, ceil, floor) if other parts specifications are not given. Each of those texturing definition properties is a JSON dictionary, structured like the following:
+
+id: string (mandatory)
+    SVG ID of the texture image to be mapped. The image element itself is generally in a different SVG layer, as explained above.
+mapping_method: string (optional)
+    specifies how the image is mapped on the mesh. Available methods are, for now, ``geodesic_z`` and ``xy``. These are described below. The defautl value for ceilings and floors is ``xy`` and ``geodesic_z`` is the default for walls.
+
+Texture mapping modes
++++++++++++++++++++++
+
+xy:
+    used for horizontal (or semi-horizontal) meshes. Texture coordinates are the x,y projection (2D) of mesh coordinates, with appropriate scaling factors, in order to have the texture image exactly where it is in the SVG file.
+
+geodesic_z:
+    used for vertical meshes. Walls are generally not all in the same plane, and can contain bifurcations. To be correctly mapped (as a wallpaper), texture images should follow a geodesic alignment, starting at the first mesh point, in order to follow curves and bifurcations.
+
+Texturing properties
+++++++++++++++++++++
+
+They describe how a texture image is colored, and repeated on a mesh.
+At the moment, only limited support for properties is implemented, and such properties are only associated with the texture image elements. In the future we could also specify it in the mesh-image mapping. Anyway this is given via the optional ``gltf_properties`` property on the texture image element.
+
+We use ``gltf_properties`` because these properties are based on the GLTF format. See https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler for details. This property is a JSON dictionary, which may contain the following:
+
+sampler: JSON dict
+    specified how the image wraps around the mesh texture coordinates. The fll description is fund at:  https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler, but mainly, the following sub-properties are used:
+
+    wrapS: int
+        1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values...)
+    wrapT: int
+        2nd texture coord mapping. Same values as for ``wrapS``.
+
 map_to_meshes module
 ====================
 
@@ -520,6 +636,7 @@ from argparse import ArgumentParser
 import textwrap as _textwrap
 import argparse
 import csv
+import pprint
 try:
     import PIL.Image
 except ImportError:
@@ -5320,6 +5437,125 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         print()
         return colorsets
 
+    def list_maps(self, xml_et, maps_def, details=False):
+        maps = set(maps_def.keys())
+
+        print('available maps:')
+        for map_t in sorted(maps):
+            print('    %s' % map_t)
+            if details:
+                print('    ', end='')
+                pprint.pprint(maps_def[map_t], indent=8)
+        print()
+        return maps
+
+    def read_maps_def(self, xml_et, colorset, do_recolor):
+        col_filter = []
+        if do_recolor:
+            col_filter = ['recolor="%s"' % colorset]
+
+        maps_def = {
+            'private': {
+                'name': 'private',
+                'filters': col_filter + ['remove_wip', 'printable_map'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'poster': {
+                'name': 'poster',
+                'filters': col_filter + ['remove_private', 'poster_map'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'poster_private': {
+                'name': 'poster_private',
+                'filters': col_filter + ['remove_wip', 'poster_map'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'wip': {
+                'name': 'private_wip',
+                'filters': col_filter + ['printable_map'],
+                'shadows': True,
+                'do_pdf': False,
+            },
+            'public': {
+                'name': 'public',
+                'filters': col_filter + ['remove_private', 'remove_gtech',
+                                         'printable_map_public'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'igc': {
+                'name': 'igc',
+                'filters': ['igc'],
+                'shadows': True,
+                'do_pdf': False,
+            },
+            'igc_private': {
+                'name': 'igc_private',
+                'filters': ['igc_private'],
+                'shadows': True,
+                'do_pdf': False,
+            },
+            'igcportail': {
+                'name': 'igcportail',
+                'filters': ['igc_private'],
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_txt': {
+                'name': 'igcportail_txt',
+                'filters': ['igc_private', 'shadow_text'],
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_legend': {
+                'name': 'igcportail_legend',
+                'filters': ['igc_private', 'shadow_text'],
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'igcportail_tech': {
+                'name': 'igcportail_tech',
+                'filters': ['igc_private'],
+                'shadows': False,
+                'do_pdf': False,
+                'do_jpg': False,
+            },
+            'aqueduc': {
+                'name': 'aqueduc',
+                'filters': col_filter + ['aqueduc'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+            'No_GTech': {
+                'name': 'No_GTech',
+                'filters': col_filter + ['remove_wip',
+                                         'printable_map', 'remove_gtech'],
+                'shadows': True,
+                'do_pdf': True,
+            },
+        }
+
+        meta = self.get_metadata(xml_et)
+        user_map_defs = meta.get('maps_def')
+        if user_map_defs is not None:
+            replacements = {'col_filter': col_filter,
+                            'colorset': colorset}
+            user_map_defs % replacements
+            user_map_defs = json.loads(user_map_defs)
+            maps_def.update(user_map_defs)
+
+        return maps_def
+
+    def list_filters(self):
+        all_filters = self.get_filters()
+        print('available filters:')
+        pprint.pprint(all_filters)
 
     def split_layers(self, xml, style='default'):
         layer_setups = {
@@ -5492,7 +5728,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         return maps
 
-
     def join_layers(self, xml_dummy, filename):
         pattern = filename.replace('.svg', '_%d.svg')
 
@@ -5592,7 +5827,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             return  # OK
         elem = self.find_element(in_xml, rect_id)
         if not elem:
-            raise ValueError('element not found: %s' % dims_or_rect)
+            raise ValueError('element not found: %s' % rect_id)
         rect, trans = elem
         layer = ET.Element('{http://www.w3.org/2000/svg}g')
         out_xml.getroot().insert(0, layer)
@@ -5607,28 +5842,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         if trans is not None:
             self.set_transform(layer, trans)
 
-    def build_2d_map(self, xml, keep_private=True, wip=False,
-                     filters=[], map_name=None):
-
-        #igc_colorset = 'igc'
-        #if map_name.startswith('igcportail'):
-            #igc_colorset = 'igcportail'
-
-        meta = self.get_metadata(xml)
-
-        recolor = [x for x in filters if x.startswith('recolor=')]
-        if meta is not None and len(recolor) == 0:
-            colorsets = meta.get('colorsets')
-            if colorsets:
-                colorsets = json.loads(colorsets)
-                def_colorset = colorsets.get(map_name)
-                # TODO: remove the exception here:
-                if def_colorset: # and not map_name.startswith('igc'):
-                    filters.insert(0, 'recolor="%s"' % def_colorset)
-        # if forcing recolor=default, just remove the filter
-        if 'recolor="default"' in filters:
-            filters.remove('recolor="default"')
-
+    def get_filters(self):
         all_filters = {
             'remove_private': self.remove_private,
             'remove_non_printable1': self.remove_non_printable1,
@@ -5672,18 +5886,19 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                            'zooms', 'remove_non_printable2', 'remove_igc',
                            'layer_opacity=["XIII masses", "0.31"]',
                            'map_layers_opacity'],
-            'printable_map_public': ['remove_non_printable1_pub', 'show_all',
-                              'shift_inf_level', 'replace_symbols', 'date',
-                              'zooms', 'remove_non_printable2', 'remove_igc',
-                              'layer_opacity=["XIII masses", "0.31"]',
-                              'map_layers_opacity'],
+            'printable_map_public': [
+                'remove_non_printable1_pub', 'show_all',
+                'shift_inf_level', 'replace_symbols', 'date',
+                'zooms', 'remove_non_printable2', 'remove_igc',
+                'layer_opacity=["XIII masses", "0.31"]',
+                'map_layers_opacity'],
             'igc': ['remove_private', 'remove_non_printable1_pub',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
                     'remove_other=["raccords plan 2D", "parcelles", '
-                                  '"raccords gtech 2D"]',
+                                   '"raccords gtech 2D"]',
                     'show_all', 'date',
-                    #'recolor="%s"' % igc_colorset,
+                    # 'recolor="%s"' % igc_colorset,
                     # 'layer_opacity=["planches IGC", "0.44"]',
                     'map_layers_opacity'],
             'igc_private': [
@@ -5705,6 +5920,32 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         'layer_opacity=["XIII masses", "0.31"]',
                         'map_layers_opacity'],
         }
+
+        return all_filters
+
+    def build_2d_map(self, xml, keep_private=True, wip=False,
+                     filters=[], map_name=None):
+
+        #igc_colorset = 'igc'
+        #if map_name.startswith('igcportail'):
+            #igc_colorset = 'igcportail'
+
+        meta = self.get_metadata(xml)
+
+        recolor = [x for x in filters if x.startswith('recolor=')]
+        if meta is not None and len(recolor) == 0:
+            colorsets = meta.get('colorsets')
+            if colorsets:
+                colorsets = json.loads(colorsets)
+                def_colorset = colorsets.get(map_name)
+                # TODO: remove the exception here:
+                if def_colorset: # and not map_name.startswith('igc'):
+                    filters.insert(0, 'recolor="%s"' % def_colorset)
+        # if forcing recolor=default, just remove the filter
+        if 'recolor="default"' in filters:
+            filters.remove('recolor="default"')
+
+        all_filters = self.get_filters()
 
         map_2d = copy.deepcopy(xml)
         self.xml = map_2d
@@ -6112,6 +6353,15 @@ The program allows to produce:
         '--list-colorsets', action='store_true',
         help='list available colorsets in this map')
     parser.add_argument(
+        '--list-maps', action='store_true',
+        help='list available maps types')
+    parser.add_argument(
+        '--list-maps-details', action='store_true',
+        help='list available maps types and theif full definition')
+    parser.add_argument(
+        '--list-filters', action='store_true',
+        help='list available filters in 2D maps')
+    parser.add_argument(
         '--split', action='store_true',
         help='split the SVG file into 4 smaller ones, each containing a '
         'subset of the layers')
@@ -6171,6 +6421,9 @@ The program allows to produce:
     do_join = options.join
     do_pdf = None
     do_list_colorsets = options.list_colorsets
+    do_list_maps = options.list_maps
+    do_list_maps_details = options.list_maps_details
+    do_list_filters = options.list_filters
     if options.no_pdf is not None:
         do_pdf = not options.no_pdf
     elif options.pdf is not None:
@@ -6221,12 +6474,22 @@ The program allows to produce:
     if colorset:
         svg_mesh.colorset = colorset
 
-    if do_3d or do_2d or do_split or do_recolor or do_list_colorsets:
+    if do_3d or do_2d or do_split or do_recolor or do_list_colorsets \
+            or do_list_maps or do_list_maps_details:
         print('reading SVG...')
         xml_et = svg_mesh.read_xml(svg_filename)
 
     if do_list_colorsets:
         svg_mesh.list_colorsets(xml_et)
+
+    if do_2d or do_list_maps or do_list_maps_details:
+        maps_def = svg_mesh.read_maps_def(xml_et, colorset, do_recolor)
+
+    if do_list_maps or do_list_maps_details:
+        svg_mesh.list_maps(xml_et, maps_def, details=True)
+
+    if do_list_filters:
+        svg_mesh.list_filters()
 
     if do_3d:
         print('extracting meshes...')
@@ -6247,109 +6510,6 @@ The program allows to produce:
         do_2d_maps = set(do_2d_maps.split(','))
         print('build 2D maps:', do_2d_maps)
 
-        col_filter = []
-        if do_recolor:
-            col_filter = ['recolor="%s"' % colorset]
-
-        maps_def = {
-            'private': {
-                'name': 'private',
-                'filters': col_filter + ['remove_wip', 'printable_map'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': True,
-                'do_pdf': True,
-            },
-            'poster': {
-                'name': 'poster',
-                'filters': col_filter + ['remove_private', 'poster_map'],
-                #'clip_rect': 'grs_clip',
-                'shadows': True,
-                'do_pdf': True,
-            },
-            'poster_private': {
-                'name': 'poster_private',
-                'filters': col_filter + ['remove_wip', 'poster_map'],
-                #'clip_rect': 'grs_clip',
-                'shadows': True,
-                'do_pdf': True,
-            },
-            'wip': {
-                'name': 'private_wip',
-                'filters': col_filter + ['printable_map'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': True,
-                'do_pdf': False,
-            },
-            'public': {
-                'name': 'public',
-                'filters': col_filter + ['remove_private', 'remove_gtech',
-                                         'printable_map_public'],
-                #'clip_rect': 'grs_clip',
-                'shadows': True,
-                'do_pdf': True,
-            },
-            'igc': {
-                'name': 'igc',
-                'filters': ['igc'],
-                #'clip_rect': 'grs_clip',
-                'shadows': True,
-                'do_pdf': False,
-            },
-            'igc_private': {
-                'name': 'igc_private',
-                'filters': ['igc_private'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': True,
-                'do_pdf': False,
-            },
-            'igcportail': {
-                'name': 'igcportail',
-                'filters': ['igc_private'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': False,
-                'do_pdf': False,
-                'do_jpg': False,
-            },
-            'igcportail_txt': {
-                'name': 'igcportail_txt',
-                'filters': ['igc_private', 'shadow_text'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': False,
-                'do_pdf': False,
-                'do_jpg': False,
-            },
-            'igcportail_legend': {
-                'name': 'igcportail_legend',
-                'filters': ['igc_private', 'shadow_text'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': False,
-                'do_pdf': False,
-                'do_jpg': False,
-            },
-            'igcportail_tech': {
-                'name': 'igcportail_tech',
-                'filters': ['igc_private'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': False,
-                'do_pdf': False,
-                'do_jpg': False,
-            },
-            'aqueduc': {
-                'name': 'aqueduc',
-                'filters': col_filter + ['aqueduc'],
-                #'clip_rect': 'aqueduc_clip',
-                'shadows': True,
-                'do_pdf': True,
-            },
-            'No_GTech': {
-                'name': 'No_GTech',
-                'filters': col_filter + ['remove_wip', 'printable_map','remove_gtech'],
-                #'clip_rect': 'nord_sud_clip',
-                'shadows': True,
-                'do_pdf': True,
-           },
-        }
-
         for map_type in do_2d_maps:
             map_def = dict(maps_def[map_type])
             if clip_rect:
@@ -6357,7 +6517,6 @@ The program allows to produce:
             if do_pdf is not None:
                 map_def['do_pdf'] = do_pdf
             print('clip:', map_def.get('clip_rect'))
-            georef_yscale = 1.
             if georef:
                 # don't write jpg, we will use tiff
                 map_def['do_jpg'] = False
