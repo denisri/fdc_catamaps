@@ -518,6 +518,24 @@ The result in 2D is (left: original map, right: result):</p>
 <p>will assign to marker <code class="docutils literal notranslate"><span class="pre">1</span></code> the files: <code class="docutils literal notranslate"><span class="pre">20220304_201758.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_201804.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_202810.jpg</span></code>, and so on. Each of the file names will undergo the prefix/suffix transformations using <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> etc.</p>
 </section>
 </section>
+<section id="lights">
+<h3>Lights<a class="headerlink" href="#lights" title="Permalink to this heading">¶</a></h3>
+<p>Lights may be inserted in the 3D maps. They are actually handled as a special marker type. Thus they are specified in a dedicated layer, using the <code class="docutils literal notranslate"><span class="pre">marker</span></code> property with the value <code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
+<p>Then elements are like markers: either a text element, or a group containing a text and a segment arrow to point at its exact position. The element can contain the property <code class="docutils literal notranslate"><span class="pre">light_props</span></code> to specify the light characteristics. This property is a JSON dict, with the following items:</p>
+<dl class="simple">
+<dt>type: string</dt><dd><p>light type: <code class="docutils literal notranslate"><span class="pre">point</span></code>, <code class="docutils literal notranslate"><span class="pre">directional</span></code> or <code class="docutils literal notranslate"><span class="pre">spot</span></code>.</p>
+</dd>
+<dt>color: list of float</dt><dd><p>color of the light, as a triplet (RGB) of float values in the range 0.-1.</p>
+</dd>
+<dt>intensity: float</dt><dd><p>intensity of the light source, default: 1.0</p>
+</dd>
+<dt>range: float</dt><dd><p>range of the light. 0 is infinity, otherwise this value drives the decay of the light with distance from the source.</p>
+</dd>
+<dt>direction: list of float</dt><dd><p>for directional lights (directional, spot), direction of the light.</p>
+</dd>
+</dl>
+<p>Other properties may be specified (like the spot cone angle) as in <a class="reference external" href="https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md">https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md</a></p>
+</section>
 <section id="texturing">
 <span id="id11"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Permalink to this heading">¶</a></h3>
 <p>In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</p>
@@ -1023,6 +1041,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#markers-text-syntax">Markers text syntax</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#lights">Lights</a></li>
 <li><a class="reference internal" href="#texturing">Texturing</a><ul>
 <li><a class="reference internal" href="#texture-images">Texture images</a></li>
 <li><a class="reference internal" href="#mesh-image-mapping">Mesh-image mapping</a></li>

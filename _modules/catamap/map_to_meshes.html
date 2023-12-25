@@ -585,6 +585,27 @@
 <span class="sd">will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.</span>
 
 
+<span class="sd">Lights</span>
+<span class="sd">------</span>
+
+<span class="sd">Lights may be inserted in the 3D maps. They are actually handled as a special marker type. Thus they are specified in a dedicated layer, using the ``marker`` property with the value ``lights``.</span>
+
+<span class="sd">Then elements are like markers: either a text element, or a group containing a text and a segment arrow to point at its exact position. The element can contain the property ``light_props`` to specify the light characteristics. This property is a JSON dict, with the following items:</span>
+
+<span class="sd">type: string</span>
+<span class="sd">    light type: ``point``, ``directional`` or ``spot``.</span>
+<span class="sd">color: list of float</span>
+<span class="sd">    color of the light, as a triplet (RGB) of float values in the range 0.-1.</span>
+<span class="sd">intensity: float</span>
+<span class="sd">    intensity of the light source, default: 1.0</span>
+<span class="sd">range: float</span>
+<span class="sd">    range of the light. 0 is infinity, otherwise this value drives the decay of the light with distance from the source.</span>
+<span class="sd">direction: list of float</span>
+<span class="sd">    for directional lights (directional, spot), direction of the light.</span>
+
+<span class="sd">Other properties may be specified (like the spot cone angle) as in https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md</span>
+
+
 <span class="sd">.. _texturing:</span>
 
 <span class="sd">Texturing</span>
