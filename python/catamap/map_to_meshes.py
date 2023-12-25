@@ -546,6 +546,27 @@ In addition to the "direct URL" mechanism above, it is also possible to specify,
 will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.
 
 
+Lights
+------
+
+Lights may be inserted in the 3D maps. They are actually handled as a special marker type. Thus they are specified in a dedicated layer, using the ``marker`` property with the value ``lights``.
+
+Then elements are like markers: either a text element, or a group containing a text and a segment arrow to point at its exact position. The element can contain the property ``light_props`` to specify the light characteristics. This property is a JSON dict, with the following items:
+
+type: string
+    light type: ``point``, ``directional`` or ``spot``.
+color: list of float
+    color of the light, as a triplet (RGB) of float values in the range 0.-1.
+intensity: float
+    intensity of the light source, default: 1.0
+range: float
+    range of the light. 0 is infinity, otherwise this value drives the decay of the light with distance from the source.
+direction: list of float
+    for directional lights (directional, spot), direction of the light.
+
+Other properties may be specified (like the spot cone angle) as in https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md
+
+
 .. _texturing:
 
 Texturing
