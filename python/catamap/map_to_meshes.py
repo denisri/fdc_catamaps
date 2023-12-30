@@ -158,6 +158,14 @@ Properties list
 
     see also: :ref:`colorsets`
 
+**contrast_floor:** str (**3D maps**)
+    if true (which is the default), corridor or block top and bottom meshes are
+    contrasted compared to wall meshes: the wall colors (given as the color
+    properties) are lightened or darkened before being assigned to floor or
+    ceilings. If you don't want this, set this property to false.
+    A third value is allowed: ``if_no_tex``, meaning that contrasting colors is
+    enabled only in non-textured mode (if the commandline option ``--texture``
+    is not set).
 **corridor:** bool (**3D maps**)
     corridors have a floor and walls. Meshes are extruded and tesselated to be
     filled.
@@ -701,7 +709,7 @@ class ItemProperties(object):
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
                   'well_read_mode', 'grid_interval', 'marker',
                   'arrow_base_height_shift', 'visibility', 'non_visibility',
-                  'relative_to', 'inverse', 'use_height_map')
+                  'relative_to', 'inverse', 'use_height_map', 'contrast_floor')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -740,6 +748,7 @@ class ItemProperties(object):
         self.relative_to = None
         self.inverse = None
         self.use_height_map = None
+        self.contrast_floor = True
 
     def __str__(self):
         d = ['{']
@@ -874,6 +883,16 @@ class ItemProperties(object):
                 self.inverse = ItemProperties.is_true(inverse)
             # if style is not None and style.get('display') == 'none':
             #     self.hidden = True
+
+            contrast_floor = element.get('contrast_floor')
+            if contrast_floor is not None:
+                if contrast_floor in ('1', 'True', 'true', 'TRUE', 1, True):
+                    contrast_floor = True
+                elif contrast_floor == 'if_no_tex':
+                    contrast_floor = None
+                else:
+                    contrast_floor = False
+                self.contrast_floor = contrast_floor
 
             if element.tag == 'text' or element.tag.endswith('text'):
                 self.text =  True
@@ -3361,7 +3380,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     elif 'diffuse' not in ceil.header()['material']:
                         ceil.header()['material']['diffuse'] = [0.3, 0.3,
                                                                 0.3, 1.]
-                    else:
+                    elif props.contrast_floor or (
+                            props.contrast_floor is None
+                            and not self.enable_texturing):
                         color = list(ceil.header()['material']['diffuse'])
                         intensity \
                             = np.sqrt(np.sum(np.array(color[:3])**2) / 3)
