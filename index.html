@@ -186,6 +186,14 @@ which can inherit the colors defined by another, in order to minimally
 specialize it.</p>
 <p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
 </dd>
+<dt><strong>contrast_floor:</strong> str (<strong>3D maps</strong>)</dt><dd><p>if true (which is the default), corridor or block top and bottom meshes are
+contrasted compared to wall meshes: the wall colors (given as the color
+properties) are lightened or darkened before being assigned to floor or
+ceilings. If you don’t want this, set this property to false.
+A third value is allowed: <code class="docutils literal notranslate"><span class="pre">if_no_tex</span></code>, meaning that contrasting colors is
+enabled only in non-textured mode (if the commandline option <code class="docutils literal notranslate"><span class="pre">--texture</span></code>
+is not set).</p>
+</dd>
 <dt><strong>corridor:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>corridors have a floor and walls. Meshes are extruded and tesselated to be
 filled.</p>
 </dd>
