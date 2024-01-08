@@ -237,8 +237,9 @@
 
 <span class="sd">**height_map:** bool (**3D maps**)</span>
 <span class="sd">    the layer is a height map. This is the same as **depth_map** except that</span>
-<span class="sd">    heights are inverted compared to depths. All related attributes are the</span>
-<span class="sd">    same as for **depth_map** otherwise.</span>
+<span class="sd">    heights are inverted compared to depths, and that a height map may be</span>
+<span class="sd">    relative to another depth map (see the ``relative_to`` property). All</span>
+<span class="sd">    related attributes are the same as for **depth_map** otherwise.</span>
 <span class="sd">**height_shift:** float (**3D maps**)</span>
 <span class="sd">    z shift of the element (esp. for corridor, block, wall elements, but also</span>
 <span class="sd">    wells and arrows). An element with a height shift will not begin on the</span>
@@ -341,6 +342,10 @@
 
 <span class="sd">    See :ref:`markers` for more details.</span>
 
+<span class="sd">**relative_to:** str (**3D maps**)</span>
+<span class="sd">    for height maps or depth maps layers, specify to which depth map the height</span>
+<span class="sd">    is relative to. The default is surface depth (which means 0 or the ground</span>
+<span class="sd">    altitude map).</span>
 <span class="sd">**replace_children:** bool (**2D maps**)</span>
 <span class="sd">    should be set only in replacement symbols in the legend layer (wells signs,</span>
 <span class="sd">    etc) to indicate that children of matching elements should be parsed</span>
@@ -2800,9 +2805,8 @@
             <span class="n">ok</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">positionFromCursor</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">pt</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">pt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-        <span class="c1">#print(&#39;get_depth: point not found:&#39;, pos, pt)</span>
+        <span class="c1"># print(&#39;get_depth: point not found:&#39;, pos, pt)</span>
         <span class="k">return</span> <span class="kc">None</span>
-
 
     <span class="k">def</span> <span class="nf">get_alt_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_bg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">colorset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2820,6 +2824,21 @@
                 <span class="n">col</span> <span class="o">=</span> <span class="n">bg</span>
         <span class="k">return</span> <span class="n">col</span>
 
+<div class="viewcode-block" id="CataSvgToMesh.get_alt_colors"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.get_alt_colors">[docs]</a>    <span class="k">def</span> <span class="nf">get_alt_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Get backgroud, foreground colors (fill/border)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="p">,</span> <span class="n">conv</span><span class="p">,</span> <span class="n">get_bg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">colors</span><span class="p">,</span> <span class="n">colors</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bg&#39;</span><span class="p">)</span>
+        <span class="n">fg</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="n">fg</span>
+        <span class="k">elif</span> <span class="n">bg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fg</span> <span class="o">=</span> <span class="n">bg</span>
+        <span class="k">return</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_alt_color_s</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="s1">&#39;map_3d&#39;</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -2854,14 +2873,11 @@
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">convert_color</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">color</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-
     <span class="k">def</span> <span class="nf">apply_depths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nrenders</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_depth_wins</span><span class="p">((</span><span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">))</span>
-
-        <span class="c1">#return  # FIXME</span>
 
         <span class="k">for</span> <span class="n">main_group</span><span class="p">,</span> <span class="n">mesh_l</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">main_group</span><span class="p">)</span>
@@ -2882,11 +2898,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">view</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="n">not_ok</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="n">mesh_l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;processing corridor depth:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="s1">&#39;(level:&#39;</span><span class="p">,</span>
                       <span class="n">level</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
-                <span class="n">alt_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+                <span class="n">alt_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_colors</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
 
                 <span class="n">hshift</span> <span class="o">=</span> <span class="p">(</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
                           <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
@@ -2898,10 +2913,11 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">):</span>
                         <span class="c1"># not a mesh: skip it</span>
                         <span class="k">continue</span>
-                    <span class="k">if</span> <span class="n">alt_color</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
-                            <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-                        <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">][</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_color</span>
+                    <span class="n">material</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">if</span> <span class="n">alt_colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">alt_colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">material</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
                         <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2915,7 +2931,7 @@
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed:&#39;</span><span class="p">,</span> <span class="n">failed</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
                     <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">failed</span><span class="p">)</span> <span class="o">/</span> <span class="n">done</span> <span class="o">&gt;=</span> <span class="mf">0.2</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;abnormal failure rate - &#39;</span>
-                          <span class="s1">&#39;malfunction in 3D renderings ?&#39;</span><span class="p">)</span>
+                              <span class="s1">&#39;malfunction in 3D renderings ?&#39;</span><span class="p">)</span>
                         <span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># apply texts depths</span>
@@ -2941,7 +2957,6 @@
                             <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;built depths in&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrenders</span><span class="p">,</span> <span class="s1">&#39;renderings&#39;</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">apply_arrow_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
         <span class="n">alt_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
@@ -3468,6 +3483,15 @@
                                               <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tess_mesh</span><span class="p">)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="n">main_group</span> <span class="o">+</span> <span class="s1">&#39;_floor_tri&#39;</span><span class="p">]</span> \
                                 <span class="o">=</span> <span class="n">props</span>
+            <span class="c1"># set border color to filar meshes</span>
+            <span class="k">if</span> <span class="n">mesh_l</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh_l</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">mesh_l</span> <span class="o">=</span> <span class="p">[</span><span class="n">mesh_l</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">mesh_l</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">):</span>
+                        <span class="n">mat</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">mat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;border_color&#39;</span> <span class="ow">in</span> <span class="n">mat</span><span class="p">:</span>
+                            <span class="n">mat</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span>
 
         <span class="c1"># merge meshes in each group</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">merge_meshes_by_group</span><span class="p">(</span><span class="n">meshes</span><span class="p">)</span>
@@ -3527,7 +3551,7 @@
                 <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
                     <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
                     <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="n">radius</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="c1"># radius = mpos[0][4]</span>
                     <span class="n">level</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
                     <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">pos</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">(),</span>
@@ -3556,7 +3580,8 @@
                     <span class="n">props</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;markers&#39;</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="n">main_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- marker mesh:&#39;</span><span class="p">,</span> <span class="n">main_group</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()),</span> <span class="n">props</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CataSvgToMesh.extrude"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.extrude">[docs]</a>    <span class="k">def</span> <span class="nf">extrude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">height_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>

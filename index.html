@@ -224,8 +224,9 @@ image is mapped and repeaded on the meshes. See <a class="reference internal" hr
 details.</p>
 </dd>
 <dt><strong>height_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a height map. This is the same as <strong>depth_map</strong> except that
-heights are inverted compared to depths. All related attributes are the
-same as for <strong>depth_map</strong> otherwise.</p>
+heights are inverted compared to depths, and that a height map may be
+relative to another depth map (see the <code class="docutils literal notranslate"><span class="pre">relative_to</span></code> property). All
+related attributes are the same as for <strong>depth_map</strong> otherwise.</p>
 </dd>
 <dt><strong>height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the element (esp. for corridor, block, wall elements, but also
 wells and arrows). An element with a height shift will not begin on the
@@ -319,6 +320,10 @@ legend).</p>
 and the marker position for it to be triggered. It can be set on the marker
 layer itself, or on any marker item inside.</p>
 <p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
+<dt><strong>relative_to:</strong> str (<strong>3D maps</strong>)</dt><dd><p>for height maps or depth maps layers, specify to which depth map the height
+is relative to. The default is surface depth (which means 0 or the ground
+altitude map).</p>
 </dd>
 <dt><strong>replace_children:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>should be set only in replacement symbols in the legend layer (wells signs,
 etc) to indicate that children of matching elements should be parsed
@@ -703,6 +708,12 @@ if skip_children is True, children are skipped.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.get_alt_colors">
+<span class="sig-name descname"><span class="pre">get_alt_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">props</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.get_alt_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.get_alt_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get backgroud, foreground colors (fill/border)</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti">
 <span class="sig-name descname"><span class="pre">load_ground_altitude_bdalti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.load_ground_altitude_bdalti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -823,6 +834,12 @@ if skip_children is True, children are skipped.</p>
 <dd class="field-even"><p>(proc_callable, clean_callable, skip_children) or None</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.get_mesh_color">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_mesh_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.get_mesh_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.get_mesh_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns background_color (fill), foreground_color (borders)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1072,6 +1089,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a><ul>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.extrude"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.extrude()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.filter_element"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.filter_element()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.get_alt_colors"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.get_alt_colors()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.load_ground_altitude_bdalti()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.make_ps_well"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.make_ps_well()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_path"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_path()</span></code></a></li>
@@ -1091,6 +1109,7 @@ children in a readable dictionary.</p>
 </li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh"><code class="docutils literal notranslate"><span class="pre">SvgToMesh</span></code></a><ul>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.filter_element"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.filter_element()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.get_mesh_color"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.get_mesh_color()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.get_transform"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.get_transform()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.read_circle"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.read_circle()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.read_path"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.read_path()</span></code></a></li>

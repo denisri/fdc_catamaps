@@ -208,36 +208,44 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">xml_elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">style_str</span><span class="p">)</span>
 
-
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="SvgToMesh.get_mesh_color"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.get_mesh_color">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_mesh_color</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Returns background_color (fill), foreground_color (borders)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">style</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fill&#39;</span><span class="p">)</span>
-        <span class="n">opacity</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fill-opacity&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span> <span class="ow">or</span> <span class="n">color</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke&#39;</span><span class="p">)</span>
-            <span class="n">opacity</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke-opacity&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">color_spec</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color_spec</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="n">opacity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">):</span>
-                <span class="n">opacity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">opacity</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">bg_color</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fill&#39;</span><span class="p">)</span>
+        <span class="n">bg_opacity</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fill-opacity&#39;</span><span class="p">)</span>
+        <span class="n">fg_color</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke&#39;</span><span class="p">)</span>
+        <span class="n">fg_opacity</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stroke-opacity&#39;</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">opacity</span> <span class="ow">in</span> <span class="p">((</span><span class="n">bg_color</span><span class="p">,</span> <span class="n">bg_opacity</span><span class="p">),</span> <span class="p">(</span><span class="n">fg_color</span><span class="p">,</span> <span class="n">fg_opacity</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">color</span><span class="p">:</span>
+                <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">color_spec</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color_spec</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">opacity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">):</span>
+                    <span class="n">opacity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">opacity</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">opacity</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
+                         <span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="p">:</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
+                         <span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span><span class="n">n</span><span class="o">*</span><span class="mi">3</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
+                         <span class="n">opacity</span><span class="p">)</span>
+                <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">opacity</span> <span class="o">=</span> <span class="mf">1.</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                    <span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="p">:</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                    <span class="nb">int</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span><span class="n">n</span><span class="o">*</span><span class="mi">3</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                    <span class="n">opacity</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">color</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
+                <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">colors</span></div>
 
 <div class="viewcode-block" id="SvgToMesh.read_rect"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_rect">[docs]</a>    <span class="k">def</span> <span class="nf">read_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a rectangle element as a mesh</span>
@@ -248,9 +256,11 @@
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mesh_color</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
-        <span class="n">material</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">material</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">}</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
         <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))</span>
@@ -276,7 +286,7 @@
                 <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
 
@@ -290,9 +300,11 @@
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mesh_color</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
-        <span class="n">material</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">material</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">}</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">x</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cx&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -305,6 +317,9 @@
         <span class="n">r</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}rx&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO read ellipse with differing rx and ry</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rx&#39;</span><span class="p">)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="n">angle_s</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sodipodi:start&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">angle_s</span><span class="p">:</span>
@@ -335,7 +350,7 @@
                 <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
 
@@ -349,9 +364,11 @@
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mesh_color</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
-        <span class="n">material</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">material</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">}</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">points</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
         <span class="n">pl</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
@@ -379,7 +396,7 @@
         <span class="n">poly</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="n">poly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
 
@@ -415,15 +432,19 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_polygon</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;circle&#39;</span> <span class="ow">or</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}circle&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_circle</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;ellipse&#39;</span> <span class="ow">or</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}ellipse&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_circle</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
 
         <span class="c1"># read path</span>
 
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
         <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mesh_color</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
-        <span class="n">material</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">material</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="n">color</span><span class="p">}</span>
+        <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">material</span><span class="p">[</span><span class="s1">&#39;border_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">vert</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">poly</span> <span class="o">=</span> <span class="p">[]</span>
@@ -545,7 +566,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span><span class="p">:</span>
             <span class="c1"># if texturing is not enabled, don&#39;t look for them.</span>
             <span class="k">return</span>
-
         <span class="k">if</span> <span class="s1">&#39;textures&#39;</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
             <span class="k">return</span>  <span class="c1"># already done</span>
         <span class="n">tex_types</span> <span class="o">=</span> <span class="p">{</span>
@@ -594,7 +614,6 @@
             <span class="c1"># must be postponed.</span>
             <span class="n">textures</span><span class="p">[</span><span class="n">ttype</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">tex_image</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">tex_params</span><span class="p">}</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tex params:&#39;</span><span class="p">,</span> <span class="n">textures</span><span class="p">)</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;textures&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">textures</span>
 
     <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_element</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
@@ -656,7 +675,7 @@
         <span class="n">tex_def</span> <span class="o">=</span> <span class="n">textures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ttype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tex_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tex_def</span> <span class="o">=</span> <span class="n">textures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;texture&#39;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tex_def for&#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">tex_def</span><span class="p">)</span>
+        <span class="c1"># print(&#39;tex_def for&#39;, key, &#39;:&#39;, tex_def)</span>
         <span class="k">if</span> <span class="n">tex_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -1325,8 +1344,10 @@
                     <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_group</span><span class="p">,</span>
                                                      <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
                     <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child_mesh</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
-                        <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child_mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())</span>
+                    <span class="n">material</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">)</span>
+                    <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child_mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">material</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">concat_mesh</span> <span class="o">==</span> <span class="s1">&#39;list_bygroup&#39;</span><span class="p">:</span>
                     <span class="n">meshes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_group</span><span class="p">,</span> <span class="p">[])</span>
@@ -1337,9 +1358,8 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;main_group:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span><span class="p">)</span>
                         <span class="nb">print</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
                         <span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-                        <span class="c1">#aims.SurfaceManip.meshMerge(meshes, child_mesh)</span>
                         <span class="k">raise</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="n">child_mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="n">meshes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">meshes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
                             <span class="n">meshes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child_mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())</span>
@@ -1348,7 +1368,7 @@
                         <span class="k">raise</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mesh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_mesh</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}clipPath&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;clipPath&#39;</span><span class="p">:</span>
                 <span class="c1">#print(&#39;clipPath&#39;)</span>
                 <span class="c1"># skip clipPaths</span>
@@ -1893,7 +1913,6 @@
         <span class="n">path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_group</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">xml_group</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">xml_group</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
 
 <div class="viewcode-block" id="SvgToMesh.save_mesh_dict"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict">[docs]</a>    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span>
                        <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span> <span class="n">lights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
