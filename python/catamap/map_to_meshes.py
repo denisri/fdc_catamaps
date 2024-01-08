@@ -198,8 +198,9 @@ Properties list
 
 **height_map:** bool (**3D maps**)
     the layer is a height map. This is the same as **depth_map** except that
-    heights are inverted compared to depths. All related attributes are the
-    same as for **depth_map** otherwise.
+    heights are inverted compared to depths, and that a height map may be
+    relative to another depth map (see the ``relative_to`` property). All
+    related attributes are the same as for **depth_map** otherwise.
 **height_shift:** float (**3D maps**)
     z shift of the element (esp. for corridor, block, wall elements, but also
     wells and arrows). An element with a height shift will not begin on the
@@ -302,6 +303,10 @@ Properties list
 
     See :ref:`markers` for more details.
 
+**relative_to:** str (**3D maps**)
+    for height maps or depth maps layers, specify to which depth map the height
+    is relative to. The default is surface depth (which means 0 or the ground
+    altitude map).
 **replace_children:** bool (**2D maps**)
     should be set only in replacement symbols in the legend layer (wells signs,
     etc) to indicate that children of matching elements should be parsed
@@ -2761,9 +2766,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             ok = view.positionFromCursor(int(pt[0]), int(pt[1]), pt)
             if ok:
                 return pt[2]
-        #print('get_depth: point not found:', pos, pt)
+        # print('get_depth: point not found:', pos, pt)
         return None
-
 
     def get_alt_color(self, props, colorset=None, conv=True, get_bg=True):
         if colorset is None:
@@ -2781,6 +2785,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 col = bg
         return col
 
+    def get_alt_colors(self, props, colorset=None, conv=True):
+        ''' Get backgroud, foreground colors (fill/border)
+        '''
+        colors = self.get_alt_color(props, colorset, conv, get_bg=False)
+        if colors is None:
+            return None, None
+        if not isinstance(colors, dict):
+            return colors, colors
+        bg = colors.get('bg')
+        fg = colors.get('fg')
+        if bg is None and fg is not None:
+            bg = fg
+        elif bg is not None and fg is None:
+            fg = bg
+        return bg, fg
 
     @staticmethod
     def get_alt_color_s(props, colorset='map_3d', conv=True):
@@ -2815,14 +2834,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             elif isinstance(color, dict):
                 return {k: convert_color(v) for k, v in color.items()}
 
-
     def apply_depths(self, meshes):
         self.nrenders = 0
 
         object_win_size = (2., 2.)
         self.build_depth_wins((250, 250))
-
-        #return  # FIXME
 
         for main_group, mesh_l in meshes.items():
             props = self.group_properties.get(main_group)
@@ -2843,11 +2859,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             else:
                 view = None
 
-            not_ok = 0
             if mesh_l is not None:
                 print('processing corridor depth:', main_group, '(level:',
                       level, ')')
-                alt_color = self.get_alt_color(props)
+                alt_colors = self.get_alt_colors(props)
 
                 hshift = (props.height_shift
                           if props.height_shift else 0.) * self.z_scale
@@ -2859,10 +2874,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if not hasattr(mesh, 'vertex'):
                         # not a mesh: skip it
                         continue
-                    if alt_color:
-                        if 'material' not in mesh.header():
-                            mesh.header()['material'] = {}
-                        mesh.header()['material']['diffuse'] = alt_color
+                    material = mesh.header().get('material', {})
+                    if alt_colors[0] is not None:
+                        material['diffuse'] = alt_colors[0]
+                    if alt_colors[1] is not None:
+                        material['border_color'] = alt_colors[1]
                     for v in mesh.vertex():
                         z = self.get_depth(v, view, object_win_size)
                         if z is not None:
@@ -2876,7 +2892,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     print('failed:', failed, '/', done)
                     if float(failed) / done >= 0.2:
                         print('abnormal failure rate - '
-                          'malfunction in 3D renderings ?')
+                              'malfunction in 3D renderings ?')
                         debug = True
 
         # apply texts depths
@@ -2902,7 +2918,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             position[2] = z + hshift
 
         print('built depths in', self.nrenders, 'renderings')
-
 
     def apply_arrow_depth(self, mesh, props):
         alt_color = self.get_alt_color(props)
@@ -3429,6 +3444,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                               []).append(tess_mesh)
                             self.group_properties[main_group + '_floor_tri'] \
                                 = props
+            # set border color to filar meshes
+            if mesh_l:
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    if isinstance(mesh, aims.AimsTimeSurface_2):
+                        mat = mesh.header().get('material')
+                        if mat is not None and 'border_color' in mat:
+                            mat['diffuse'] = mat['border_color']
 
         # merge meshes in each group
         self.merge_meshes_by_group(meshes)
@@ -3488,7 +3512,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 for mpos in getattr(self, mtype):
                     pos = mpos[0][:4]
                     hshift = pos[2]
-                    radius = mpos[0][4]
+                    # radius = mpos[0][4]
                     level = pos[3]
                     win = self.depth_wins[level]
                     z = self.get_depth(pos[:2] + [0.], win.view(),
@@ -3517,7 +3541,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     props.category = 'markers'
                     self.group_properties[main_group] = props
                     print('--- marker mesh:', main_group, len(mesh.vertex()), props)
-                else: print('NO MARKER MESH:', mtype)
+                else:
+                    print('NO MARKER MESH:', mtype)
 
     def extrude(self, mesh, distance, height_map=None):
         '''

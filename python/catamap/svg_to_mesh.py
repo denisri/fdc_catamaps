@@ -169,36 +169,44 @@ class SvgToMesh(object):
             return None
         xml_elem.set('style', style_str)
 
-
     @staticmethod
     def get_mesh_color(style):
+        ''' Returns background_color (fill), foreground_color (borders)
+        '''
         if not style:
-            return None
-        color = style.get('fill')
-        opacity = style.get('fill-opacity')
-        if not color or color == 'none':
-            color = style.get('stroke')
-            opacity = style.get('stroke-opacity')
-        if not color:
-            return None
-        color_spec = color.split(' ')
-        color = [c[1:] for c in color_spec if c[0] == '#']
-        if color:
-            c = color[0]
-            n = int(math.ceil(len(c) / 3))
-            if n < 1:
-                n = 1
-            if opacity not in (None, 'none'):
-                opacity = float(opacity)
+            return None, None
+        bg_color = style.get('fill')
+        bg_opacity = style.get('fill-opacity')
+        fg_color = style.get('stroke')
+        fg_opacity = style.get('stroke-opacity')
+        colors = []
+        for color, opacity in ((bg_color, bg_opacity), (fg_color, fg_opacity)):
+            if not color:
+                colors.append(None)
+                continue
+            color_spec = color.split(' ')
+            color = [c[1:] for c in color_spec if c[0] == '#']
+            if color:
+                c = color[0]
+                n = int(math.ceil(len(c) / 3))
+                if n < 1:
+                    n = 1
+                if opacity not in (None, 'none'):
+                    opacity = float(opacity)
+                else:
+                    opacity = 1.
+                color = (int('0x' + c[:n], 0) / 255.,
+                         int('0x' + c[n:n*2], 0) / 255.,
+                         int('0x' + c[n*2:n*3], 0) / 255.,
+                         opacity)
+                colors.append(color)
             else:
-                opacity = 1.
-            color = (int('0x' + c[:n], 0) / 255.,
-                    int('0x' + c[n:n*2], 0) / 255.,
-                    int('0x' + c[n*2:n*3], 0) / 255.,
-                    opacity)
-            return color
-        return None
-
+                colors.append(None)
+        if colors[0] is None and colors[1] is not None:
+            colors[0] = colors[1]
+        elif colors[1] is None and colors[0] is not None:
+            colors[1] = colors[0]
+        return colors
 
     def read_rect(self, xml_path, trans, style=None):
         ''' Read a rectangle element as a mesh
@@ -209,9 +217,11 @@ class SvgToMesh(object):
         if style is None:
             style = self.get_style(xml_path)
         color = self.get_mesh_color(style)
-        material = None
-        if color:
-            material = {'diffuse': color}
+        material = {}
+        if color[0]:
+            material['diffuse'] = color[0]
+        if color[1]:
+            material['border_color'] = color[1]
 
         x = float(xml_path.get('x'))
         y = float(xml_path.get('y'))
@@ -237,7 +247,7 @@ class SvgToMesh(object):
                 #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
-        if material is not None:
+        if material:
             mesh.header()['material'] = material
         return mesh
 
@@ -251,9 +261,11 @@ class SvgToMesh(object):
         if style is None:
             style = self.get_style(xml_path)
         color = self.get_mesh_color(style)
-        material = None
-        if color:
-            material = {'diffuse': color}
+        material = {}
+        if color[0]:
+            material['diffuse'] = color[0]
+        if color[1]:
+            material['border_color'] = color[1]
 
         x = xml_path.get('cx')
         if x is None:
@@ -266,6 +278,9 @@ class SvgToMesh(object):
         r = xml_path.get('r')
         if r is None:
             r = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}rx')
+        # TODO read ellipse with differing rx and ry
+        if r is None:
+            r = xml_path.get('rx')
         r = float(r)
         angle_s = xml_path.get('sodipodi:start')
         if angle_s:
@@ -296,7 +311,7 @@ class SvgToMesh(object):
                 #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
-        if material is not None:
+        if material:
             mesh.header()['material'] = material
         return mesh
 
@@ -310,9 +325,11 @@ class SvgToMesh(object):
         if style is None:
             style = self.get_style(xml_path)
         color = self.get_mesh_color(style)
-        material = None
-        if color:
-            material = {'diffuse': color}
+        material = {}
+        if color[0]:
+            material['diffuse'] = color[0]
+        if color[1]:
+            material['border_color'] = color[1]
 
         points = xml_path.get('points')
         pl = points.split()
@@ -340,7 +357,7 @@ class SvgToMesh(object):
         poly = [(i, i+1) for i in range(pts.shape[1] - 1)]
         poly.append((pts.shape[1] - 1, 0))
         mesh.polygon().assign(poly)
-        if material is not None:
+        if material:
             mesh.header()['material'] = material
         return mesh
 
@@ -376,15 +393,19 @@ class SvgToMesh(object):
             return self.read_polygon(xml_path, trans, style)
         if xml_path.tag == 'circle' or xml_path.tag.endswith('}circle'):
             return self.read_circle(xml_path, trans, style)
+        if xml_path.tag == 'ellipse' or xml_path.tag.endswith('}ellipse'):
+            return self.read_circle(xml_path, trans, style)
 
         # read path
 
         if style is None:
             style = self.get_style(xml_path)
         color = self.get_mesh_color(style)
-        material = None
-        if color:
-            material = {'diffuse': color}
+        material = {}
+        if color[0]:
+            material['diffuse'] = color[0]
+        if color[1]:
+            material['border_color'] = color[1]
 
         vert = []
         poly = []
@@ -506,7 +527,6 @@ class SvgToMesh(object):
         if not self.enable_texturing:
             # if texturing is not enabled, don't look for them.
             return
-
         if 'textures' in mesh.header():
             return  # already done
         tex_types = {
@@ -555,7 +575,6 @@ class SvgToMesh(object):
             # must be postponed.
             textures[ttype] = {'image': tex_image, 'params': tex_params}
 
-        print('tex params:', textures)
         mesh.header()['textures'] = textures
 
     def get_image(self, xml_element, trans):
@@ -617,7 +636,7 @@ class SvgToMesh(object):
         tex_def = textures.get(ttype)
         if tex_def is None:
             tex_def = textures.get('texture')
-        print('tex_def for', key, ':', tex_def)
+        # print('tex_def for', key, ':', tex_def)
         if tex_def is None:
             return
 
@@ -1286,8 +1305,10 @@ class SvgToMesh(object):
                     mesh = self.mesh_dict.setdefault(self.main_group,
                                                      aims.AimsTimeSurface(2))
                     aims.SurfaceManip.meshMerge(mesh, child_mesh)
-                    if 'material' not in mesh.header():
-                        mesh.header().update(child_mesh.header())
+                    material = mesh.header().get('material')
+                    mesh.header().update(child_mesh.header())
+                    if material is not None:
+                        mesh.header()['material'] = material
                     self.get_textures(mesh, child, parents)
                 elif self.concat_mesh == 'list_bygroup':
                     meshes = self.mesh_dict.setdefault(self.main_group, [])
@@ -1298,9 +1319,8 @@ class SvgToMesh(object):
                         print('main_group:', self.main_group)
                         print(child.tag)
                         print(list(child.items()))
-                        #aims.SurfaceManip.meshMerge(meshes, child_mesh)
                         raise
-                    self.get_textures(child_mesh, child, parents)
+                    self.get_textures(meshes[0], child, parents)
                     try:
                         if 'material' not in meshes[0].header():
                             meshes[0].header().update(child_mesh.header())
@@ -1309,7 +1329,7 @@ class SvgToMesh(object):
                         raise
                 else:
                     self.mesh_list.append(child_mesh)
-                    self.get_textures(mesh, child, parents)
+                    self.get_textures(self.mesh, child, parents)
             elif child.tag.endswith('}clipPath') or child.tag == 'clipPath':
                 #print('clipPath')
                 # skip clipPaths
@@ -1854,7 +1874,6 @@ class SvgToMesh(object):
         path.set('d', d)
         for i in six.moves.xrange(len(xml_group) - 1):
             xml_group.remove(xml_group[1])
-
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.obj',
                        mesh_wf_format='.obj', lights=None):
