@@ -24,7 +24,6 @@ import os
 import os.path as osp
 import six
 import copy
-#import traceback
 import sys
 import math
 import json
@@ -68,11 +67,12 @@ if fake_aims:
 
         class vector(object):
             ''' Fixed size vector '''
+
             def __init__(self, dtype, shape):
-              self._vec = np.zeros(shape, dtype=dtype)
-              self._dim = 1
-              if len(shape) >= 2:
-                self._dim = shape[1]
+                self._vec = np.zeros(shape, dtype=dtype)
+                self._dim = 1
+                if len(shape) >= 2:
+                    self._dim = shape[1]
 
             def assign(self, vec):
                 shape = (len(vec), self._dim)
@@ -88,6 +88,7 @@ if fake_aims:
 
         class AimsTimeSurface(object):
             ''' Mesh structure '''
+
             def __init__(self, dim=3):
                 self._vertex = aims.vector(dtype=np.float32, shape=(0, 3))
                 self._polygon = aims.vector(dtype=np.uint32, shape=(0, dim))
@@ -105,12 +106,14 @@ if fake_aims:
 
         class AimsTimeSurface_2(AimsTimeSurface):
             ''' Segments mesh (2 points per polygon) '''
+
             def __init__(self):
                 super(aims.AimsTimeSurface_2, self).__init__(2)
 
 
         class AimsTimeSurface_3(AimsTimeSurface):
             ''' Triangles mesh (3 points per polygon) '''
+
             def __init__(self):
                 super(aims.AimsTimeSurface_3, self).__init__(3)
 
@@ -148,7 +151,6 @@ class SvgToMesh(object):
         }
         self.enable_texturing = False
 
-
     @staticmethod
     def get_style(xml_elem):
         style = xml_elem.get('style')
@@ -159,7 +161,6 @@ class SvgToMesh(object):
         style = [x.strip() for x in style]
         style = dict([(y.strip() for y in x.split(':')) for x in style if x])
         return style
-
 
     @staticmethod
     def set_style(xml_elem, style):
@@ -230,7 +231,7 @@ class SvgToMesh(object):
         pts = trans * np.matrix([[x, x+w, x+w, x],
                                  [y, y, y+h, y+h],
                                  [1., 1., 1., 1.]])
-        pts[2, :] = 0 # reset Z to 0
+        pts[2, :] = 0  # reset Z to 0
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(np.asarray(pts.T))
         mesh.polygon().assign([(0, 1), (1, 2), (2, 3), (3, 0)])
@@ -243,14 +244,11 @@ class SvgToMesh(object):
             vert = (trans3d * vert).T
             vert = vert[:, :3]
             mesh.vertex().assign(np.asarray(vert))
-            #if len(mesh.normal()) != 0:
-                #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
         if material:
             mesh.header()['material'] = material
         return mesh
-
 
     def read_circle(self, xml_path, trans, style=None):
         ''' Read a circle element as a mesh
@@ -294,9 +292,9 @@ class SvgToMesh(object):
             angle_e = np.pi * 2
         npt = 24
         mesh = aims.SurfaceGenerator.circle_wireframe(
-            (x, y, 1.), r, npt, (0, 0, 1 ), (1, 0, 0), angle_s, angle_e)
+            (x, y, 1.), r, npt, (0, 0, 1), (1, 0, 0), angle_s, angle_e)
         pts = trans * np.matrix(mesh.vertex().np.T)
-        pts[2, :] = 0 # reset Z to 0
+        pts[2, :] = 0  # reset Z to 0
         mesh.vertex().assign(np.asarray(pts.T))
 
         trans3d = getattr(trans, 'transform_3d', None)
@@ -307,14 +305,11 @@ class SvgToMesh(object):
             vert = (trans3d * vert).T
             vert = vert[:, :3]
             mesh.vertex().assign(np.asarray(vert))
-            #if len(mesh.normal()) != 0:
-                #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
         if material:
             mesh.header()['material'] = material
         return mesh
-
 
     def read_polygon(self, xml_path, trans, style=None):
         ''' Read a polygon element as a mesh
@@ -335,10 +330,10 @@ class SvgToMesh(object):
         pl = points.split()
         points = np.matrix([[float(p.strip()) for p in pt.split(',')]
                             for pt in pl]).T
-        #print('polygon points:', points.T)
+        # print('polygon points:', points.T)
         points3 = np.vstack((points, np.ones((points.shape[1], ))))
         pts = trans * points3
-        pts[2, :] = 0 # reset Z to 0
+        pts[2, :] = 0  # reset Z to 0
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(np.asarray(pts.T))
 
@@ -350,8 +345,6 @@ class SvgToMesh(object):
             vert = (trans3d * vert).T
             vert = vert[:, :3]
             mesh.vertex().assign(np.asarray(vert))
-            #if len(mesh.normal()) != 0:
-                #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
         poly = [(i, i+1) for i in range(pts.shape[1] - 1)]
@@ -360,7 +353,6 @@ class SvgToMesh(object):
         if material:
             mesh.header()['material'] = material
         return mesh
-
 
     def read_path(self, xml_path, trans, style=None):
         ''' Read a path element as mesh, apply coords transformations
@@ -373,7 +365,7 @@ class SvgToMesh(object):
                     j += 1
                 x = float(pdesc[i:j])
                 i = j + 1
-                while i<len(pdesc) and pdesc[i] in ' ,':
+                while i < len(pdesc) and pdesc[i] in ' ,':
                     i += 1
             except Exception as e:
                 print(e)
@@ -421,13 +413,13 @@ class SvgToMesh(object):
             while(i < n and pdesc[i] == ' '):
                 i += 1
             if i == n:
-                #print('end of path in:', pdesc)
+                # print('end of path in:', pdesc)
                 break
-            #print('i:', i)
+            # print('i:', i)
             last_x, last_y = x, y
             if pdesc[i] in 'mMcClLhHvVsSqQtTaA':
                 cmd = pdesc[i]
-                #print('cmd:', cmd)
+                # print('cmd:', cmd)
                 i += 1
                 while pdesc[i] == ' ':
                     i += 1
@@ -438,25 +430,21 @@ class SvgToMesh(object):
                         x += last_x
                 if cmd not in 'hH':
                     y, i = read_point(pdesc, i, 'y', len(vert), len(poly))
-                    j = i + 1
                     if cmd >= 'a':
                         y += last_y
-                #print(x,', ', y)
+                # print(x,', ', y)
                 if cmd in 'cC':
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x2', len(vert), len(poly))
                     y, i = read_point(pdesc, i, 'y2', len(vert), len(poly))
                     if cmd >= 'a':
                         x += last_x
                         y += last_y
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x3', len(vert), len(poly))
                     y, i = read_point(pdesc, i, 'y3', len(vert), len(poly))
                     if cmd >= 'a':
                         x += last_x
                         y += last_y
                 elif cmd in 'sSqQ':
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x2', len(vert), len(poly))
                     y, i = read_point(pdesc, i, 'y2', len(vert), len(poly))
                     if cmd >= 'a':
@@ -484,7 +472,7 @@ class SvgToMesh(object):
                     cmd = 'L'
                     first = len(vert) - 1
             elif pdesc[i] in 'zZ':
-                #print('close')
+                # print('close')
                 if len(vert) >= first + 3:
                     poly.append((len(vert) - 1, first))
                 x, y = vert[first][:2]
@@ -494,17 +482,16 @@ class SvgToMesh(object):
                 i += 1
 
         mesh = aims.AimsTimeSurface(2)
-        #print('vert:', vert)
-        #print('poly:', poly)
-        #print('path trans:', trans)
+        # print('vert:', vert)
+        # print('poly:', poly)
+        # print('path trans:', trans)
         if not np.all(trans == np.eye(3)):
-            #print('trans:', trans)
-            #print(vert)
+            # print('trans:', trans)
             vert = np.asarray(vert).T
             vert[2, :] = 1.
             vert = (trans * vert).T
             vert[:, 2] = 0.
-            #print('to: vert:', vert)
+            # print('to: vert:', vert)
         mesh.vertex().assign(np.asarray(vert))
         mesh.polygon().assign(poly)
         trans3d = getattr(trans, 'transform_3d', None)
@@ -514,8 +501,6 @@ class SvgToMesh(object):
             vert = (trans3d * vert).T
             vert = vert[:, :3]
             mesh.vertex().assign(np.asarray(vert))
-            #if len(mesh.normal()) != 0:
-                #print('trans normals')
             mesh.header()['transformation'] = list(np.ravel(trans3d))
 
         if material:
@@ -590,7 +575,6 @@ class SvgToMesh(object):
         h = float(xml_element.get('height'))
         x = float(xml_element.get('x'))
         y = float(xml_element.get('y'))
-        #trans2 = self.get_transform(xml_element, trans)
         pos = trans.dot([x, y, 1.])
         uri = xml_element.get('{http://www.w3.org/1999/xlink}href')
         image = aims.Volume_RGBA()
@@ -611,6 +595,7 @@ class SvgToMesh(object):
                         self.svg_filename)), uri)
                 image = aims.read(uri)
         svg_p = image.header()
+        svg_p['name'] = xml_element.get('id')  # to re-identify the image later
         svg_p['svg_size'] = [w, h]
         svg_p['svg_position'] = np.asarray(pos)[0].tolist()
         svg_p['svg_transform'] = trans.tolist()
@@ -625,6 +610,7 @@ class SvgToMesh(object):
         textures = mesh.header().get('textures')
         if textures is None:
             return
+
         if key.endswith('wall_tri'):
             ttype = 'wall_texture'
         elif key.endswith('floor_tri'):
@@ -636,7 +622,6 @@ class SvgToMesh(object):
         tex_def = textures.get(ttype)
         if tex_def is None:
             tex_def = textures.get('texture')
-        # print('tex_def for', key, ':', tex_def)
         if tex_def is None:
             return
 
@@ -717,7 +702,6 @@ class SvgToMesh(object):
             # y of textures is inverted, start at 1 (bottom) at 1st vertex
             trans_c[:, 1] = trans_c[0, 1] - trans_c[:, 1]
             tx[:] = trans_c
-            #print('TEX init:', tx[0])
         return tex
 
     def geodesic2d(self, mesh):
@@ -772,7 +756,6 @@ class SvgToMesh(object):
                                            for x in np.ravel(trans[:2, :].T))
         xml_elem.set('transform', mat_str)
 
-
     @staticmethod
     def get_transform(trans, previous=None):
         '''
@@ -784,7 +767,7 @@ class SvgToMesh(object):
         previous: np array or None
             parent transform to be composed with
         '''
-        #print('transform:', trans_str)
+        # print('transform:', trans_str)
         if trans is None:
             return np.matrix(np.eye(3))
         mat3d = None
@@ -820,7 +803,6 @@ class SvgToMesh(object):
             tdef = []
             for t in tdef1:
                 tdef += [float(x.strip()) for x in t.strip().split(' ')]
-            #print(ttype, tdef)
             if ttype == 'matrix':
                 mat[:2, 0] = np.reshape(tdef[:2], (2, 1))
                 mat[:2, 1] = np.reshape(tdef[2:4], (2, 1))
@@ -861,18 +843,16 @@ class SvgToMesh(object):
             else:
                 tmat = tmat * mat
 
-        #print('mat:', tmat)
+        # print('mat:', tmat)
         if mat3d is not None:
             tmat.transform_3d = mat3d
         return tmat
-
 
     @staticmethod
     def to_transform(matrix):
         transform = 'matrix(' + ', '.join(
             [str(x) for x in np.asarray(matrix[:2, :].T).ravel()]) + ')'
         return transform
-
 
     def boundingbox(self, element, trans=None, exhaustive=True):
         todo = [(element, trans)]
@@ -908,7 +888,6 @@ class SvgToMesh(object):
                         break
         return bbox
 
-
     def transform_subtree(self, xml, in_trans, trans, otrans=None):
         ''' in_trans: current transform of xml subtree (out of the subtree)
         trans: transform to be applied
@@ -917,7 +896,6 @@ class SvgToMesh(object):
         if otrans is None:
             otrans = in_trans
         todo = [(xml, in_trans, otrans)]
-        #otrans = np.matrix(scipy.linalg.inv(in_trans))
         while todo:
             element, c_trans, c_otrans = todo.pop(0)
             transm = self.get_transform(element)
@@ -933,7 +911,7 @@ class SvgToMesh(object):
                 c_otrans = c_otrans * transm
                 if hasattr(transm, 'transform_3d'):
                     c_otrans.transform_3d = transm.transform_3d
-                #element.set('transform', None) # FIXME: how to remove it
+                # element.set('transform', None) # FIXME: how to remove it
             if element.tag.endswith('}g'):
                 todo = [(c, c_trans, c_otrans) for c in element] + todo
             else:
@@ -949,7 +927,6 @@ class SvgToMesh(object):
 
     def style_to_str(self, style):
         return ';'.join(['%s:%s' % (k, str(v)) for k, v in style.items()])
-
 
     def transform_style(self, xml_path, trans):
         ''' adapt style in path/rect to scale changes (stroke width etc)
@@ -973,7 +950,6 @@ class SvgToMesh(object):
             style_str = self.style_to_str(style)
             xml_path.set('style', style_str)
 
-
     def transform_path(self, xml_path, trans):
         ''' trans: transform to be applied
         '''
@@ -984,7 +960,7 @@ class SvgToMesh(object):
                     j += 1
                 x = float(pdesc[i:j])
                 i = j + 1
-                while i<len(pdesc) and pdesc[i] in ' ,':
+                while i < len(pdesc) and pdesc[i] in ' ,':
                     i += 1
             except Exception as e:
                 print(e)
@@ -992,8 +968,10 @@ class SvgToMesh(object):
                 raise
             return x, i
 
-        cx = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx')
-        cy = xml_path.get('{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cy')
+        cx = xml_path.get(
+            '{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx')
+        cy = xml_path.get(
+            '{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cy')
         if cx is not None and cy is not None:
             tp = np.asarray(trans.dot([[float(cx)], [float(cy)],
                                        [1.]])).ravel()
@@ -1025,17 +1003,17 @@ class SvgToMesh(object):
                           'sodipodi-0.dtd}r1')
         if r1 is not None:
             scale = np.sqrt(np.sum(np.array(
-                trans * np.array([[1, 0, 0]]).T \
+                trans * np.array([[1, 0, 0]]).T
                 - trans * np.array([[0, 0, 0]]).T) ** 2))
             xml_path.set('{http://sodipodi.sourceforge.net/DTD/'
-                        'sodipodi-0.dtd}r1',
-                        str(float(r1) * scale))
+                         'sodipodi-0.dtd}r1',
+                         str(float(r1) * scale))
             r2 = xml_path.get('{http://sodipodi.sourceforge.net/'
                               'DTD/sodipodi-0.dtd}r2')
             if r2 is not None:
                 xml_path.set('{http://sodipodi.sourceforge.net/DTD/'
-                            'sodipodi-0.dtd}r2',
-                            str(float(r2) * scale))
+                             'sodipodi-0.dtd}r2',
+                             str(float(r2) * scale))
 
         self.transform_style(xml_path, trans)
 
@@ -1053,15 +1031,15 @@ class SvgToMesh(object):
             while(i < n and pdesc[i] == ' '):
                 i += 1
             if i == n:
-                #print('end of path in:', pdesc)
+                # print('end of path in:', pdesc)
                 break
-            #print('i:', i)
+            # print('i:', i)
             last_x, last_y = x, y
             last_tp = tp
             if pdesc[i] in 'mMcClLhHvVsSqQtTaA':
                 cmd = pdesc[i]
                 out_cmd.append(cmd)
-                #print('cmd:', cmd)
+                # print('cmd:', cmd)
                 i += 1
                 while pdesc[i] == ' ':
                     i += 1
@@ -1072,7 +1050,6 @@ class SvgToMesh(object):
                         x += last_x
                 if cmd not in 'hH':
                     y, i = read_point(pdesc, i, 'y')
-                    j = i + 1
                     if cmd >= 'a':
                         y += last_y
                 tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
@@ -1089,9 +1066,8 @@ class SvgToMesh(object):
                 if cmd not in 'vVhH':
                     out_cmd = out_cmd[:-2] \
                         + ['%f,%f' % (out_cmd[-2], out_cmd[-1])]
-                #print(x,', ', y)
+                # print(x,', ', y)
                 if cmd in 'cC':
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x2')
                     y, i = read_point(pdesc, i, 'y2')
                     if cmd >= 'a':
@@ -1103,7 +1079,6 @@ class SvgToMesh(object):
                     else:
                         tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
                         out_cmd.append('%f,%f' % (tp[0], tp[1]))
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x3')
                     y, i = read_point(pdesc, i, 'y3')
                     if cmd >= 'a':
@@ -1116,7 +1091,6 @@ class SvgToMesh(object):
                         tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
                         out_cmd.append('%f,%f' % (tp[0], tp[1]))
                 elif cmd in 'sSqQ':
-                    #last_x, last_y = x, y
                     x, i = read_point(pdesc, i, 'x2')
                     y, i = read_point(pdesc, i, 'y2')
                     if cmd >= 'a':
@@ -1160,7 +1134,6 @@ class SvgToMesh(object):
 
         return ' '.join([str(x) for x in out_cmd])
 
-
     def transform_rect(self, xml_path, trans):
         # additional stuff for squares
         x = xml_path.get('x')
@@ -1185,7 +1158,6 @@ class SvgToMesh(object):
 
         self.transform_style(xml_path, trans)
 
-
     def filter_element(xml_element, style=None):
         ''' Assign a processing function / method to the given element, a
         cleaning function to be called after the associated sub-tree is
@@ -1206,7 +1178,6 @@ class SvgToMesh(object):
         '''
         return None
 
-
     def merge_meshes_by_group(self, meshes):
         if not aims:
             raise RuntimeError('aims module is not available. '
@@ -1221,7 +1192,6 @@ class SvgToMesh(object):
                 for smesh in mesh_l[1:]:
                     aims.SurfaceManip.meshMerge(mesh, smesh)
                 meshes[key] = mesh
-
 
     def read_paths(self, xml_et):
         '''
@@ -1257,7 +1227,7 @@ class SvgToMesh(object):
 
             style = self.get_style(child)
             if style is None:
-                style = {} # so that read_path will not parse it again
+                style = {}  # so that read_path will not parse it again
 
             trans = self.get_transform(child, trans)
 
@@ -1324,14 +1294,14 @@ class SvgToMesh(object):
                     try:
                         if 'material' not in meshes[0].header():
                             meshes[0].header().update(child_mesh.header())
-                    except Exception as e:
+                    except Exception:
                         print('material:', self.main_group, meshes)
                         raise
                 else:
                     self.mesh_list.append(child_mesh)
                     self.get_textures(self.mesh, child, parents)
             elif child.tag.endswith('}clipPath') or child.tag == 'clipPath':
-                #print('clipPath')
+                # print('clipPath')
                 # skip clipPaths
                 pass
             elif child.tag.endswith('}text') or child.tag == 'text':
@@ -1361,10 +1331,10 @@ class SvgToMesh(object):
                 try:
                     current_text_d \
                         = current_text_o['objects'][-1]['properties']
-                except Exception as e:
+                except Exception:
                     print('error in text item:', file=sys.stderr)
                     print('current_text_o:', repr(current_text_o))
-                    #traceback.print_exc()
+                    # traceback.print_exc()
                     raise
                 current_text = current_text_d['text']
                 if text is None:
@@ -1404,7 +1374,6 @@ class SvgToMesh(object):
             return self.mesh_dict
         return self.mesh_list
 
-
     def text_description(self, xml_item, trans=None, style=None, text=''):
         props = {
             'object_type': 'TransformedObject',
@@ -1429,7 +1398,8 @@ class SvgToMesh(object):
             pos = list(np.array(trans.dot(p0)).ravel()[:2])
         font_size = None
         obj_props = {'text': text, 'position': [0, 0, 0.],
-                     'font_size': 10., 'scale': 0.1,                      'material': {'diffuse': [.5, .5, .5, 1.]}}
+                     'font_size': 10., 'scale': 0.1,
+                     'material': {'diffuse': [.5, .5, .5, 1.]}}
         trobj_props = {'position': [pos[0], pos[1], 4.]}
         props['properties'] = trobj_props
         props['objects'].append({
@@ -1442,7 +1412,7 @@ class SvgToMesh(object):
             if text_anchor is not None:
                 obj_props['text-anchor'] = text_anchor
                 if text_anchor == 'middle':
-                    pass ## TODO
+                    pass  # TODO
             font_size = style.get('font-size')
             if font_size is not None:
                 unit = ''
@@ -1459,7 +1429,7 @@ class SvgToMesh(object):
                     font_size = np.sqrt(pt[0, 0] * pt[0, 0]
                                         + pt[1, 0] * pt[1, 0])
                 if unit in ('', 'pt', 'px'):
-                    font_size *= 10. / 3.95 # arbitrary
+                    font_size *= 10. / 3.95  # arbitrary
                 obj_props['font_size'] = font_size
             font_family = style.get('font-family')
             if font_family is not None:
@@ -1468,9 +1438,9 @@ class SvgToMesh(object):
             if fill is not None and fill != 'none':
                 try:
                     col = [float(int(fill[1:3], 16)) / 255.,
-                        float(int(fill[3:5], 16)) / 255.,
-                        float(int(fill[5:7], 16)) / 255.,
-                        1.]
+                           float(int(fill[3:5], 16)) / 255.,
+                           float(int(fill[5:7], 16)) / 255.,
+                           1.]
                 except Exception as e:
                     print(e)
                     print('error while reading text color:', repr(fill))
@@ -1501,7 +1471,6 @@ class SvgToMesh(object):
         width = max([len(line) for line in text]) * scale / hw_ratio
         return [width, height]
 
-
     @staticmethod
     def extrude(mesh, distance):
         if not aims:
@@ -1521,8 +1490,13 @@ class SvgToMesh(object):
 
         walls = aims.AimsTimeSurface(3)
         walls.header().update(
-            dict([(k, copy.deepcopy(v))
-                  for k, v in six.iteritems(mesh.header())]))
+            {k: copy.deepcopy(v) for k, v in mesh.header().items()})
+        # restore shared texture images (avoid duplications)
+        if 'textures' in mesh.header():
+            for tt, tv in mesh.header()['textures'].items():
+                tim = tv.get('image')
+                if tim is not None:
+                    walls.header()['textures'][tt]['image'] = tim
         material = {}
         if 'material' in walls.header():
             material = walls.header()['material']
@@ -1566,7 +1540,6 @@ class SvgToMesh(object):
                 todo = added + todo
         print('pruned', count, 'elements out of', total)
 
-
     def copy_svg(self, xml):
         xml2 = copy.deepcopy(xml)
         todo = [xml2]
@@ -1586,13 +1559,11 @@ class SvgToMesh(object):
                 todo = item[:] + todo
         return xml2
 
-
     def copy_item_properties(self, source, dest):
         for prop in self.keep_transformed_properties:
             value = source.get(prop)
             if value is not None:
                 dest.set(prop, value)
-
 
     def replace_filter_element(self, xml):
         '''
@@ -1603,7 +1574,6 @@ class SvgToMesh(object):
         The default method always returns the input element.
         '''
         return xml
-
 
     def replace_elements(self, xml, replace_dict):
         # replace_dict: {'id': {eid: {label: label, element: xml,
@@ -1629,7 +1599,7 @@ class SvgToMesh(object):
             element = element2
             total += 1
             eid = element.get('id')
-            glabel = element.get('glabel') # glabel can replace id
+            glabel = element.get('glabel')  # glabel can replace id
             relem = None
             replace_children = False
             if eid in rid:
@@ -1674,7 +1644,7 @@ class SvgToMesh(object):
                     trans = self.get_transform(element, trans)
 
                     added = [(child, trans, element, current_id, current_label)
-                            for child in element]
+                             for child in element]
                     todo = added + todo
                 else:
                     bbox = self.boundingbox(element, trans)
@@ -1696,8 +1666,6 @@ class SvgToMesh(object):
                                            trans)
                     parent.append(new_item)
             else:
-                transm = self.get_transform(element, trans)
-
                 added = [(child, trans, element, current_id, current_label)
                          for child in element]
                 todo = added + todo
@@ -1846,7 +1814,6 @@ class SvgToMesh(object):
 
         #return ' '.join([str(x) for x in out_cmd])
 
-
     def remove_paths_outside_bounds(self, xml_group, bbmin, bbmax, trans=None):
         trans = self.get_transform(xml_group, trans)
 
@@ -1858,7 +1825,6 @@ class SvgToMesh(object):
                 to_remove.append(path)
         for path in to_remove:
             xml_group.remove(path)
-
 
     def merge_paths(self, xml_group, trans=None):
         if len(xml_group) == 0:
@@ -1872,7 +1838,7 @@ class SvgToMesh(object):
             d.append(self.transform_path(p, ptrans))
         d = ' '.join(d)
         path.set('d', d)
-        for i in six.moves.xrange(len(xml_group) - 1):
+        for i in range(len(xml_group) - 1):
             xml_group.remove(xml_group[1])
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.obj',
@@ -1896,15 +1862,14 @@ class SvgToMesh(object):
             summary['gltf_scene'] = gltf
 
         for key, mesh in meshes.items():
-            #if key is None:
-                #print('key is None, mesh:', mesh)
-                #continue
+            # if key is None:
+                # print('key is None, mesh:', mesh)
+                # continue
             if type(mesh) in (list, dict):
                 # dict object (text...), save as .aobj
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + '.aobj')
                 print('saving:', filename, '(', key, ')')
-                #open(filename, 'w').write(repr(mesh) + '\n')
                 try:
                     json.dump(mesh, open(filename, 'w'))
                     summary.setdefault('text_fnames', {})[filename] = key
@@ -2024,7 +1989,6 @@ class SvgToMesh(object):
             todo += [(child, trans) for child in elem]
         return None
 
-
     @staticmethod
     def get_metadata(xml_et):
         meta = [layer for layer in xml_et.getroot()
@@ -2065,7 +2029,6 @@ class SvgToMesh(object):
         dims = self.clip_rect_from_id(xml_et, dims_or_rect)
         doc = xml_et.getroot()
         init_w = float(doc.get('width'))
-        init_h = float(doc.get('height'))
         init_vbox = [float(x) for x in doc.get('viewBox').split()[2:]]
         ratio = init_w / init_vbox[0]
         doc.set('width', str(dims[2] * ratio))
@@ -2089,20 +2052,19 @@ class SvgToMesh(object):
 
 if __name__ == '__main__':
 
-  filenames = [
-      '/volatile/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg',
-      '/home/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg',
-      '/tmp/galeries_big.svg',
-      '/home/riviere/catacombes/plans/14/big_2017/GRS-2010-galeries.svg',
-      '/home/riviere/catacombes/plans/14/big_2017/PARIS-2017.svg',
-  ]
-  svg_filename = filenames[-1]
-  if not os.path.exists(svg_filename):
-      svg_filename = [f for f in filenames if os.path.exists(f)][0]
+    filenames = [
+        '/volatile/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg',
+        '/home/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg',
+        '/tmp/galeries_big.svg',
+        '/home/riviere/catacombes/plans/14/big_2017/GRS-2010-galeries.svg',
+        '/home/riviere/catacombes/plans/14/big_2017/PARIS-2017.svg',
+    ]
+    svg_filename = filenames[-1]
+    if not os.path.exists(svg_filename):
+        svg_filename = [f for f in filenames if os.path.exists(f)][0]
 
-  svg_mesh = SvgToMesh('bygroup')
+    svg_mesh = SvgToMesh('bygroup')
 
-  xml_et = svg_mesh.read_xml(svg_filename)
+    xml_et = svg_mesh.read_xml(svg_filename)
 
-  mesh = svg_mesh.read_paths(xml_et)
-
+    mesh = svg_mesh.read_paths(xml_et)

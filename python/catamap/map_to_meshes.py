@@ -6564,8 +6564,8 @@ The program allows to produce:
         svg_mesh.postprocess(meshes)
 
         print('saving meshes...')
-        #mesh_format = ('.obj', 'WAVEFRONT')
-        #mesh_wf_format = ('.obj', 'WAVEFRONT')
+        # mesh_format = ('.obj', 'WAVEFRONT')
+        # mesh_wf_format = ('.obj', 'WAVEFRONT')
         mesh_format = '.glb'
         mesh_wf_format = '.glb'
         summary = svg_mesh.save_mesh_dict(
