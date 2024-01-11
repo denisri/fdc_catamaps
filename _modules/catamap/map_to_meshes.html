@@ -77,12 +77,11 @@
 
 <span class="sd">These can be installed using the command::</span>
 
-<span class="sd">    python -m pip install six numpy scipy Pillow</span>
+<span class="sd">    python -m pip install numpy scipy Pillow</span>
 
 <span class="sd">* :mod:`~catamap.svg_to_mesh` submodule and its requirements (part of this</span>
 <span class="sd">  project)</span>
 <span class="sd">* xml ElementTree</span>
-<span class="sd">* six</span>
 <span class="sd">* numpy</span>
 <span class="sd">* scipy</span>
 <span class="sd">* Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick</span>
@@ -115,7 +114,7 @@
 
 <span class="sd">    python -m catamap --2d plan_14_fdc_2021_04_29.svg</span>
 
-<span class="sd">It should work using either python2 or python3.</span>
+<span class="sd">It should work using python3 (python2 support has been dropped).</span>
 <span class="sd">The 2D maps options will produce files with suffixes in the current directory:</span>
 <span class="sd">modified .svg files, .pdf and .jpg files.</span>
 
@@ -162,7 +161,8 @@
 <span class="sd">    Points orientation is important as the arrow goes from the text (above the</span>
 <span class="sd">    meshes) down to the pointed item below.</span>
 <span class="sd">**arrow_base_height_shift:** float (**3D maps**)</span>
-<span class="sd">    z shift of the base of an arrow element in the upper layer depth. The arrow head shift is specified using height_shift.</span>
+<span class="sd">    z shift of the base of an arrow element in the upper layer depth. The arrow</span>
+<span class="sd">    head shift is specified using height_shift.</span>
 <span class="sd">**block:** bool (**3D maps**)</span>
 <span class="sd">    block elements have a ceiling and walls. Meshes are extruded and tesselated</span>
 <span class="sd">    to be filled.</span>
@@ -686,12 +686,9 @@
 <span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">svg_to_mesh</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">math</span>
@@ -1630,7 +1627,7 @@
             <span class="c1"># print(&#39;arrow&#39;)</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
             <span class="n">nv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">xrange</span><span class="p">(</span><span class="n">nv</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nv</span><span class="p">):</span>
                 <span class="n">vert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">nv</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="c1">## create mesh if it doesn&#39;t exist, and assign it arrow indices</span>
             <span class="c1">#gmesh = self.mesh_dict.setdefault(self.main_group,</span>
@@ -1878,7 +1875,7 @@
                   <span class="mf">4.</span><span class="p">]</span>
         <span class="n">tr</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AffineTransformation3d</span><span class="p">()</span>
         <span class="n">tr</span><span class="o">.</span><span class="n">setTranslation</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">mesh_id</span><span class="p">,</span> <span class="n">ws_model</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_scale_model</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">mesh_id</span><span class="p">,</span> <span class="n">ws_model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">water_scale_model</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">ws_mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="n">ws_model</span><span class="p">)</span>
             <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshTransform</span><span class="p">(</span><span class="n">ws_mesh</span><span class="p">,</span> <span class="n">tr</span><span class="p">)</span>
             <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">mesh_id</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">ws_mesh</span><span class="p">)())</span>
@@ -2936,7 +2933,7 @@
 
         <span class="c1"># apply texts depths</span>
         <span class="n">text_zshift</span> <span class="o">=</span> <span class="mf">5.</span>
-        <span class="k">for</span> <span class="n">main_group</span><span class="p">,</span> <span class="n">mesh_items</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">meshes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">main_group</span><span class="p">,</span> <span class="n">mesh_items</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">main_group</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">props</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">props</span><span class="o">.</span><span class="n">text</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -3497,7 +3494,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">merge_meshes_by_group</span><span class="p">(</span><span class="n">meshes</span><span class="p">)</span>
 
         <span class="c1"># fix normals of limestone parts</span>
-        <span class="k">for</span> <span class="n">corridor</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">meshes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">corridor</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">corridor</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;calcaire&#39;</span><span class="p">)</span> \
                     <span class="ow">and</span> <span class="n">corridor</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_ceil_tri&#39;</span><span class="p">):</span>
                 <span class="n">mesh</span><span class="o">.</span><span class="n">normal</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
@@ -3612,8 +3609,7 @@
 
         <span class="n">walls</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
         <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                  <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())]))</span>
+            <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]))</span>
         <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">in</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
             <span class="n">material</span> <span class="o">=</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span>
@@ -3680,13 +3676,12 @@
                             <span class="n">poly</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">3</span><span class="p">),</span>
                                      <span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span>
 
-
     <span class="k">def</span> <span class="nf">find_text_for_arrow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
         <span class="n">dmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="n">text_min</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">point</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
         <span class="c1">#print(&#39;find_text_for_arrow&#39;, mesh, point)</span>
-        <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">mesh_items</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">meshes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">mesh_items</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">mtype</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_text&#39;</span><span class="p">):</span>
                 <span class="c1">#print(mtype, &#39; text:&#39;, mesh_items)</span>
                 <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">mesh_items</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">]:</span>
@@ -4127,7 +4122,7 @@
         <span class="k">if</span> <span class="s1">&#39;meshes&#39;</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">:</span>
             <span class="n">jmeshes</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">pmeshes</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;meshes&#39;</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;meshes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
                 <span class="n">group</span> <span class="o">=</span> <span class="n">mesh</span>
                 <span class="c1"># print(&#39;mesh:&#39;, mesh)</span>
@@ -4332,12 +4327,9 @@
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;default_categories&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">def_cat</span>
 
         <span class="k">if</span> <span class="n">json_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_obj</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                        <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_obj</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-                        <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_obj</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">json_obj</span></div></div>
 

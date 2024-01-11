@@ -77,14 +77,13 @@ Edit /etc/ImageMagick-6/policy.xml and change disk resource limit:</p>
 </ul>
 <p>Python modules:</p>
 <p>These can be installed using the command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">six</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">Pillow</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">Pillow</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><a class="reference internal" href="#module-catamap.svg_to_mesh" title="catamap.svg_to_mesh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">svg_to_mesh</span></code></a> submodule and its requirements (part of this
 project)</p></li>
 <li><p>xml ElementTree</p></li>
-<li><p>six</p></li>
 <li><p>numpy</p></li>
 <li><p>scipy</p></li>
 <li><p>Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
@@ -119,7 +118,7 @@ project)</p></li>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span> <span class="o">--</span><span class="mi">2</span><span class="n">d</span> <span class="n">plan_14_fdc_2021_04_29</span><span class="o">.</span><span class="n">svg</span>
 </pre></div>
 </div>
-<p>It should work using either python2 or python3.
+<p>It should work using python3 (python2 support has been dropped).
 The 2D maps options will produce files with suffixes in the current directory:
 modified .svg files, .pdf and .jpg files.</p>
 <p>The 3D maps option will produce meshes in a subdirectory.</p>
@@ -155,7 +154,8 @@ of them are just a segment (2 points) but they may contain more points.
 Points orientation is important as the arrow goes from the text (above the
 meshes) down to the pointed item below.</p>
 </dd>
-<dt><strong>arrow_base_height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the base of an arrow element in the upper layer depth. The arrow head shift is specified using height_shift.</p>
+<dt><strong>arrow_base_height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the base of an arrow element in the upper layer depth. The arrow
+head shift is specified using height_shift.</p>
 </dd>
 <dt><strong>block:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>block elements have a ceiling and walls. Meshes are extruded and tesselated
 to be filled.</p>
