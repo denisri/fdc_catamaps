@@ -22,7 +22,6 @@ import numpy as np
 import scipy.linalg
 import os
 import os.path as osp
-import six
 import copy
 import sys
 import math
@@ -36,7 +35,6 @@ requires:
 * xml (ElementTree)
 * numpy
 * scipy
-* six
 * optionally, soma.aims
 
   The AIMS library is used to build and manpulate meshes.
@@ -1312,8 +1310,8 @@ class SvgToMesh(object):
                     = self.mesh_dict.setdefault(
                         tgroup, {'object_type': 'List', 'objects': []})
                 text = child.text
-                if text is not None:
-                    text = six.ensure_str(text)
+                if isinstance(text, bytes):
+                    text = text.decode()
                 current_text_o = self.text_description(
                     child, trans, style=style, text=text)
                 current_text['objects'].append(current_text_o)
@@ -1340,8 +1338,8 @@ class SvgToMesh(object):
                 if text is None:
                     print('tspan without text, id:', child.get('id'))
                     text = ''
-                else:
-                    text = six.ensure_str(child.text)
+                elif isinstance(text, bytes):
+                    text = child.text.decode()
                 if not current_text:
                     current_text = text
                 else:
@@ -1461,7 +1459,9 @@ class SvgToMesh(object):
         text = text_obj.get('text')
         if not text:
             return [0, 0]
-        text = six.ensure_text(text).split('\n')
+        if isinstance(text, bytes):
+            text = text.decode()
+        text = text.split('\n')
         # assume fixed size font, with height/width ratio of 3.3.
         # also assume a final scale factor of 2.12 (old: 0.0827)
         # this is arbitrary but I don't know how to do better

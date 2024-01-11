@@ -38,12 +38,11 @@ Python modules:
 
 These can be installed using the command::
 
-    python -m pip install six numpy scipy Pillow
+    python -m pip install numpy scipy Pillow
 
 * :mod:`~catamap.svg_to_mesh` submodule and its requirements (part of this
   project)
 * xml ElementTree
-* six
 * numpy
 * scipy
 * Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
@@ -76,7 +75,7 @@ main
 
     python -m catamap --2d plan_14_fdc_2021_04_29.svg
 
-It should work using either python2 or python3.
+It should work using python3 (python2 support has been dropped).
 The 2D maps options will produce files with suffixes in the current directory:
 modified .svg files, .pdf and .jpg files.
 
@@ -123,7 +122,8 @@ Properties list
     Points orientation is important as the arrow goes from the text (above the
     meshes) down to the pointed item below.
 **arrow_base_height_shift:** float (**3D maps**)
-    z shift of the base of an arrow element in the upper layer depth. The arrow head shift is specified using height_shift.
+    z shift of the base of an arrow element in the upper layer depth. The arrow
+    head shift is specified using height_shift.
 **block:** bool (**3D maps**)
     block elements have a ceiling and walls. Meshes are extruded and tesselated
     to be filled.
@@ -647,12 +647,9 @@ map_to_meshes module API
 '''
 
 from . import svg_to_mesh
-from six.moves import range
-from six.moves import zip
 import numpy as np
 from scipy.spatial import Delaunay
 import copy
-import six
 import xml.etree.cElementTree as ET
 import datetime
 import math
@@ -1591,7 +1588,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # print('arrow')
             vert = mesh.vertex()
             nv = len(vert)
-            for i in six.moves.xrange(nv):
+            for i in range(nv):
                 vert[i][2] = i / (nv - 1)
             ## create mesh if it doesn't exist, and assign it arrow indices
             #gmesh = self.mesh_dict.setdefault(self.main_group,
@@ -1839,7 +1836,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   4.]
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
-        for mesh_id, ws_model in six.iteritems(self.water_scale_model):
+        for mesh_id, ws_model in self.water_scale_model.items():
             ws_mesh = aims.AimsTimeSurface(ws_model)
             aims.SurfaceManip.meshTransform(ws_mesh, tr)
             mesh = self.mesh_dict.setdefault(mesh_id, type(ws_mesh)())
@@ -2897,7 +2894,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         # apply texts depths
         text_zshift = 5.
-        for main_group, mesh_items in six.iteritems(meshes):
+        for main_group, mesh_items in meshes.items():
             props = self.group_properties.get(main_group)
             if not props or not props.text:
                 continue
@@ -3458,7 +3455,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.merge_meshes_by_group(meshes)
 
         # fix normals of limestone parts
-        for corridor, mesh in six.iteritems(meshes):
+        for corridor, mesh in meshes.items():
             if corridor.startswith('calcaire') \
                     and corridor.endswith('_ceil_tri'):
                 mesh.normal().assign(
@@ -3573,8 +3570,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         walls = aims.AimsTimeSurface(3)
         walls.header().update(
-            dict([(k, copy.deepcopy(v))
-                  for k, v in six.iteritems(mesh.header())]))
+            dict([(k, copy.deepcopy(v)) for k, v in mesh.header().items()]))
         material = {}
         if 'material' in walls.header():
             material = walls.header()['material']
@@ -3641,13 +3637,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
                                      (n+3, n)]
 
-
     def find_text_for_arrow(self, meshes, mesh):
         dmin = -1
         text_min = None
         point = mesh.vertex()[0][:2]
         #print('find_text_for_arrow', mesh, point)
-        for mtype, mesh_items in six.iteritems(meshes):
+        for mtype, mesh_items in meshes.items():
             if mtype.endswith('_text'):
                 #print(mtype, ' text:', mesh_items)
                 for text in mesh_items['objects']:
@@ -4088,7 +4083,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if 'meshes' in summary:
             jmeshes = []
             pmeshes = []
-            for filename, mesh in six.iteritems(summary['meshes']):
+            for filename, mesh in summary['meshes'].items():
                 filename = os.path.basename(filename)
                 group = mesh
                 # print('mesh:', mesh)
@@ -4293,12 +4288,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             json_obj['default_categories'] = def_cat
 
         if json_filename is not None:
-            if six.PY3:
-                json.dump(json_obj, open(json_filename, 'w'), indent=4,
-                        sort_keys=False, ensure_ascii=False)
-            else:
-                json.dump(json_obj, open(json_filename, 'w'), indent=4,
-                        sort_keys=False, ensure_ascii=False, encoding='utf-8')
+            with open(json_filename, 'w') as f:
+                json.dump(json_obj, f, indent=4, sort_keys=False,
+                          ensure_ascii=False)
 
         return json_obj
 

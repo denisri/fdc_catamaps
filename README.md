@@ -27,11 +27,10 @@ Python modules:
 
 These can be installed using the command:
 ```
-    python -m pip install six numpy scipy Pillow
+    python -m pip install numpy scipy Pillow
 ```
 * svg_to_mesh submodule and its requirements (part of this project)
 * xml ElementTree
-* six
 * numpy
 * scipy
 * Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
@@ -60,7 +59,7 @@ Usage
 ```
     python -m catamap --2d plan_14_fdc_2021_04_29.svg
 ```
-It should work using either python2 or python3.
+It should work using python3 (python2 support has been dropped).
 The 2D maps options will produce files with suffixes in the current directory:
 modified .svg files, .pdf and .jpg files.
 
