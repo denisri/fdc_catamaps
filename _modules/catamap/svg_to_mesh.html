@@ -63,7 +63,6 @@
 <span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="c1">#import traceback</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -107,11 +106,12 @@
 
 <div class="viewcode-block" id="aims.vector"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.vector">[docs]</a>        <span class="k">class</span> <span class="nc">vector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Fixed size vector &#39;&#39;&#39;</span>
+
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="mi">1</span>
-              <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
             <span class="k">def</span> <span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">):</span>
                 <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span><span class="p">)</span>
@@ -127,6 +127,7 @@
 
 <div class="viewcode-block" id="aims.AimsTimeSurface"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
+
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_vertex</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_polygon</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
@@ -144,12 +145,14 @@
 
 <div class="viewcode-block" id="aims.AimsTimeSurface_2"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_2">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_2</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Segments mesh (2 points per polygon) &#39;&#39;&#39;</span>
+
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="aims.AimsTimeSurface_3"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_3">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_3</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Triangles mesh (3 points per polygon) &#39;&#39;&#39;</span>
+
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_3</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div></div>
 
@@ -187,7 +190,6 @@
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_texturing</span> <span class="o">=</span> <span class="kc">False</span>
 
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_style</span><span class="p">(</span><span class="n">xml_elem</span><span class="p">):</span>
         <span class="n">style</span> <span class="o">=</span> <span class="n">xml_elem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">)</span>
@@ -198,7 +200,6 @@
         <span class="n">style</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">style</span><span class="p">]</span>
         <span class="n">style</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">y</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">style</span> <span class="k">if</span> <span class="n">x</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">style</span>
-
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">set_style</span><span class="p">(</span><span class="n">xml_elem</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
@@ -269,7 +270,7 @@
         <span class="n">pts</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">],</span>
                                  <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">h</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">h</span><span class="p">],</span>
                                  <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
-        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># reset Z to 0</span>
+        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># reset Z to 0</span>
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
@@ -282,14 +283,11 @@
             <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans3d</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">))</span>
-            <span class="c1">#if len(mesh.normal()) != 0:</span>
-                <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
-
 
 <div class="viewcode-block" id="SvgToMesh.read_circle"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_circle">[docs]</a>    <span class="k">def</span> <span class="nf">read_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a circle element as a mesh</span>
@@ -333,9 +331,9 @@
             <span class="n">angle_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">2</span>
         <span class="n">npt</span> <span class="o">=</span> <span class="mi">24</span>
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">circle_wireframe</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">r</span><span class="p">,</span> <span class="n">npt</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">angle_s</span><span class="p">,</span> <span class="n">angle_e</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">r</span><span class="p">,</span> <span class="n">npt</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">angle_s</span><span class="p">,</span> <span class="n">angle_e</span><span class="p">)</span>
         <span class="n">pts</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">np</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># reset Z to 0</span>
+        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># reset Z to 0</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
 
         <span class="n">trans3d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -346,14 +344,11 @@
             <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans3d</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">))</span>
-            <span class="c1">#if len(mesh.normal()) != 0:</span>
-                <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
-
 
 <div class="viewcode-block" id="SvgToMesh.read_polygon"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_polygon">[docs]</a>    <span class="k">def</span> <span class="nf">read_polygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a polygon element as a mesh</span>
@@ -374,10 +369,10 @@
         <span class="n">pl</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
                             <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pl</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-        <span class="c1">#print(&#39;polygon points:&#39;, points.T)</span>
+        <span class="c1"># print(&#39;polygon points:&#39;, points.T)</span>
         <span class="n">points3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">))))</span>
         <span class="n">pts</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">points3</span>
-        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># reset Z to 0</span>
+        <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># reset Z to 0</span>
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
 
@@ -389,8 +384,6 @@
             <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans3d</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">))</span>
-            <span class="c1">#if len(mesh.normal()) != 0:</span>
-                <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
         <span class="n">poly</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
@@ -399,7 +392,6 @@
         <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
-
 
 <div class="viewcode-block" id="SvgToMesh.read_path"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_path">[docs]</a>    <span class="k">def</span> <span class="nf">read_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Read a path element as mesh, apply coords transformations</span>
@@ -412,7 +404,7 @@
                     <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">])</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
-                <span class="k">while</span> <span class="n">i</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39; ,&#39;</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39; ,&#39;</span><span class="p">:</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -460,13 +452,13 @@
             <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">):</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
-                <span class="c1">#print(&#39;end of path in:&#39;, pdesc)</span>
+                <span class="c1"># print(&#39;end of path in:&#39;, pdesc)</span>
                 <span class="k">break</span>
-            <span class="c1">#print(&#39;i:&#39;, i)</span>
+            <span class="c1"># print(&#39;i:&#39;, i)</span>
             <span class="n">last_x</span><span class="p">,</span> <span class="n">last_y</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
             <span class="k">if</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39;mMcClLhHvVsSqQtTaA&#39;</span><span class="p">:</span>
                 <span class="n">cmd</span> <span class="o">=</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="c1">#print(&#39;cmd:&#39;, cmd)</span>
+                <span class="c1"># print(&#39;cmd:&#39;, cmd)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">while</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -477,25 +469,21 @@
                         <span class="n">x</span> <span class="o">+=</span> <span class="n">last_x</span>
                 <span class="k">if</span> <span class="n">cmd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;hH&#39;</span><span class="p">:</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
-                    <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
                         <span class="n">y</span> <span class="o">+=</span> <span class="n">last_y</span>
-                <span class="c1">#print(x,&#39;, &#39;, y)</span>
+                <span class="c1"># print(x,&#39;, &#39;, y)</span>
                 <span class="k">if</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="s1">&#39;cC&#39;</span><span class="p">:</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
                         <span class="n">x</span> <span class="o">+=</span> <span class="n">last_x</span>
                         <span class="n">y</span> <span class="o">+=</span> <span class="n">last_y</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x3&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y3&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
                         <span class="n">x</span> <span class="o">+=</span> <span class="n">last_x</span>
                         <span class="n">y</span> <span class="o">+=</span> <span class="n">last_y</span>
                 <span class="k">elif</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="s1">&#39;sSqQ&#39;</span><span class="p">:</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
@@ -523,7 +511,7 @@
                     <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
                     <span class="n">first</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="k">elif</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39;zZ&#39;</span><span class="p">:</span>
-                <span class="c1">#print(&#39;close&#39;)</span>
+                <span class="c1"># print(&#39;close&#39;)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">first</span> <span class="o">+</span> <span class="mi">3</span><span class="p">:</span>
                     <span class="n">poly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">first</span><span class="p">))</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[</span><span class="n">first</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
@@ -533,17 +521,16 @@
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="c1">#print(&#39;vert:&#39;, vert)</span>
-        <span class="c1">#print(&#39;poly:&#39;, poly)</span>
-        <span class="c1">#print(&#39;path trans:&#39;, trans)</span>
+        <span class="c1"># print(&#39;vert:&#39;, vert)</span>
+        <span class="c1"># print(&#39;poly:&#39;, poly)</span>
+        <span class="c1"># print(&#39;path trans:&#39;, trans)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">trans</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)):</span>
-            <span class="c1">#print(&#39;trans:&#39;, trans)</span>
-            <span class="c1">#print(vert)</span>
+            <span class="c1"># print(&#39;trans:&#39;, trans)</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
-            <span class="c1">#print(&#39;to: vert:&#39;, vert)</span>
+            <span class="c1"># print(&#39;to: vert:&#39;, vert)</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">))</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
         <span class="n">trans3d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -553,8 +540,6 @@
             <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans3d</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
             <span class="n">vert</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">))</span>
-            <span class="c1">#if len(mesh.normal()) != 0:</span>
-                <span class="c1">#print(&#39;trans normals&#39;)</span>
             <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;transformation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans3d</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">material</span><span class="p">:</span>
@@ -629,7 +614,6 @@
         <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
         <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">))</span>
-        <span class="c1">#trans2 = self.get_transform(xml_element, trans)</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
         <span class="n">uri</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.w3.org/1999/xlink}href&#39;</span><span class="p">)</span>
         <span class="n">image</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Volume_RGBA</span><span class="p">()</span>
@@ -650,6 +634,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">svg_filename</span><span class="p">)),</span> <span class="n">uri</span><span class="p">)</span>
                 <span class="n">image</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
         <span class="n">svg_p</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">header</span><span class="p">()</span>
+        <span class="n">svg_p</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>  <span class="c1"># to re-identify the image later</span>
         <span class="n">svg_p</span><span class="p">[</span><span class="s1">&#39;svg_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span>
         <span class="n">svg_p</span><span class="p">[</span><span class="s1">&#39;svg_position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pos</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">svg_p</span><span class="p">[</span><span class="s1">&#39;svg_transform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
@@ -664,6 +649,7 @@
         <span class="n">textures</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;textures&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">textures</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
+
         <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;wall_tri&#39;</span><span class="p">):</span>
             <span class="n">ttype</span> <span class="o">=</span> <span class="s1">&#39;wall_texture&#39;</span>
         <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;floor_tri&#39;</span><span class="p">):</span>
@@ -675,7 +661,6 @@
         <span class="n">tex_def</span> <span class="o">=</span> <span class="n">textures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ttype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tex_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tex_def</span> <span class="o">=</span> <span class="n">textures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;texture&#39;</span><span class="p">)</span>
-        <span class="c1"># print(&#39;tex_def for&#39;, key, &#39;:&#39;, tex_def)</span>
         <span class="k">if</span> <span class="n">tex_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -756,7 +741,6 @@
             <span class="c1"># y of textures is inverted, start at 1 (bottom) at 1st vertex</span>
             <span class="n">trans_c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">trans_c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">trans_c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">tx</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">trans_c</span>
-            <span class="c1">#print(&#39;TEX init:&#39;, tx[0])</span>
         <span class="k">return</span> <span class="n">tex</span>
 
     <span class="k">def</span> <span class="nf">geodesic2d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
@@ -811,7 +795,6 @@
                                            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
         <span class="n">xml_elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="n">mat_str</span><span class="p">)</span>
 
-
 <div class="viewcode-block" id="SvgToMesh.get_transform"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.get_transform">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -823,7 +806,7 @@
 <span class="sd">        previous: np array or None</span>
 <span class="sd">            parent transform to be composed with</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="c1">#print(&#39;transform:&#39;, trans_str)</span>
+        <span class="c1"># print(&#39;transform:&#39;, trans_str)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">mat3d</span> <span class="o">=</span> <span class="kc">None</span>
@@ -859,7 +842,6 @@
             <span class="n">tdef</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tdef1</span><span class="p">:</span>
                 <span class="n">tdef</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
-            <span class="c1">#print(ttype, tdef)</span>
             <span class="k">if</span> <span class="n">ttype</span> <span class="o">==</span> <span class="s1">&#39;matrix&#39;</span><span class="p">:</span>
                 <span class="n">mat</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tdef</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">mat</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tdef</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
@@ -900,18 +882,16 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">tmat</span> <span class="o">=</span> <span class="n">tmat</span> <span class="o">*</span> <span class="n">mat</span>
 
-        <span class="c1">#print(&#39;mat:&#39;, tmat)</span>
+        <span class="c1"># print(&#39;mat:&#39;, tmat)</span>
         <span class="k">if</span> <span class="n">mat3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tmat</span><span class="o">.</span><span class="n">transform_3d</span> <span class="o">=</span> <span class="n">mat3d</span>
         <span class="k">return</span> <span class="n">tmat</span></div>
-
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">to_transform</span><span class="p">(</span><span class="n">matrix</span><span class="p">):</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="s1">&#39;matrix(&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">matrix</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
         <span class="k">return</span> <span class="n">transform</span>
-
 
     <span class="k">def</span> <span class="nf">boundingbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exhaustive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">)]</span>
@@ -947,7 +927,6 @@
                         <span class="k">break</span>
         <span class="k">return</span> <span class="n">bbox</span>
 
-
 <div class="viewcode-block" id="SvgToMesh.transform_subtree"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_subtree">[docs]</a>    <span class="k">def</span> <span class="nf">transform_subtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">in_trans</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">otrans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; in_trans: current transform of xml subtree (out of the subtree)</span>
 <span class="sd">        trans: transform to be applied</span>
@@ -956,7 +935,6 @@
         <span class="k">if</span> <span class="n">otrans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">otrans</span> <span class="o">=</span> <span class="n">in_trans</span>
         <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xml</span><span class="p">,</span> <span class="n">in_trans</span><span class="p">,</span> <span class="n">otrans</span><span class="p">)]</span>
-        <span class="c1">#otrans = np.matrix(scipy.linalg.inv(in_trans))</span>
         <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
             <span class="n">element</span><span class="p">,</span> <span class="n">c_trans</span><span class="p">,</span> <span class="n">c_otrans</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">transm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
@@ -972,7 +950,7 @@
                 <span class="n">c_otrans</span> <span class="o">=</span> <span class="n">c_otrans</span> <span class="o">*</span> <span class="n">transm</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">transm</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">):</span>
                     <span class="n">c_otrans</span><span class="o">.</span><span class="n">transform_3d</span> <span class="o">=</span> <span class="n">transm</span><span class="o">.</span><span class="n">transform_3d</span>
-                <span class="c1">#element.set(&#39;transform&#39;, None) # FIXME: how to remove it</span>
+                <span class="c1"># element.set(&#39;transform&#39;, None) # FIXME: how to remove it</span>
             <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}g&#39;</span><span class="p">):</span>
                 <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">c_trans</span><span class="p">,</span> <span class="n">c_otrans</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span> <span class="o">+</span> <span class="n">todo</span>
             <span class="k">else</span><span class="p">:</span>
@@ -988,7 +966,6 @@
 
     <span class="k">def</span> <span class="nf">style_to_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">style</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
-
 
 <div class="viewcode-block" id="SvgToMesh.transform_style"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_style">[docs]</a>    <span class="k">def</span> <span class="nf">transform_style</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; adapt style in path/rect to scale changes (stroke width etc)</span>
@@ -1012,7 +989,6 @@
             <span class="n">style_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style_to_str</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
             <span class="n">xml_path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">style_str</span><span class="p">)</span></div>
 
-
 <div class="viewcode-block" id="SvgToMesh.transform_path"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.transform_path">[docs]</a>    <span class="k">def</span> <span class="nf">transform_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; trans: transform to be applied</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -1023,7 +999,7 @@
                     <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">])</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
-                <span class="k">while</span> <span class="n">i</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39; ,&#39;</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39; ,&#39;</span><span class="p">:</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -1031,8 +1007,10 @@
                 <span class="k">raise</span>
             <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span>
 
-        <span class="n">cx</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx&#39;</span><span class="p">)</span>
-        <span class="n">cy</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cy&#39;</span><span class="p">)</span>
+        <span class="n">cx</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cx&#39;</span><span class="p">)</span>
+        <span class="n">cy</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}cy&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">cy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">cx</span><span class="p">)],</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">cy</span><span class="p">)],</span>
                                        <span class="p">[</span><span class="mf">1.</span><span class="p">]]))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
@@ -1064,17 +1042,17 @@
                           <span class="s1">&#39;sodipodi-0.dtd}r1&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="n">trans</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span> \
+                <span class="n">trans</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span>
                 <span class="o">-</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
             <span class="n">xml_path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/&#39;</span>
-                        <span class="s1">&#39;sodipodi-0.dtd}r1&#39;</span><span class="p">,</span>
-                        <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r1</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
+                         <span class="s1">&#39;sodipodi-0.dtd}r1&#39;</span><span class="p">,</span>
+                         <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r1</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
             <span class="n">r2</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/&#39;</span>
                               <span class="s1">&#39;DTD/sodipodi-0.dtd}r2&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">r2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">xml_path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/&#39;</span>
-                            <span class="s1">&#39;sodipodi-0.dtd}r2&#39;</span><span class="p">,</span>
-                            <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
+                             <span class="s1">&#39;sodipodi-0.dtd}r2&#39;</span><span class="p">,</span>
+                             <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">transform_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
 
@@ -1092,15 +1070,15 @@
             <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">):</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
-                <span class="c1">#print(&#39;end of path in:&#39;, pdesc)</span>
+                <span class="c1"># print(&#39;end of path in:&#39;, pdesc)</span>
                 <span class="k">break</span>
-            <span class="c1">#print(&#39;i:&#39;, i)</span>
+            <span class="c1"># print(&#39;i:&#39;, i)</span>
             <span class="n">last_x</span><span class="p">,</span> <span class="n">last_y</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
             <span class="n">last_tp</span> <span class="o">=</span> <span class="n">tp</span>
             <span class="k">if</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39;mMcClLhHvVsSqQtTaA&#39;</span><span class="p">:</span>
                 <span class="n">cmd</span> <span class="o">=</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">out_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-                <span class="c1">#print(&#39;cmd:&#39;, cmd)</span>
+                <span class="c1"># print(&#39;cmd:&#39;, cmd)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">while</span> <span class="n">pdesc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -1111,7 +1089,6 @@
                         <span class="n">x</span> <span class="o">+=</span> <span class="n">last_x</span>
                 <span class="k">if</span> <span class="n">cmd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;hH&#39;</span><span class="p">:</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)</span>
-                    <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
                         <span class="n">y</span> <span class="o">+=</span> <span class="n">last_y</span>
                 <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">x</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]]))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
@@ -1128,9 +1105,8 @@
                 <span class="k">if</span> <span class="n">cmd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;vVhH&#39;</span><span class="p">:</span>
                     <span class="n">out_cmd</span> <span class="o">=</span> <span class="n">out_cmd</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> \
                         <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_cmd</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">out_cmd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
-                <span class="c1">#print(x,&#39;, &#39;, y)</span>
+                <span class="c1"># print(x,&#39;, &#39;, y)</span>
                 <span class="k">if</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="s1">&#39;cC&#39;</span><span class="p">:</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">)</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
@@ -1142,7 +1118,6 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">x</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]]))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
                         <span class="n">out_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tp</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x3&#39;</span><span class="p">)</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y3&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
@@ -1155,7 +1130,6 @@
                         <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="n">x</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]]))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
                         <span class="n">out_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tp</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
                 <span class="k">elif</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="s1">&#39;sSqQ&#39;</span><span class="p">:</span>
-                    <span class="c1">#last_x, last_y = x, y</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">)</span>
                     <span class="n">y</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">read_point</span><span class="p">(</span><span class="n">pdesc</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">cmd</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
@@ -1199,7 +1173,6 @@
 
         <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">out_cmd</span><span class="p">])</span></div>
 
-
     <span class="k">def</span> <span class="nf">transform_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
         <span class="c1"># additional stuff for squares</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
@@ -1224,7 +1197,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">transform_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
 
-
 <div class="viewcode-block" id="SvgToMesh.filter_element"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.filter_element">[docs]</a>    <span class="k">def</span> <span class="nf">filter_element</span><span class="p">(</span><span class="n">xml_element</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Assign a processing function / method to the given element, a</span>
 <span class="sd">        cleaning function to be called after the associated sub-tree is</span>
@@ -1245,7 +1217,6 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-
     <span class="k">def</span> <span class="nf">merge_meshes_by_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">aims</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;aims module is not available. &#39;</span>
@@ -1260,7 +1231,6 @@
                 <span class="k">for</span> <span class="n">smesh</span> <span class="ow">in</span> <span class="n">mesh_l</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
                     <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">smesh</span><span class="p">)</span>
                 <span class="n">meshes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span>
-
 
 <div class="viewcode-block" id="SvgToMesh.read_paths"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_paths">[docs]</a>    <span class="k">def</span> <span class="nf">read_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1296,7 +1266,7 @@
 
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">style</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># so that read_path will not parse it again</span>
+                <span class="n">style</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># so that read_path will not parse it again</span>
 
             <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
 
@@ -1363,14 +1333,14 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">meshes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
                             <span class="n">meshes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child_mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;material:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span><span class="p">,</span> <span class="n">meshes</span><span class="p">)</span>
                         <span class="k">raise</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mesh_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_mesh</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">get_textures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}clipPath&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;clipPath&#39;</span><span class="p">:</span>
-                <span class="c1">#print(&#39;clipPath&#39;)</span>
+                <span class="c1"># print(&#39;clipPath&#39;)</span>
                 <span class="c1"># skip clipPaths</span>
                 <span class="k">pass</span>
             <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}text&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span>
@@ -1400,10 +1370,10 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">current_text_d</span> \
                         <span class="o">=</span> <span class="n">current_text_o</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error in text item:&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;current_text_o:&#39;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">current_text_o</span><span class="p">))</span>
-                    <span class="c1">#traceback.print_exc()</span>
+                    <span class="c1"># traceback.print_exc()</span>
                     <span class="k">raise</span>
                 <span class="n">current_text</span> <span class="o">=</span> <span class="n">current_text_d</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1443,7 +1413,6 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_dict</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_list</span></div>
 
-
     <span class="k">def</span> <span class="nf">text_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_item</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="n">props</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;object_type&#39;</span><span class="p">:</span> <span class="s1">&#39;TransformedObject&#39;</span><span class="p">,</span>
@@ -1468,7 +1437,8 @@
             <span class="n">pos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">font_size</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">obj_props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span> <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
-                     <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mf">10.</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>                      <span class="s1">&#39;material&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}}</span>
+                     <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mf">10.</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                     <span class="s1">&#39;material&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}}</span>
         <span class="n">trobj_props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">4.</span><span class="p">]}</span>
         <span class="n">props</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trobj_props</span>
         <span class="n">props</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
@@ -1481,7 +1451,7 @@
             <span class="k">if</span> <span class="n">text_anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">obj_props</span><span class="p">[</span><span class="s1">&#39;text-anchor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text_anchor</span>
                 <span class="k">if</span> <span class="n">text_anchor</span> <span class="o">==</span> <span class="s1">&#39;middle&#39;</span><span class="p">:</span>
-                    <span class="k">pass</span> <span class="c1">## TODO</span>
+                    <span class="k">pass</span>  <span class="c1"># TODO</span>
             <span class="n">font_size</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font-size&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -1498,7 +1468,7 @@
                     <span class="n">font_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                                         <span class="o">+</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;pt&#39;</span><span class="p">,</span> <span class="s1">&#39;px&#39;</span><span class="p">):</span>
-                    <span class="n">font_size</span> <span class="o">*=</span> <span class="mf">10.</span> <span class="o">/</span> <span class="mf">3.95</span> <span class="c1"># arbitrary</span>
+                    <span class="n">font_size</span> <span class="o">*=</span> <span class="mf">10.</span> <span class="o">/</span> <span class="mf">3.95</span>  <span class="c1"># arbitrary</span>
                 <span class="n">obj_props</span><span class="p">[</span><span class="s1">&#39;font_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">font_size</span>
             <span class="n">font_family</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font-family&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">font_family</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1507,9 +1477,9 @@
             <span class="k">if</span> <span class="n">fill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fill</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">col</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fill</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                        <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fill</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                        <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fill</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
-                        <span class="mf">1.</span><span class="p">]</span>
+                           <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fill</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
+                           <span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fill</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span><span class="p">,</span>
+                           <span class="mf">1.</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error while reading text color:&#39;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">fill</span><span class="p">))</span>
@@ -1540,7 +1510,6 @@
         <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">])</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">hw_ratio</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
 
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">extrude</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">distance</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">aims</span><span class="p">:</span>
@@ -1560,8 +1529,13 @@
 
         <span class="n">walls</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
         <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                  <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())]))</span>
+            <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="c1"># restore shared texture images (avoid duplications)</span>
+        <span class="k">if</span> <span class="s1">&#39;textures&#39;</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">tt</span><span class="p">,</span> <span class="n">tv</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;textures&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">tim</span> <span class="o">=</span> <span class="n">tv</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;textures&#39;</span><span class="p">][</span><span class="n">tt</span><span class="p">][</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tim</span>
         <span class="n">material</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="s1">&#39;material&#39;</span> <span class="ow">in</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">():</span>
             <span class="n">material</span> <span class="o">=</span> <span class="n">walls</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span>
@@ -1605,7 +1579,6 @@
                 <span class="n">todo</span> <span class="o">=</span> <span class="n">added</span> <span class="o">+</span> <span class="n">todo</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pruned&#39;</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="s1">&#39;elements out of&#39;</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">copy_svg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">xml2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml2</span><span class="p">]</span>
@@ -1625,13 +1598,11 @@
                 <span class="n">todo</span> <span class="o">=</span> <span class="n">item</span><span class="p">[:]</span> <span class="o">+</span> <span class="n">todo</span>
         <span class="k">return</span> <span class="n">xml2</span>
 
-
     <span class="k">def</span> <span class="nf">copy_item_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">dest</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_transformed_properties</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">dest</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-
 
 <div class="viewcode-block" id="SvgToMesh.replace_filter_element"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.replace_filter_element">[docs]</a>    <span class="k">def</span> <span class="nf">replace_filter_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1642,7 +1613,6 @@
 <span class="sd">        The default method always returns the input element.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">xml</span></div>
-
 
     <span class="k">def</span> <span class="nf">replace_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">):</span>
         <span class="c1"># replace_dict: {&#39;id&#39;: {eid: {label: label, element: xml,</span>
@@ -1668,7 +1638,7 @@
             <span class="n">element</span> <span class="o">=</span> <span class="n">element2</span>
             <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">eid</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-            <span class="n">glabel</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;glabel&#39;</span><span class="p">)</span> <span class="c1"># glabel can replace id</span>
+            <span class="n">glabel</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;glabel&#39;</span><span class="p">)</span>  <span class="c1"># glabel can replace id</span>
             <span class="n">relem</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">rid</span><span class="p">:</span>
@@ -1713,7 +1683,7 @@
                     <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
 
                     <span class="n">added</span> <span class="o">=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">current_id</span><span class="p">,</span> <span class="n">current_label</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
+                             <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
                     <span class="n">todo</span> <span class="o">=</span> <span class="n">added</span> <span class="o">+</span> <span class="n">todo</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
@@ -1735,8 +1705,6 @@
                                            <span class="n">trans</span><span class="p">)</span>
                     <span class="n">parent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_item</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">transm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
-
                 <span class="n">added</span> <span class="o">=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">current_id</span><span class="p">,</span> <span class="n">current_label</span><span class="p">)</span>
                          <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
                 <span class="n">todo</span> <span class="o">=</span> <span class="n">added</span> <span class="o">+</span> <span class="n">todo</span>
@@ -1885,7 +1853,6 @@
 
         <span class="c1">#return &#39; &#39;.join([str(x) for x in out_cmd])</span>
 
-
     <span class="k">def</span> <span class="nf">remove_paths_outside_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_group</span><span class="p">,</span> <span class="n">bbmin</span><span class="p">,</span> <span class="n">bbmax</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">xml_group</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
 
@@ -1897,7 +1864,6 @@
                 <span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
             <span class="n">xml_group</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">merge_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_group</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xml_group</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1911,7 +1877,7 @@
             <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform_path</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ptrans</span><span class="p">))</span>
         <span class="n">d</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
         <span class="n">path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_group</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_group</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">xml_group</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">xml_group</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
 <div class="viewcode-block" id="SvgToMesh.save_mesh_dict"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.save_mesh_dict">[docs]</a>    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.obj&#39;</span><span class="p">,</span>
@@ -1935,15 +1901,14 @@
             <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gltf</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="c1">#if key is None:</span>
-                <span class="c1">#print(&#39;key is None, mesh:&#39;, mesh)</span>
-                <span class="c1">#continue</span>
+            <span class="c1"># if key is None:</span>
+                <span class="c1"># print(&#39;key is None, mesh:&#39;, mesh)</span>
+                <span class="c1"># continue</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="c1"># dict object (text...), save as .aobj</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span>
                                         <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.aobj&#39;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
-                <span class="c1">#open(filename, &#39;w&#39;).write(repr(mesh) + &#39;\n&#39;)</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
                     <span class="n">summary</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;text_fnames&#39;</span><span class="p">,</span> <span class="p">{})[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
@@ -2063,7 +2028,6 @@
             <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">]</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">xml_et</span><span class="p">):</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="p">[</span><span class="n">layer</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml_et</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
@@ -2104,7 +2068,6 @@
         <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_rect_from_id</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">dims_or_rect</span><span class="p">)</span>
         <span class="n">doc</span> <span class="o">=</span> <span class="n">xml_et</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
         <span class="n">init_w</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
-        <span class="n">init_h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
         <span class="n">init_vbox</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewBox&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]]</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="n">init_w</span> <span class="o">/</span> <span class="n">init_vbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">doc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">))</span>
@@ -2128,23 +2091,22 @@
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
 
-  <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="s1">&#39;/volatile/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg&#39;</span><span class="p">,</span>
-      <span class="s1">&#39;/home/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg&#39;</span><span class="p">,</span>
-      <span class="s1">&#39;/tmp/galeries_big.svg&#39;</span><span class="p">,</span>
-      <span class="s1">&#39;/home/riviere/catacombes/plans/14/big_2017/GRS-2010-galeries.svg&#39;</span><span class="p">,</span>
-      <span class="s1">&#39;/home/riviere/catacombes/plans/14/big_2017/PARIS-2017.svg&#39;</span><span class="p">,</span>
-  <span class="p">]</span>
-  <span class="n">svg_filename</span> <span class="o">=</span> <span class="n">filenames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">):</span>
-      <span class="n">svg_filename</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;/volatile/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/home/riviere/neurosvn/capsul/trunk/doc/source/_static/capsul_logo.svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/tmp/galeries_big.svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/home/riviere/catacombes/plans/14/big_2017/GRS-2010-galeries.svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;/home/riviere/catacombes/plans/14/big_2017/PARIS-2017.svg&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">svg_filename</span> <span class="o">=</span> <span class="n">filenames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">):</span>
+        <span class="n">svg_filename</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
 
-  <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">SvgToMesh</span><span class="p">(</span><span class="s1">&#39;bygroup&#39;</span><span class="p">)</span>
+    <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">SvgToMesh</span><span class="p">(</span><span class="s1">&#39;bygroup&#39;</span><span class="p">)</span>
 
-  <span class="n">xml_et</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_xml</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">)</span>
+    <span class="n">xml_et</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_xml</span><span class="p">(</span><span class="n">svg_filename</span><span class="p">)</span>
 
-  <span class="n">mesh</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_paths</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
-
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_paths</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
 </pre></div>
 
             <div class="clearer"></div>
