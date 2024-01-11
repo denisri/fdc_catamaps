@@ -1151,12 +1151,12 @@
         var x = -spos[0];
         var y = spos[1];
         var z = spos[2];
-        max_dist = spos[3];
+        max_dist = spos[4];
         var fname = sounds[i][1][0];
         // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
         var snd_pos = new THREE.Vector3( x, y, z );
         var dist = point.distanceTo( snd_pos );
-        // console.log( 'distance:', dist );
+        // console.log( 'distance:', dist, ', min:', min_dist );
         if( i == 0 )
           min_dist = dist;
         if( dist <= min_dist && dist < max_dist )
