@@ -49,8 +49,10 @@ AUTHOR_EMAIL = "none"
 PLATFORMS = "OS Independent"
 PROVIDES = ["fdc_catamaps"]
 REQUIRES = [
-    "six~=1.12",
     "argparse",
+    "numpy",
+    "scipy",
+    "Pillow"
 ]
 EXTRA_REQUIRES = {
     "doc": ["sphinx>=" + SPHINX_MIN_VERSION]}
