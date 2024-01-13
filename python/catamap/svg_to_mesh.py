@@ -864,7 +864,9 @@ class SvgToMesh(object):
             else:
                 if element.tag.endswith('}path') \
                         or element.tag.endswith('}rect') \
-                        or element.tag.endswith('}image'):
+                        or element.tag.endswith('}image') \
+                        or element.tag.endswith('}circle') \
+                        or element.tag.endswith('}ellipse'):
                     if trans is None:
                         trans = np.matrix(np.eye(3))
                     mesh = self.read_path(element, trans)
@@ -1257,7 +1259,8 @@ class SvgToMesh(object):
                     or child.tag.endswith('}path') \
                     or child.tag.endswith('}rect') \
                     or child.tag.endswith('}polygon') \
-                    or child.tag.endswith('}circle'):
+                    or child.tag.endswith('}circle') \
+                    or child.tag.endswith('}ellipse'):
                 child_mesh = self.read_path(child, trans, style)
                 if self.concat_mesh == 'merge':
                     aims.SurfaceManip.meshMerge(self.mesh, child_mesh)
@@ -1989,14 +1992,17 @@ class SvgToMesh(object):
             todo += [(child, trans) for child in elem]
         return None
 
-    @staticmethod
-    def get_metadata(xml_et):
+    def get_metadata(self, xml_et):
+        meta = getattr(self, 'svg_metadata', None)
+        if meta is not None:
+            return meta
         meta = [layer for layer in xml_et.getroot()
                 if layer.tag.endswith('}metadata')]
         if len(meta) != 0:
             meta = meta[0]
         else:
             meta = {}
+        self.svg_metadata = meta
         return meta
 
     def clip_rect_from_id(self, xml_et, rect_id):
