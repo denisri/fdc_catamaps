@@ -855,7 +855,7 @@
           return Math.pow( 2, Math.ceil( Math.log( aSize ) / Math.log( 2 ) ) );
         }
 
-        if( category == 2 ) // texts
+        if( category == 2 && texts ) // texts
         {
             for( i=0; i<texts.length; i++ )
             {
