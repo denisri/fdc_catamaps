@@ -318,6 +318,8 @@ Properties list
     operations.
 **symbol:** bool (**3D maps**)
     not sure it is used, after all...
+**symbol_scale:** float (**3D maps**)
+    in the metadata layer, scale of symbol meshes (markers, fontis, etc)
 **text:** bool (**3D maps**)
     text layers.
 **texture:** JSON dict (**3D maps**)
@@ -1600,9 +1602,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             #gmesh.arrow_indices.append(len(gmesh.vertex()))
         return mesh
 
-
     def read_paths(self, xml):
-        #print('### read_paths')
+        # print('### read_paths')
+        self.symbol_scale = 1.
+        meta = self.get_metadata(xml)
+        symbol_scale = meta.get('symbol_scale')
+        if symbol_scale is not None:
+            self.symbol_scale = float(symbol_scale)
+
         if self.skull_mesh is None:
             self.skull_mesh = self.make_skull_model(xml)
         if self.water_scale_model is None:
@@ -3765,7 +3772,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         skmesh_w.vertex().assign(vert)
         return skmesh_w
 
-
     def make_fontis_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
@@ -3801,7 +3807,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         vert += [0., 0., - bbmin[2]]
         fmesh_w.vertex().assign(vert)
         return fmesh_w
-
 
     def make_water_scale_model(self, pos, size):
         s1 = size * 0.1
@@ -3857,7 +3862,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 'etiage_wall_tri': mesh,
                 'etiage_water_tri': water}
 
-
     def make_lily_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
@@ -3872,7 +3876,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         for child in lproto['element']:
             aims.SurfaceManip.meshMerge(
                 lily_l, self.read_path(child,
-                                         self.proto_scale * lproto['trans']))
+                                       self.proto_scale * lproto['trans']))
         lily_up_l, lily_w = self.extrude(lily_l, 1.)
         lily_bk = self.tesselate(lily_l)
         lily_up = self.tesselate(lily_up_l)
@@ -3897,7 +3901,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         vert += [0., 0., 1.5 - bbmin[2]]
         lily_w.vertex().assign(vert)
         return lily_w
-
 
     def make_large_sign_model(self, xml):
         cm = CataMapTo2DMap()
@@ -3946,28 +3949,31 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         lily_w.vertex().assign(vert)
         return lily_w
 
-
     def make_stair_symbol_model(self):
         return self.make_spiral_stair([0, 0], 1., 0., 1.5)
 
-
     def make_sounds_marker_model(self):
-        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.5, 80)
-        cone = aims.SurfaceGenerator.cone((0, 0, 2.5), (1.3, 0., 2.7), 0.5, 12,
+        scale = self.symbol_scale
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5 * scale),
+                                               0.5 * scale, 80)
+        cone = aims.SurfaceGenerator.cone((0, 0, 2.5 * scale),
+                                          (1.3 * scale, 0., 2.7 * scale),
+                                          0.5 * scale, 12,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [.8, 0.6, 0., 1.]}
         return mesh
 
-
     def make_photos_marker_model(self):
-        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5), 0.5, 80)
-        cone = aims.SurfaceGenerator.cone((0, 0, 1.), (0, 0, 2.5), 0.15, 6,
+        scale = self.symbol_scale
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5 * scale),
+                                               0.5 * scale, 80)
+        cone = aims.SurfaceGenerator.cone((0, 0, scale),
+                                          (0, 0, 2.5 * scale), 0.15 * scale, 6,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [1., 0., 0., 1.]}
         return mesh
-
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.glb',
                        mesh_wf_format='.glb', json_filename=None,
