@@ -1440,7 +1440,7 @@
               var photo = document.getElementById( 'photo_frame' );
               var parent = document.getElementById( 'media_frame' );
               var photo_files = parent.photos;
-              var player = document.getElementById( 'media_player' )
+              var player = document.getElementById( 'media_player' );
               if( photo )
                 parent.removeChild( photo );
               var tag = photo_files[num][1];
@@ -1483,7 +1483,11 @@
               photo.src = photo_files[num][0];
               if( tag == 'video' )
               {
-                stop_sound();  // avoid sound + video at the same time
+                // stop_sound();  // avoid sound + video at the same time
+                // curiously the above line now causes
+                // "stop_sound is not defined" error. Why ?
+                var mediaElement = document.getElementById( 'audio_player' );
+                mediaElement.pause();
 
                 photo.controls = 'true';
                 photo.style.maxHeight = '90%';
