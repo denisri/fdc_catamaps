@@ -357,6 +357,8 @@
 <span class="sd">    operations.</span>
 <span class="sd">**symbol:** bool (**3D maps**)</span>
 <span class="sd">    not sure it is used, after all...</span>
+<span class="sd">**symbol_scale:** float (**3D maps**)</span>
+<span class="sd">    in the metadata layer, scale of symbol meshes (markers, fontis, etc)</span>
 <span class="sd">**text:** bool (**3D maps**)</span>
 <span class="sd">    text layers.</span>
 <span class="sd">**texture:** JSON dict (**3D maps**)</span>
@@ -1639,9 +1641,14 @@
             <span class="c1">#gmesh.arrow_indices.append(len(gmesh.vertex()))</span>
         <span class="k">return</span> <span class="n">mesh</span></div>
 
-
 <div class="viewcode-block" id="CataSvgToMesh.read_paths"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.read_paths">[docs]</a>    <span class="k">def</span> <span class="nf">read_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="c1">#print(&#39;### read_paths&#39;)</span>
+        <span class="c1"># print(&#39;### read_paths&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbol_scale</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+        <span class="n">symbol_scale</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;symbol_scale&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">symbol_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">symbol_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">symbol_scale</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">skull_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">skull_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_skull_model</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">water_scale_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3804,7 +3811,6 @@
         <span class="n">skmesh_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">skmesh_w</span>
 
-
     <span class="k">def</span> <span class="nf">make_fontis_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
         <span class="n">protos</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">find_protos</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -3840,7 +3846,6 @@
         <span class="n">vert</span> <span class="o">+=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span> <span class="n">bbmin</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
         <span class="n">fmesh_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fmesh_w</span>
-
 
     <span class="k">def</span> <span class="nf">make_water_scale_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
         <span class="n">s1</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="mf">0.1</span>
@@ -3896,7 +3901,6 @@
                 <span class="s1">&#39;etiage_wall_tri&#39;</span><span class="p">:</span> <span class="n">mesh</span><span class="p">,</span>
                 <span class="s1">&#39;etiage_water_tri&#39;</span><span class="p">:</span> <span class="n">water</span><span class="p">}</span>
 
-
     <span class="k">def</span> <span class="nf">make_lily_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
         <span class="n">protos</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">find_protos</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
@@ -3911,7 +3915,7 @@
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">lproto</span><span class="p">[</span><span class="s1">&#39;element&#39;</span><span class="p">]:</span>
             <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span>
                 <span class="n">lily_l</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">child</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">lproto</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]))</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">lproto</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]))</span>
         <span class="n">lily_up_l</span><span class="p">,</span> <span class="n">lily_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extrude</span><span class="p">(</span><span class="n">lily_l</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
         <span class="n">lily_bk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">lily_l</span><span class="p">)</span>
         <span class="n">lily_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tesselate</span><span class="p">(</span><span class="n">lily_up_l</span><span class="p">)</span>
@@ -3936,7 +3940,6 @@
         <span class="n">vert</span> <span class="o">+=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">bbmin</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
         <span class="n">lily_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lily_w</span>
-
 
     <span class="k">def</span> <span class="nf">make_large_sign_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">CataMapTo2DMap</span><span class="p">()</span>
@@ -3985,28 +3988,31 @@
         <span class="n">lily_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lily_w</span>
 
-
     <span class="k">def</span> <span class="nf">make_stair_symbol_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_spiral_stair</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">make_sounds_marker_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
-        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.3</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">2.7</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_scale</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+                                               <span class="mf">0.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">2.7</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+                                          <span class="mf">0.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span>
                                           <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cone</span><span class="p">)</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.8</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
         <span class="k">return</span> <span class="n">mesh</span>
 
-
     <span class="k">def</span> <span class="nf">make_photos_marker_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
-        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_scale</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+                                               <span class="mf">0.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="mf">0.15</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
                                           <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cone</span><span class="p">)</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
         <span class="k">return</span> <span class="n">mesh</span>
-
 
 <div class="viewcode-block" id="CataSvgToMesh.save_mesh_dict"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict">[docs]</a>    <span class="k">def</span> <span class="nf">save_mesh_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;.glb&#39;</span><span class="p">,</span>
                        <span class="n">mesh_wf_format</span><span class="o">=</span><span class="s1">&#39;.glb&#39;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>

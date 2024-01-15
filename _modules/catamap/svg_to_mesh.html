@@ -903,7 +903,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}path&#39;</span><span class="p">)</span> \
                         <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}rect&#39;</span><span class="p">)</span> \
-                        <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}image&#39;</span><span class="p">):</span>
+                        <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}image&#39;</span><span class="p">)</span> \
+                        <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}circle&#39;</span><span class="p">)</span> \
+                        <span class="ow">or</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}ellipse&#39;</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">trans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
                     <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
@@ -1296,7 +1298,8 @@
                     <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}path&#39;</span><span class="p">)</span> \
                     <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}rect&#39;</span><span class="p">)</span> \
                     <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}polygon&#39;</span><span class="p">)</span> \
-                    <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}circle&#39;</span><span class="p">):</span>
+                    <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}circle&#39;</span><span class="p">)</span> \
+                    <span class="ow">or</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}ellipse&#39;</span><span class="p">):</span>
                 <span class="n">child_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">concat_mesh</span> <span class="o">==</span> <span class="s1">&#39;merge&#39;</span><span class="p">:</span>
                     <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">child_mesh</span><span class="p">)</span>
@@ -2028,14 +2031,17 @@
             <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">]</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">xml_et</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">):</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;svg_metadata&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">meta</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="p">[</span><span class="n">layer</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml_et</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}metadata&#39;</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">svg_metadata</span> <span class="o">=</span> <span class="n">meta</span>
         <span class="k">return</span> <span class="n">meta</span>
 
     <span class="k">def</span> <span class="nf">clip_rect_from_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_et</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">):</span>
