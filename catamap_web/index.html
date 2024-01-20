@@ -925,60 +925,63 @@
                         }
                         var text = tobj.properties.text;
         //                 console.debug('text:', text);
-
-                        // text in sprite
-
-                        var bitmap = document.createElement('canvas');
-                        var g = bitmap.getContext('2d');
-                        fsize *= 4;
-                        if( fsize < 20 )
+                        if( text != null )
                         {
-                            scale *= fsize / 20.;
-                            fsize = 20;
+
+                            // text in sprite
+
+                            var bitmap = document.createElement('canvas');
+                            var g = bitmap.getContext('2d');
+                            fsize *= 4;
+                            if( fsize < 20 )
+                            {
+                                scale *= fsize / 20.;
+                                fsize = 20;
+                            }
+                            g.font = 'Bold ' + fsize + 'px ' + ffamily;
+
+            //                 var w = g.measureText(text).width;
+                            var w = 0;
+                            var lines = text.split('\n');
+                            for( i=0; i!=lines.length; i++ )
+                            {
+                              w = Math.max( w, g.measureText( lines[i] ).width );
+                            }
+                            if( w < 16 )
+                                w = 16;
+                            var hratio = 1.6;
+                            var h = g.measureText('M').width * hratio * lines.length;
+                            bitmap.width = nextPow2( w + 5 );
+                            bitmap.height = nextPow2( h + 5 );
+            //                 console.debug('text size:', bitmap.width, bitmap.height );
+                            g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                            g.fillStyle = fillcol;
+            //                 g.fillText(text, 0, fsize);
+                            fillTextMultiLine( g, text, 0, fsize, hratio );
+                            g.strokeStyle = 'black';
+            //                 g.strokeText(text, 0, fsize);
+                            strokeTextMultiLine( g, text, 0, fsize, hratio );
+
+                            // canvas contents will be used for a texture
+                            var texture = new THREE.Texture(bitmap);
+                            texture.needsUpdate = true;
+                            var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
+                            var sprite = new THREE.Sprite( spritmat );
+                            sprite.scale.set( w * 0.1, h * 0.1 );
+                //             sprite.scale.x = sprite.scale.x * scale;
+                //             sprite.scale.y = sprite.scale.y * scale;
+                //             sprite.scale.z = sprite.scale.z * scale;
+    //                         sprite.position.x = -pos[0]; // + bitmap.width / 2 * sprite.scale.x;
+                            // the svg position is under the 1st line of text
+                            var y_shift = 1.; // / lines.length;
+                            sprite.position.x = -pos[0] - sprite.scale.x / 4;
+                            sprite.position.y = pos[1] + sprite.scale.y * y_shift * 0.25;
+                            sprite.position.z = pos[2] + sprite.scale.y * y_shift * 0.5;
+
+                            // console.debug("lines:", lines.length, ", yshift:", y_shift);
+
+                            group.add( sprite );
                         }
-                        g.font = 'Bold ' + fsize + 'px ' + ffamily;
-
-        //                 var w = g.measureText(text).width;
-                        var w = 0;
-                        var lines = text.split('\n');
-                        for( i=0; i!=lines.length; i++ )
-                        {
-                          w = Math.max( w, g.measureText( lines[i] ).width );
-                        }
-                        if( w < 16 )
-                            w = 16;
-                        var hratio = 1.6;
-                        var h = g.measureText('M').width * hratio * lines.length;
-                        bitmap.width = nextPow2( w + 5 );
-                        bitmap.height = nextPow2( h + 5 );
-        //                 console.debug('text size:', bitmap.width, bitmap.height );
-                        g.font = 'Bold ' + fsize + 'px ' + ffamily;
-                        g.fillStyle = fillcol;
-        //                 g.fillText(text, 0, fsize);
-                        fillTextMultiLine( g, text, 0, fsize, hratio );
-                        g.strokeStyle = 'black';
-        //                 g.strokeText(text, 0, fsize);
-                        strokeTextMultiLine( g, text, 0, fsize, hratio );
-
-                        // canvas contents will be used for a texture
-                        var texture = new THREE.Texture(bitmap);
-                        texture.needsUpdate = true;
-                        var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
-                        var sprite = new THREE.Sprite( spritmat );
-                        sprite.scale.set( w * 0.1, h * 0.1 );
-            //             sprite.scale.x = sprite.scale.x * scale;
-            //             sprite.scale.y = sprite.scale.y * scale;
-            //             sprite.scale.z = sprite.scale.z * scale;
-//                         sprite.position.x = -pos[0]; // + bitmap.width / 2 * sprite.scale.x;
-                        // the svg position is under the 1st line of text
-                        var y_shift = 1.; // / lines.length;
-                        sprite.position.x = -pos[0] - sprite.scale.x / 4;
-                        sprite.position.y = pos[1] + sprite.scale.y * y_shift * 0.25;
-                        sprite.position.z = pos[2] + sprite.scale.y * y_shift * 0.5;
-
-                        // console.debug("lines:", lines.length, ", yshift:", y_shift);
-
-                        group.add( sprite );
                       }
 
                       scene.add( group );
