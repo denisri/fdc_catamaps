@@ -345,6 +345,19 @@ below for details.</p>
 </dd>
 <dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
 </dd>
+<dt><strong>travel_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level used to define the 3D ground level. It is used to adapt the
+travel speed scale (for 3D controls) depending to the altitude of the
+camera to this level. Up to now the level is assimilated to its average
+altitude, but this could be refined to approximate a plane, if needed.
+The default is the <code class="docutils literal notranslate"><span class="pre">sup</span></code> level (default level for all elements).</p>
+</dd>
+<dt><strong>travel_speed_base:</strong> float (<strong>3D maps</strong>)</dt><dd><p>Travel speed factor for 3D controls at the altitude of the <code class="docutils literal notranslate"><span class="pre">travel_level</span></code>
+altitude, which is the minimum speed. The default is <strong>0.03</strong>.</p>
+</dd>
+<dt><strong>travel_speed_alt_factor:</strong> float (<strong>3D maps</strong>)</dt><dd><p>Scale factor applied to the distance to the <code class="docutils literal notranslate"><span class="pre">travel</span> <span class="pre">level</span></code> to adapt the
+travel speed: speed increases with this “elevation” according to this
+factor. The default is: <strong>0.003</strong>.</p>
+</dd>
 <dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
 levels (wells, arrows)</p>
 </dd>
@@ -756,6 +769,11 @@ GLTF (“.gltf” or “.glb”), or None (not saved here).</p>
 under the key “gltf_scene”.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed">
+<span class="sig-name descname"><span class="pre">setup_travel_speed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.setup_travel_speed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1097,6 +1115,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_path"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_path()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_paths"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_paths()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.save_mesh_dict()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.setup_travel_speed()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.map_to_meshes.DefaultItemProperties"><code class="docutils literal notranslate"><span class="pre">DefaultItemProperties</span></code></a></li>
