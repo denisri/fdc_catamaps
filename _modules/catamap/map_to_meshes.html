@@ -709,6 +709,7 @@
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">PIL.Image</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -2248,8 +2249,9 @@
     <span class="k">def</span> <span class="nf">read_depth_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child_xml</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">text_span</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">child_xml</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;tspan&#39;</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_span</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="n">text_span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">text_span</span><span class="p">])</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;[0-9.]+&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">depth</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;error in SVG, in depth text: found non-float value:&#39;</span><span class="p">,</span>
@@ -2720,7 +2722,6 @@
         <span class="n">gray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_img</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gray</span>
 
-
     <span class="k">def</span> <span class="nf">ground_altitude_bdalti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">slope</span> \
             <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambert_coords</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">intercept</span>
@@ -2730,14 +2731,12 @@
                          <span class="n">background_z</span><span class="o">=</span><span class="mf">50.</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">z</span>
 
-
     <span class="k">def</span> <span class="nf">add_ground_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># print(&#39;add_ground_alt on:&#39;, mesh)</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
             <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_altitude</span><span class="p">(</span><span class="n">v</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
 
     <span class="k">def</span> <span class="nf">build_depth_wins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
                          <span class="n">object_win_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)):</span>
