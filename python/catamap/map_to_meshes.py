@@ -327,6 +327,19 @@ Properties list
     below for details.
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
+**travel_level:** str (**3D maps**)
+    depth level used to define the 3D ground level. It is used to adapt the
+    travel speed scale (for 3D controls) depending to the altitude of the
+    camera to this level. Up to now the level is assimilated to its average
+    altitude, but this could be refined to approximate a plane, if needed.
+    The default is the ``sup`` level (default level for all elements).
+**travel_speed_base:** float (**3D maps**)
+    Travel speed factor for 3D controls at the altitude of the ``travel_level``
+    altitude, which is the minimum speed. The default is **0.03**.
+**travel_speed_alt_factor:** float (**3D maps**)
+    Scale factor applied to the distance to the ``travel level`` to adapt the
+    travel speed: speed increases with this "elevation" according to this
+    factor. The default is: **0.003**.
 **upper_level:** str (**3D maps**)
     depth level for the top of elements. Only used for elements joining two
     levels (wells, arrows)
@@ -1637,7 +1650,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         return res
 
-
     def text_description(self, xml_item, trans=None, style=None, text=''):
         # add level information in text objects
         desc = super(CataSvgToMesh, self).text_description(
@@ -1648,18 +1660,22 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             desc['properties'] = props
         return desc
 
-
     def read_well(self, well_xml, trans, style=None):
         props = self.item_props
-        #print('read_well', props)
-        label = props.label
+        # print('read_well', props)
         if props.well_read_mode == 'group':
             return self.read_well_group(well_xml, trans, style=style)
 
-        if not well_xml.tag.endswith('}path') and not well_xml.tag == 'path':
+        allowed_items = set(['path', 'rect', 'circle', 'ellipse'])
+        p = well_xml.tag.rfind('}')
+        if p >= 0:
+            tag = well_xml.tag[p+1:]
+        else:
+            tag = well_xml.tag
+        if tag not in allowed_items:
             return
 
-        #print('read_well path')
+        # print('read_well path')
         mesh = self.read_path(well_xml, trans, style)
         bmin = list(mesh.vertex()[0])
         bmax = list(bmin)
@@ -1678,7 +1694,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         height = 20. * self.z_scale
         wells_spec = self.mesh_dict.setdefault(props.main_group, [])
         wells_spec.append((center, radius, z, height))
-        #print('well_type:', well_type, len(wells_spec))
+        # print('well_type:', well_type, len(wells_spec))
 
     def read_well_group(self, stair_xml, trans, style=None):
         props = self.group_properties[self.main_group]
@@ -2206,13 +2222,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 print(np.array(mesh.vertex()))
                 print(e)
 
-
     def read_depth_text(self, child_xml, trans, style=None):
         text_span = [x for x in child_xml if x.tag.endswith('tspan')]
         if len(text_span) != 0:
             text = ''.join([t.text for t in text_span])
             try:
-                text = re.findall('[0-9.]+', text)[0]
+                text = re.findall('[0-9.\\-]+', text)[0]
                 depth = float(text)
             except ValueError:
                 print('error in SVG, in depth text: found non-float value:',
@@ -2233,8 +2248,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         y = float(text_span[0].get('y'))
                     except TypeError:
                         print('error in depth text position:', child_xml,
-                            child_xml.get('x'), child_xml.get('y'),
-                            ', in element:', child_xml.get('id'))
+                              child_xml.get('x'), child_xml.get('y'),
+                              ', in element:', child_xml.get('id'))
                         raise
                 if trans is not None:
                     x, y = trans.dot([[x], [y], [1]])[:2]
@@ -2242,7 +2257,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     y = y[0, 0]
                 depth_mesh = self.mesh_dict[self.main_group]
                 depth_mesh.vertex().append((x, y, -depth * self.z_scale))
-
 
     def read_depth_rect(self, rect_xml, trans, style=None):
         props = self.item_props  # self.group_properties.get(self.main_group)
@@ -2963,8 +2977,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 # print('w:', old_z, ', t: ', text_z, ', a:', z, ':', new_z)
                 v[2] = new_z
             else:
-                pass # warn ?
-
+                pass  # warn ?
 
     def build_wells_with_depths(self, meshes):
 
@@ -3024,7 +3037,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 meshes[main_group + '_tri'] = wells
                 self.group_properties[main_group + '_tri'] = props
 
-
     def tesselate(self, mesh, flat=False):
         import anatomist.api as ana
         a = ana.Anatomist()
@@ -3074,7 +3086,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mat['face_culling'] = 0
         return tess
 
-
     def make_cat_flap(self, mesh, color=[1., 0., 0., 0.8]):
         def connected_meshes(mesh):
             vert_mesh = {}
@@ -3118,8 +3129,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             def shift_point(p, shift_s, sh_fac):
                 return p \
                     + ((p.dot(shift_s[0]) + shift_s[1]) * shift_s[2]
-                       * sh_fac[0] \
-                    + (p.dot(shift_s[3]) + shift_s[4]) * shift_s[5] \
+                       * sh_fac[0]
+                    + (p.dot(shift_s[3]) + shift_s[4]) * shift_s[5]
                        * sh_fac[1]) * shift_s[6]
 
             def section_vertices(v0, xdir, zdir, xradius, zradius, shift_s,
@@ -3368,6 +3379,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         = {'diffuse': [1., 0.5, 0., 1.]}
                 mesh.header()['material']['line_width'] = 2.
 
+        # travel speed factor
+        self.setup_travel_speed()
+
         # extrude corridors walls
         for main_group in list(meshes.keys()):
             # here we iterate through list(keys) instead of using items()
@@ -3546,6 +3560,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     print('--- marker mesh:', main_group, len(mesh.vertex()), props)
                 else:
                     print('NO MARKER MESH:', mtype)
+
+    def setup_travel_speed(self):
+        '''
+        '''
+        meta = self.get_metadata(self.svg)
+        travel_level = meta.get('travel_ref_level', 'sup')
+        travel_speed_base = meta.get('travel_speed_base', 0.03)
+        travel_speed = meta.get('travel_speed_alt_factor', 0.003)
+        level_mesh = self.depth_meshes_def.get(travel_level)
+        travel_mat = np.array([0., 0., 0.003, 0., 0.03])
+        travel_mat[2] = travel_speed
+        travel_mat[4] = travel_speed_base
+        if level_mesh is not None:
+            zavg = np.average(level_mesh[0].vertex().np[:, 2])
+            travel_mat[3] = -zavg * travel_mat[2]
+        self.travel_speed_projection = travel_mat
+        return travel_mat
 
     def extrude(self, mesh, distance, height_map=None):
         '''
@@ -4291,6 +4322,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if def_cat is not None:
             def_cat = json.loads(def_cat)
             json_obj['default_categories'] = def_cat
+
+        travel_speed = getattr(self, 'travel_speed_projection', None)
+        if travel_speed is not None:
+            json_obj['travel_speed_projection'] = list(travel_speed)
 
         if json_filename is not None:
             with open(json_filename, 'w') as f:

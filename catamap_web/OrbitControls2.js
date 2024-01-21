@@ -18,6 +18,7 @@
 
 import * as THREE from 'three'
 
+
 function OrbitControls( object, camera, domElement ) {
 
 	this.object = object;
@@ -55,6 +56,7 @@ function OrbitControls( object, camera, domElement ) {
 	this.zoom0 = this.camera.zoom;
 
         this.mode_2d = false;
+	this.travel_speed_projection = [0., 0., 0.003, 0.03];
 
 	//
 	// public methods
@@ -284,7 +286,13 @@ function OrbitControls( object, camera, domElement ) {
         var distanceFactor = function ( distance )
         {
             var z = scope.camera.position.z;
-            return distance * ( Math.abs( z ) + 10. ) * 0.003;
+	    var pm = scope.travel_speed_projection;
+// 	    console.log('z:', z, ', dist factor:', ( Math.abs( scope.camera.position.x * pm[0] + scope.camera.position.x * pm[1] + scope.camera.position.z * pm[2] + pm[3] ) + pm[4] ) );
+	    return distance * ( Math.abs( scope.camera.position.x * pm[0]
+					  + scope.camera.position.x * pm[1]
+					  + scope.camera.position.z * pm[2]
+					  + pm[3] )
+				+ pm[4] );
         }
 
 	// deltaX and deltaY are in pixels; right and down are positive

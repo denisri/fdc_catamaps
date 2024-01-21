@@ -616,6 +616,13 @@
     if( map_objects.camera_light != "off" )
       scene.add( light );
 
+    console.log("get travel_speed_projection:", map_objects.travel_speed_projection);
+    if( map_objects.travel_speed_projection != null )
+    {
+      controls.travel_speed_projection = map_objects.travel_speed_projection;
+      console.log('set in controls.');
+    }
+
     if( sha1(query['code']) == private_code )
     {
       console.log('ALLOW PRIVATE MODE');
