@@ -670,6 +670,7 @@ import textwrap as _textwrap
 import argparse
 import csv
 import pprint
+import re
 try:
     import PIL.Image
 except ImportError:
@@ -2209,8 +2210,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def read_depth_text(self, child_xml, trans, style=None):
         text_span = [x for x in child_xml if x.tag.endswith('tspan')]
         if len(text_span) != 0:
-            text = text_span[0].text
+            text = ''.join([t.text for t in text_span])
             try:
+                text = re.findall('[0-9.]+', text)[0]
                 depth = float(text)
             except ValueError:
                 print('error in SVG, in depth text: found non-float value:',
@@ -2681,7 +2683,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         gray = self.ground_img.at(x, y)
         return gray
 
-
     def ground_altitude_bdalti(self, pos):
         x = pos[0] * self.lambert_coords.x.slope \
             + self.lambert_coords.x.intercept
@@ -2691,14 +2692,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                          background_z=50.)
         return z
 
-
     def add_ground_alt(self, mesh, verbose=False):
         # print('add_ground_alt on:', mesh)
         for v in mesh.vertex():
             if verbose: print(v[2], end=' ')
             v[2] += self.ground_altitude(v[:2])
             if verbose: print('->', v[2])
-
 
     def build_depth_wins(self, size=(1000, 1000),
                          object_win_size=(8, 8)):
