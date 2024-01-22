@@ -56,7 +56,7 @@ function OrbitControls( object, camera, domElement ) {
 	this.zoom0 = this.camera.zoom;
 
         this.mode_2d = false;
-	this.travel_speed_projection = [0., 0., 0.003, 0.03];
+	this.travel_speed_projection = [0., 0., 0.003, 0., 0.03];
 
 	//
 	// public methods
@@ -287,7 +287,7 @@ function OrbitControls( object, camera, domElement ) {
         {
             var z = scope.camera.position.z;
 	    var pm = scope.travel_speed_projection;
-// 	    console.log('z:', z, ', dist factor:', ( Math.abs( scope.camera.position.x * pm[0] + scope.camera.position.x * pm[1] + scope.camera.position.z * pm[2] + pm[3] ) + pm[4] ) );
+	    // console.log('z:', z, ', dist factor:', ( Math.abs( scope.camera.position.x * pm[0] + scope.camera.position.x * pm[1] + scope.camera.position.z * pm[2] + pm[3] ) + pm[4] ) );
 	    return distance * ( Math.abs( scope.camera.position.x * pm[0]
 					  + scope.camera.position.x * pm[1]
 					  + scope.camera.position.z * pm[2]
