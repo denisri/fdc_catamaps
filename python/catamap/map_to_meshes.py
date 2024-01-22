@@ -2029,7 +2029,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                      'face_culling': 0}
         return well
 
-
     def make_ps_sq_well(self, center, radius, z, height, well_type, props):
         return self.make_ps_well(center, radius, z, height, well_type, props,
                                  faces=4, smooth=False, rotate=math.pi / 4)
@@ -2062,7 +2061,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 color = [1., 1., 0., 1.]
         well.header()['material'] = {'diffuse': color, 'face_culling': 0}
         return well
-
 
     def make_well(self, center, radius, z, height, well_type=None, props=None):
         if well_type is None and props is not None:
@@ -2195,7 +2193,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                    repr(list(child_xml.items()))))
         self.depth_group = {}
 
-
     def clear_depth_group(self):
         if not hasattr(self, 'depth_group'):
             raise RuntimeError(
@@ -2208,7 +2205,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             for p in pos:
                 depth_mesh.vertex().append((p[0], p[1], -z * self.z_scale))
         del self.depth_group
-
 
     def read_depth_arrow(self, child_xml, trans, style=None):
         mesh = super(CataSvgToMesh, self).read_path(child_xml, trans, style)
@@ -2225,7 +2221,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def read_depth_text(self, child_xml, trans, style=None):
         text_span = [x for x in child_xml if x.tag.endswith('tspan')]
         if len(text_span) != 0:
-            text = ''.join([t.text for t in text_span])
+            text = ''.join([t.text for t in text_span if t.text is not None])
             try:
                 text = re.findall('[0-9.\\-]+', text)[0]
                 depth = float(text)
@@ -3076,7 +3072,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         del atess
         del atess_m
         del amesh
-        tess.header().update(mesh.header())
+        tess.header().update(
+            {k: copy.deepcopy(v) for k, v in mesh.header().items()})
+        # restore shared texture images (avoid duplications)
+        if 'textures' in mesh.header():
+            for tt, tv in mesh.header()['textures'].items():
+                tim = tv.get('image')
+                if tim is not None:
+                    tess.header()['textures'][tt]['image'] = tim
         if 'polygon_dimension' in tess.header():
             del tess.header()['polygon_dimension']
         if 'material' in tess.header():
