@@ -289,8 +289,20 @@ class SvgToMesh(object):
         else:
             angle_e = np.pi * 2
         npt = 24
-        mesh = aims.SurfaceGenerator.circle_wireframe(
-            (x, y, 1.), r, npt, (0, 0, 1), (1, 0, 0), angle_s, angle_e)
+        if hasattr(aims, 'SurfaceGenerator'):
+            mesh = aims.SurfaceGenerator.circle_wireframe(
+                (x, y, 1.), r, npt, (0, 0, 1), (1, 0, 0), angle_s, angle_e)
+        else:
+            # no aims lib, generate a square instead (it's normally just for
+            # the bounding box in 2D)
+            pts = trans * np.matrix([[x-r, x+r, x+r, x-r],
+                                    [y-r, y+r, y+r, y+r],
+                                    [1., 1., 1., 1.]])
+            pts[2, :] = 0  # reset Z to 0
+            mesh = aims.AimsTimeSurface_2()
+            mesh.vertex().assign(np.asarray(pts.T))
+            mesh.polygon().assign([(0, 1), (1, 2), (2, 3), (3, 0)])
+
         pts = trans * np.matrix(mesh.vertex().np.T)
         pts[2, :] = 0  # reset Z to 0
         mesh.vertex().assign(np.asarray(pts.T))
