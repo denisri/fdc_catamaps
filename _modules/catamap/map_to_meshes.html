@@ -929,8 +929,8 @@
             <span class="n">relative_to</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;relative_to&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_map</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;depth_map&#39;</span><span class="p">)</span> \
                     <span class="ow">and</span> <span class="n">relative_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># exception: if a depth is relative to &quot;surface&quot; by default</span>
-                <span class="n">relative_to</span> <span class="o">=</span> <span class="s1">&#39;surface&#39;</span>
+                <span class="c1"># exception: if a depth is relative to &quot;surf&quot; by default</span>
+                <span class="n">relative_to</span> <span class="o">=</span> <span class="n">DefaultItemProperties</span><span class="o">.</span><span class="n">ground_level</span>
             <span class="k">if</span> <span class="n">relative_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">relative_to</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">):</span>
                     <span class="n">relative_to</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2761,7 +2761,7 @@
             <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    rel:&#39;</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
-                    <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">!=</span> <span class="s1">&#39;surface&#39;</span><span class="p">:</span>
+                    <span class="ow">and</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_level</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">:</span>
                     <span class="c1"># apply dependent map</span>
                     <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">inverse</span><span class="p">:</span>
@@ -2959,15 +2959,17 @@
                 <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">level</span> <span class="o">=</span> <span class="n">text_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span>
                                                                 <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                    <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="p">[</span><span class="n">level</span><span class="p">]</span>
+                    <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">win</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">view</span> <span class="o">=</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
-                        <span class="n">hshift</span> <span class="o">=</span> <span class="p">((</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
-                                   <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span>
-                                  <span class="o">+</span> <span class="n">text_zshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
-                        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span> <span class="o">&gt;</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
-                            <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">view</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">hshift</span> <span class="o">=</span> <span class="p">((</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
+                               <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span>
+                              <span class="o">+</span> <span class="n">text_zshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span> <span class="o">&gt;</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                        <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;built depths in&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrenders</span><span class="p">,</span> <span class="s1">&#39;renderings&#39;</span><span class="p">)</span>
 
@@ -3352,7 +3354,6 @@
 
         <span class="k">return</span> <span class="n">smesh</span>
 
-
     <span class="k">def</span> <span class="nf">recolor_text_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text_specs</span><span class="p">,</span> <span class="n">diffuse</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">tospec</span> <span class="ow">in</span> <span class="n">text_specs</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">tspec</span> <span class="ow">in</span> <span class="n">tospec</span><span class="p">[</span><span class="s1">&#39;objects&#39;</span><span class="p">]:</span>
@@ -3360,8 +3361,9 @@
                 <span class="n">material</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="p">{})</span>
                 <span class="n">material</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diffuse</span>
 
-
     <span class="k">def</span> <span class="nf">postprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshes</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ground_level</span> <span class="o">=</span> <span class="n">DefaultItemProperties</span><span class="o">.</span><span class="n">ground_level</span>
+
         <span class="c1"># lighen texts for black background</span>
         <span class="n">tspec</span> <span class="o">=</span> <span class="n">meshes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annotations_text&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tspec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -3387,14 +3389,14 @@
         <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">mesh_def</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes_def</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">mesh</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">mesh_def</span>
             <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">==</span> <span class="s1">&#39;surface&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">relative_to</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_level</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;add ground alt on:&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">add_ground_alt</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 
         <span class="n">meshes</span><span class="p">[</span><span class="s1">&#39;grille surface&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_ground_grid</span><span class="p">()</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="p">()</span>
-        <span class="n">props</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;surf&#39;</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_level</span>
         <span class="n">props</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Surface&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="p">[</span><span class="s1">&#39;grille surface&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span>
 
