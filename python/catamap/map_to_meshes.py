@@ -890,8 +890,8 @@ class ItemProperties(object):
             relative_to = element.get('relative_to')
             if self.depth_map and element.get('depth_map') \
                     and relative_to is None:
-                # exception: if a depth is relative to "surface" by default
-                relative_to = 'surface'
+                # exception: if a depth is relative to "surf" by default
+                relative_to = DefaultItemProperties.ground_level
             if relative_to is not None:
                 if relative_to in ('none', 'None'):
                     relative_to = None
@@ -2722,7 +2722,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if props.relative_to:
                 print('    rel:', props.relative_to)
             if props.relative_to is not None \
-                    and props.relative_to != 'surface':
+                    and props.relative_to != self.ground_level:
                 if props.relative_to in self.depth_wins:
                     # apply dependent map
                     if props.inverse:
@@ -2920,15 +2920,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if position is not None:
                     level = text_item.get('properties', {}).get('level',
                                                                 '')
-                    win = self.depth_wins[level]
+                    win = self.depth_wins.get(level)
                     if win is not None:
                         view = win.view()
-                        hshift = ((props.height_shift
-                                   if props.height_shift else 0.)
-                                  + text_zshift) * self.z_scale
-                        z = self.get_depth(position, view, object_win_size)
-                        if z is not None and z + hshift > position[2]:
-                            position[2] = z + hshift
+                    else:
+                        view = None
+                    hshift = ((props.height_shift
+                               if props.height_shift else 0.)
+                              + text_zshift) * self.z_scale
+                    z = self.get_depth(position, view, object_win_size)
+                    if z is not None and z + hshift > position[2]:
+                        position[2] = z + hshift
 
         print('built depths in', self.nrenders, 'renderings')
 
@@ -3313,7 +3315,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         return smesh
 
-
     def recolor_text_specs(self, text_specs, diffuse):
         for tospec in text_specs['objects']:
             for tspec in tospec['objects']:
@@ -3321,8 +3322,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 material = props.setdefault('material', {})
                 material['diffuse'] = diffuse
 
-
     def postprocess(self, meshes):
+        self.ground_level = DefaultItemProperties.ground_level
+
         # lighen texts for black background
         tspec = meshes.get('annotations_text')
         if tspec is not None:
@@ -3348,14 +3350,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         for level, mesh_def in self.depth_meshes_def.items():
             mesh, props = mesh_def
             if mesh is not None:
-                if props.relative_to == 'surface':
+                if props.relative_to == self.ground_level:
                     print('add ground alt on:', level)
                     self.add_ground_alt(mesh)
                 self.delaunay(mesh)
 
         meshes['grille surface'] = self.build_ground_grid()
         props = ItemProperties()
-        props.level = 'surf'
+        props.level = self.ground_level
         props.category = 'Surface'
         self.group_properties['grille surface'] = props
 
