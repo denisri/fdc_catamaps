@@ -83,6 +83,9 @@ if fake_aims:
             def __setitem__(self, item, value):
                 return self._vec.__setitem__(item, value)
 
+            @property
+            def np(self):
+                return self._vec
 
         class AimsTimeSurface(object):
             ''' Mesh structure '''
