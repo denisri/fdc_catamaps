@@ -120,8 +120,11 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
             <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
+            <span class="nd">@property</span>
+            <span class="k">def</span> <span class="nf">np</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span></div>
 
 <div class="viewcode-block" id="aims.AimsTimeSurface"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
