@@ -176,7 +176,7 @@ Properties list
 **depth_map:** bool (**3D maps**)
     the layer is a depth map. It should contain a ``level`` property to define
     the level it maps. See :ref:`depth_maps` for details.
-*floor_texture:** JSON dict (**3D maps**)
+**floor_texture:** JSON dict (**3D maps**)
     Texture definition for the floor part of elements. See :ref:`texturing`
     below for details.
 **glabel:** str (**2D maps**)
@@ -327,7 +327,7 @@ Properties list
     below for details.
 **title:** bool (**3D maps**)
     The title string(s) will be used and displayed in the web site title.
-**travel_level:** str (**3D maps**)
+**travel_ref_level:** str (**3D maps**)
     depth level used to define the 3D ground level. It is used to adapt the
     travel speed scale (for 3D controls) depending to the altitude of the
     camera to this level. Up to now the level is assimilated to its average
@@ -2783,6 +2783,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return None
 
     def get_alt_color(self, props, colorset=None, conv=True, get_bg=True):
+        if props is None:
+            return None
         if colorset is None:
             colorset = self.colorset
         col = None
@@ -2830,7 +2832,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if isinstance(color, str) and color.startswith('#'):
                 c1 = color[1::2]
                 c2 = color[2::2]
-                col = [float(int('%s%s' % (x, y), base=16)) / 255. for x,y in
+                col = [float(int('%s%s' % (x, y), base=16)) / 255. for x, y in
                       zip(c1, c2)]
                 #print('alt color:', props.main_group, col)
                 return col
