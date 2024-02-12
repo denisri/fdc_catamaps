@@ -204,7 +204,7 @@ filled.</p>
 <dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a <code class="docutils literal notranslate"><span class="pre">level</span></code> property to define
 the level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
 </dd>
-<dt><em>floor_texture:*</em> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the floor part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+<dt><strong>floor_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the floor part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
 below for details.</p>
 </dd>
 <dt><strong>glabel:</strong> str (<strong>2D maps</strong>)</dt><dd><p>“group label” used to replace elements with ones from the legends layer.
@@ -345,7 +345,7 @@ below for details.</p>
 </dd>
 <dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
 </dd>
-<dt><strong>travel_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level used to define the 3D ground level. It is used to adapt the
+<dt><strong>travel_ref_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level used to define the 3D ground level. It is used to adapt the
 travel speed scale (for 3D controls) depending to the altitude of the
 camera to this level. Up to now the level is assimilated to its average
 altitude, but this could be refined to approximate a plane, if needed.

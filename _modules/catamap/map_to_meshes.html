@@ -215,7 +215,7 @@
 <span class="sd">**depth_map:** bool (**3D maps**)</span>
 <span class="sd">    the layer is a depth map. It should contain a ``level`` property to define</span>
 <span class="sd">    the level it maps. See :ref:`depth_maps` for details.</span>
-<span class="sd">*floor_texture:** JSON dict (**3D maps**)</span>
+<span class="sd">**floor_texture:** JSON dict (**3D maps**)</span>
 <span class="sd">    Texture definition for the floor part of elements. See :ref:`texturing`</span>
 <span class="sd">    below for details.</span>
 <span class="sd">**glabel:** str (**2D maps**)</span>
@@ -366,7 +366,7 @@
 <span class="sd">    below for details.</span>
 <span class="sd">**title:** bool (**3D maps**)</span>
 <span class="sd">    The title string(s) will be used and displayed in the web site title.</span>
-<span class="sd">**travel_level:** str (**3D maps**)</span>
+<span class="sd">**travel_ref_level:** str (**3D maps**)</span>
 <span class="sd">    depth level used to define the 3D ground level. It is used to adapt the</span>
 <span class="sd">    travel speed scale (for 3D controls) depending to the altitude of the</span>
 <span class="sd">    camera to this level. Up to now the level is assimilated to its average</span>
@@ -2822,6 +2822,8 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">get_alt_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">colorset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_bg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">colorset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">colorset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorset</span>
         <span class="n">col</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2869,7 +2871,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">color</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
                 <span class="n">c1</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
                 <span class="n">c2</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">col</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">base</span><span class="o">=</span><span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">base</span><span class="o">=</span><span class="mi">16</span><span class="p">))</span> <span class="o">/</span> <span class="mf">255.</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span>
                       <span class="nb">zip</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">)]</span>
                 <span class="c1">#print(&#39;alt color:&#39;, props.main_group, col)</span>
                 <span class="k">return</span> <span class="n">col</span>
