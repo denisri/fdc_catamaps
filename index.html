@@ -358,6 +358,11 @@ altitude, which is the minimum speed. The default is <strong>0.03</strong>.</p>
 travel speed: speed increases with this “elevation” according to this
 factor. The default is: <strong>0.003</strong>.</p>
 </dd>
+<dt><strong>transform_3d:</strong> str( <strong>3D maps</strong>)</dt><dd><p>3D transformation, used to rotate an object in space. The spec is similar
+to SVG transformations specs, except that it has one more dimension, and
+the “matrix()” spec becomes “matrix4()”, with 12 parameters (columns of the
+matrix).</p>
+</dd>
 <dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
 levels (wells, arrows)</p>
 </dd>
