@@ -340,6 +340,11 @@ Properties list
     Scale factor applied to the distance to the ``travel level`` to adapt the
     travel speed: speed increases with this "elevation" according to this
     factor. The default is: **0.003**.
+**transform_3d:** str( **3D maps**)
+    3D transformation, used to rotate an object in space. The spec is similar
+    to SVG transformations specs, except that it has one more dimension, and
+    the "matrix()" spec becomes "matrix4()", with 12 parameters (columns of the
+    matrix).
 **upper_level:** str (**3D maps**)
     depth level for the top of elements. Only used for elements joining two
     levels (wells, arrows)
