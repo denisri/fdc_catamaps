@@ -719,10 +719,10 @@ class xml_help(object):
 class ItemProperties(object):
     '''
     XML item properties structure, used by
-    :class:`~catamap.map_to_meshes.CataSvgToMesh`. They represents properties
+    :class:`~catamap.map_to_meshes.CataSvgToMesh`. They represent properties
     read from the XML file elements.
 
-    Properties match those documented in :class:`~catamap.map_to_meshes.xml_help`, except the ``height`` property which is named ``item_height`` in XML file elements (because ``height`` is already used in SVG).
+    Properties match those documented in `Inkscape SVG files`_, except the ``height`` property which is named ``item_height`` in XML file elements (because ``height`` is already used in SVG).
     '''
 
     properties = ('name', 'label', 'eid', 'main_group', 'level', 'upper_level',
