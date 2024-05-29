@@ -36,15 +36,23 @@ requires:
 * numpy
 * scipy
 * optionally, soma.aims
+* optionally, pyclipper
 
-  The AIMS library is used to build and manpulate meshes.
-  (https://github.com/brainvisa/aims-free)
-  This lib is compiled (C++ + python bindings) thus is not completely
-  straightforward to install.
-  Alternately we can implement basic replacements for vector and mesh classes.
-  This allows to use the 2D part.
-  The 3D part however needs more algorithmic things in Aims, and Anatomist
-  to render depth maps.
+aims:
+
+    The AIMS library is used to build and manpulate meshes.
+    (https://github.com/brainvisa/aims-free)
+    This lib is compiled (C++ + python bindings) thus is not completely
+    straightforward to install.
+    Alternately we have implemented basic replacements for vector and mesh
+    classes. This allows to use the 2D part.
+    The 3D part however needs more algorithmic things in Aims, and Anatomist
+    to render depth maps.
+
+pyclipper:
+    Used to perform polygons clipping, which is now used in zoomed regions. If
+    not installed the program will print a warning message, and clipped
+    polygons will just disappear.
 '''
 
 
