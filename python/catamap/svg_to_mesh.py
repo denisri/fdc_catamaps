@@ -83,11 +83,20 @@ if fake_aims:
             def __setitem__(self, item, value):
                 return self._vec.__setitem__(item, value)
 
+            def __len__(self):
+                return len(self._vec)
+
+            def __iadd__(self, vec):
+                self._vec = np.vstack((self._vec, vec))
+
+            def append(self, elem):
+                self._vec = np.vstack((self._vec, [elem]))
+
             @property
             def np(self):
                 return self._vec
 
-        class AimsTimeSurface(object):
+        class _AimsTimeSurface(object):
             ''' Mesh structure '''
 
             def __init__(self, dim=3):
@@ -104,19 +113,24 @@ if fake_aims:
             def header(self):
                 return self._header
 
-
-        class AimsTimeSurface_2(AimsTimeSurface):
+        class AimsTimeSurface_2(_AimsTimeSurface):
             ''' Segments mesh (2 points per polygon) '''
 
             def __init__(self):
                 super(aims.AimsTimeSurface_2, self).__init__(2)
 
-
-        class AimsTimeSurface_3(AimsTimeSurface):
+        class AimsTimeSurface_3(_AimsTimeSurface):
             ''' Triangles mesh (3 points per polygon) '''
 
             def __init__(self):
                 super(aims.AimsTimeSurface_3, self).__init__(3)
+
+        def AimsTimeSurface(dim=3):
+            if dim == 3:
+                return aims.AimsTimeSurface_3()
+            elif dim == 2:
+                return aims.AimsTimeSurface_2()
+            return aims._AimsTimeSurface(dim)
 
 
 class SvgToMesh(object):
@@ -1688,149 +1702,267 @@ class SvgToMesh(object):
                          for child in element]
                 todo = added + todo
 
-    #def clip_path(self, xml_path, trans, bmin, bmax):
-        #def read_point(pdesc, i, pt=None):
-            #j = i + 1
-            #try:
-                #while j < n and pdesc[j] in '0123456789.e-':
-                    #j += 1
-                #x = float(pdesc[i:j])
-                #i = j + 1
-                #while i<len(pdesc) and pdesc[i] in ' ,':
-                    #i += 1
-            #except Exception as e:
-                #print(e)
-                #print('failed reading', pt, ', i:', i)
-                #raise
-            #return x, i
+    def cut_segment(self, v1, v2, bmin, bmax):
+        if v1[0] < bmin[0]:
+            if v2[0] < bmin[0]:
+                return None  # drop segment
+            else:
+                v1b = type(v1)(v1)
+                v1b[0] = bmin[0]
+                v1b[1] = v1[1] \
+                    + (v2[1] - v1[1]) * (bmin[0] - v1[0]) / (v2[0] - v1[0])
+            return self.cut_segment(v1b, v2, bmin, bmax)
+        if v1[0] > bmax[0]:
+            if v2[0] > bmax[0]:
+                return None  # drop segment
+            else:
+                v1b = type(v1)(v1)
+                v1b[0] = bmax[0]
+                v1b[1] = v1[1] \
+                    + (v2[1] - v1[1]) * (bmax[0] - v1[0]) / (v2[0] - v1[0])
+            return self.cut_segment(v1b, v2, bmin, bmax)
 
-        #pdesc = xml_path.get('d')
-        #n = len(pdesc)
-        #i = 0
-        #cmd = 'M'
-        #x = 0
-        #y = 0
-        #tp = [0, 0]
-        #first = x, y, tp
-        #out_cmd = []
-        #clip = None
-        #points_kept = 0
-        #cond_cmd = []
-        #valid = False
+        if v2[0] < bmin[0]:
+            v2b = type(v2)(v2)
+            v2b[0] = bmin[0]
+            v2b[1] = v2[1] \
+                + (v1[1] - v2[1]) * (bmin[0] - v2[0]) / (v1[0] - v2[0])
+            return self.cut_segment(v1, v2b, bmin, bmax)
+        if v2[0] > bmax[0]:
+            v2b = type(v2)(v2)
+            v2b[0] = bmax[0]
+            v2b[1] = v2[1] \
+                + (v1[1] - v2[1]) * (bmax[0] - v2[0]) / (v1[0] - v2[0])
+            return self.cut_segment(v1, v2b, bmin, bmax)
 
-        #while i < n:
-            #while(i < n and pdesc[i] == ' '):
-                #i += 1
-            #if i == n:
-                ##print('end of path in:', pdesc)
-                #break
-            ##print('i:', i)
-            #last_x, last_y = x, y
-            #last_valid = valid
-            #last_tp = tp
-            #if pdesc[i] in 'mMcClLhHvVsSqQtTaA':
-                #cmd = pdesc[i]
-                #clip = 0
-                #cond_cmd.append(cmd)
-                #np = 0
-                ##print('cmd:', cmd)
-                #i += 1
-                #while pdesc[i] == ' ':
-                    #i += 1
-            #elif pdesc[i] in '-0123456789.':
-                #if cmd not in 'vV':
-                    #x, i = read_point(pdesc, i, 'x')
-                    #cond_cmd.append(x)
-                    #if cmd >= 'a':
-                        #x += last_x
-                #if cmd not in 'hH':
-                    #y, i = read_point(pdesc, i, 'y')
-                    #cond_cmd.append(y)
-                    #j = i + 1
-                    #if cmd >= 'a':
-                        #y += last_y
-                #tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
-                #np += 1
-                #if tp[0] < bmin[0] or tp[0] > bmax[0] \
-                        #or tp[1] < bmin[1] or tp[1] > bmax[1]:
-                    #clip += 1
-                    #valid = False
-                #else:
-                    #valid = True
-                #if cmd in 'cC':
-                    ##last_x, last_y = x, y
-                    #x, i = read_point(pdesc, i, 'x2')
-                    #y, i = read_point(pdesc, i, 'y2')
-                    #cond_cmd.append(x)
-                    #cond_cmd.append(y)
-                    #if cmd >= 'a':
-                        #x += last_x
-                        #y += last_y
-                    #tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
-                    ##last_x, last_y = x, y
-                    #x, i = read_point(pdesc, i, 'x3')
-                    #y, i = read_point(pdesc, i, 'y3')
-                    #cond_cmd.append(x)
-                    #cond_cmd.append(y)
-                    #if cmd >= 'a':
-                        #x += last_x
-                        #y += last_y
-                    #tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
-                #elif cmd in 'sSqQ':
-                    ##last_x, last_y = x, y
-                    #x, i = read_point(pdesc, i, 'x2')
-                    #y, i = read_point(pdesc, i, 'y2')
-                    #cond_cmd.append(x)
-                    #cond_cmd.append(y)
-                    #if cmd >= 'a':
-                        #x += last_x
-                        #y += last_y
-                    #tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
-                #if cmd in 'aA':
-                    #x, i = read_point(pdesc, i, 'x-axis-rotation')
-                    #y, i = read_point(pdesc, i, 'large-arc-flag')
-                    #s, i = read_point(pdesc, i, 'sweep-flag')
-                    #cond_cmd += [x, int(y), int(s)]
-                    #x, i = read_point(pdesc, i, 'x2')
-                    #y, i = read_point(pdesc, i, 'y2')
-                    #cond_cmd += [x, y]
-                    #if cmd >= 'a':
-                        #x += last_x
-                        #y += last_y
-                    #tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()
-                #if cmd in 'cCsSqQaA':
-                    #np += 1
-                    #if tp[0] < bmin[0] or tp[0] > bmax[0] \
-                            #or tp[1] < bmin[1] or tp[1] > bmax[1]:
-                        #clip += 1
-                        #valid2 = False
-                    #else:
-                        #valid2 = True
-                    #if not valid and not valid2:
-                        ## invalid segment: keep last as potential Move
-                        #if cmd >= 'a':
-                            #cond_cmd = ['m', x, y]
-                        #else:
-                            #cond_cmd = ['M', x, y]
-                #if cmd == 'm':
-                    #cmd = 'l'
-                    #first = x, y, tp
-                #elif cmd == 'M':
-                    #cmd = 'L'
-                    #first = x, y, tp
-            #elif pdesc[i] in 'zZ':
-                #if valid:
-                    #out_cmd.append(pdesc[i])
-                    #cond_cmd = []
-                #else:
-                    #cond_cmd = [pdesc[i], x, y]
-                #x, y, tp = first
-                #i += 1
-            #else:
-                #out_cmd.append(pdesc[i])
-                #i += 1
+        if v1[1] < bmin[1]:
+            if v2[1] < bmin[1]:
+                return None  # drop segment
+            else:
+                v1b = type(v1)(v1)
+                v1b[1] = bmin[1]
+                v1b[0] = v1[0] \
+                    + (v2[0] - v1[0]) * (bmin[1] - v1[1]) / (v2[1] - v1[1])
+            return self.cut_segment(v1b, v2, bmin, bmax)
+        if v1[1] > bmax[1]:
+            if v2[1] > bmax[1]:
+                return None  # drop segment
+            else:
+                v1b = type(v1)(v1)
+                v1b[1] = bmax[1]
+                v1b[0] = v1[0] \
+                    + (v2[0] - v1[0]) * (bmax[1] - v1[1]) / (v2[1] - v1[1])
+            return self.cut_segment(v1b, v2, bmin, bmax)
 
-        #return ' '.join([str(x) for x in out_cmd])
+        if v2[1] < bmin[1]:
+            v2b = type(v2)(v2)
+            v2b[1] = bmin[1]
+            v2b[0] = v2[0] \
+                + (v1[0] - v2[0]) * (bmin[1] - v2[1]) / (v1[1] - v2[1])
+            return (v1, v2b)
+        if v2[1] > bmax[1]:
+            v2b = type(v2)(v2)
+            v2b[1] = bmax[1]
+            v2b[0] = v2[0] \
+                + (v1[0] - v2[0]) * (bmax[1] - v2[1]) / (v1[1] - v2[1])
+            return (v1, v2b)
+
+        return (v1, v2)
+
+    def clip_mesh(self, mesh, bmin, bmax):
+        vert = mesh.vertex()
+        poly = mesh.polygon()
+        cmesh = type(mesh)()
+        cmesh.header().update(mesh.header())
+        cvert = cmesh.vertex()
+        cpoly = cmesh.polygon()
+        # print('clip vertices:', len(vert), ', segments:', len(poly))
+        pts = {}  # reverse map pos: index
+        ns = len(poly)
+
+        for i, p in enumerate(poly):
+            if i != 0 and i % 1000 == 0:
+                print(f'\rseg: {i} / {ns}: {int(i*100 /ns)}% ', end='')
+            v1 = vert[p[0]]
+            v2 = vert[p[1]]
+            npoly = self.cut_segment(v1, v2, bmin, bmax)
+            if npoly is None:
+                continue
+            v1b, v2b = npoly
+            index1 = pts.get(tuple(v1b))
+            if index1 is None:
+                index1 = len(pts)
+                pts[tuple(v1b)] = index1
+                cvert.append(v1b)
+            index2 = pts.get(tuple(v2b))
+            if index2 is None:
+                index2 = len(pts)
+                pts[tuple(v2b)] = index2
+                cvert.append(v2b)
+            cpoly.append((index1, index2))
+        print()
+
+        return cmesh
+
+    def mesh_to_pyclipper(self, mesh, scale=1000):
+        vert = mesh.vertex()
+        poly = mesh.polygon()
+        paths = []
+        path = []
+        closed = False
+        first = None
+        prev = None
+
+        for i, p in enumerate(poly):
+            v1 = [int(x) for x in vert[p[0]] * scale][:2]
+            v2 = [int(x) for x in vert[p[1]] * scale][:2]
+            if first is None or prev != p[0]:
+                if first is not None:
+                    paths.append(path)
+                    path = []
+                path += [v1, v2]
+                first = p[0]
+                prev = p[1]
+            elif first == p[1]:
+                closed = True
+                prev = None
+                first = None
+                paths.append(path)
+                path = []
+            else:
+                path.append(v2)
+                prev = p[1]
+        if path:
+            paths.append(path)
+
+        return paths, closed
+
+    def pyclipper_to_mesh(self, tree, scale=1000., itrans=None):
+        iscale = 1. / scale
+        mesh = aims.AimsTimeSurface_2()
+        vert = []
+        poly = []
+        todo = [tree]
+        while todo:
+            item = todo.pop(0)
+            if item.Contour:
+                n = len(vert)
+                vert += [(x * iscale, y * iscale, 0.) for x, y in item.Contour]
+                poly += [(i, i+1) for i in range(n, len(vert) - 1)]
+                if not item.IsOpen:
+                    poly.append((len(vert) - 1, n))
+            if item.Childs:
+                todo += item.Childs
+
+        if itrans is not None and len(vert) != 0:
+            vert = np.asarray(vert).T
+            vert[2, :] = 1.
+            vert = (itrans * vert).T
+            vert[:, 2] = 0.
+        mesh.vertex().assign(vert)
+        mesh.polygon().assign(poly)
+        return mesh
+
+    def mesh_to_path(self, mesh, style=None):
+        element = ET.Element('{http://www.w3.org/2000/svg}path')
+        if style is None:
+            style = 'stroke-width: 1.1; stroke-dasharray: none; ' \
+                'stroke: #d7b497; stroke-opacity: 1;'
+            # TODO: else get material etc.
+
+        element.set('style', style)
+
+        vert = mesh.vertex()
+        poly = mesh.polygon()
+
+        prev = None
+        first = None
+        lastx = 0
+        lasty = 0
+        pdesc = []
+        for p in poly:
+            v1 = vert[p[0]]
+            v2 = vert[p[1]]
+            if first is None or prev != p[0]:
+                x = v1[0] - lastx
+                y = v1[1] - lasty
+                pdesc.append(f'm {x},{y}')
+                x = v2[0] - v1[0]
+                y = v2[1] - v1[1]
+                pdesc.append(f'{x},{y}')
+                prev = p[1]
+                first = p[0]
+            elif first == p[1]:
+                pdesc.append('z')
+                first = None
+                prev = None
+            else:
+                x = v2[0] - lastx
+                y = v2[1] - lasty
+                pdesc.append(f'{x},{y}')
+                prev = p[1]
+            lastx = v2[0]
+            lasty = v2[1]
+
+            if len(pdesc) >= 1000:
+                # squeeze for memory / perf
+                pdesc = [' '.join(pdesc)]
+
+        pdesc = ' '.join(pdesc)
+        element.set('d', pdesc)
+
+        return element
+
+    def clip_path_rect(self, xml_path, trans, bmin, bmax):
+        mesh = self.read_path(xml_path, trans)
+        cmesh = self.clip_mesh(mesh, bmin, bmax)
+        style = self.get_style(xml_path)
+        clipped = self.mesh_to_path(cmesh, style)
+
+        return clipped
+
+    def clip_path(self, xml_path, trans, clip_poly, clip_trans=None):
+        try:
+            import pyclipper
+        except ImportError:
+            global _pyclipper_failed
+            if not _pyclipper_failed:
+                _pyclipper_failed = True
+                print('PROBLEM: the pyclipper module is not installed. '
+                      'Polygon clipping will not be possible without this '
+                      'module. Please install it using the command:',
+                      file=sys.stderr)
+                print('python -m pip install pyclipper', file=sys.stderr)
+                print('For the time being, some objects will disappear from '
+                      'clipped zoomed regions.')
+                return None
+
+        mesh = self.read_path(xml_path, trans)
+        if len(mesh.polygon()) == 0:
+            return None
+        if isinstance(clip_poly, aims.AimsTimeSurface_2):
+            clip_mesh = clip_poly
+        else:
+            clip_mesh = self.read_path(clip_poly, clip_trans)
+        clip, _ = self.mesh_to_pyclipper(clip_mesh)
+        subj, closed = self.mesh_to_pyclipper(mesh)
+        del mesh, clip_mesh
+        pc = pyclipper.Pyclipper()
+        # print('clip:', clip)
+        pc.AddPath(clip[0], pyclipper.PT_CLIP, True)
+        # print('subj:', subj)
+        pc.AddPaths(subj, pyclipper.PT_SUBJECT, closed)
+        clipped = pc.Execute2(pyclipper.CT_INTERSECTION, pyclipper.PFT_EVENODD,
+                              pyclipper.PFT_EVENODD)
+        itrans = None
+        if trans is not None:
+            itrans = np.linalg.inv(trans)
+        cmesh = self.pyclipper_to_mesh(clipped, itrans=itrans)
+        del clipped
+        style = self.get_style(xml_path)
+        clipped_xml = self.mesh_to_path(cmesh, style)
+
+        return clipped_xml
 
     def remove_paths_outside_bounds(self, xml_group, bbmin, bbmax, trans=None):
         trans = self.get_transform(xml_group, trans)
