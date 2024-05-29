@@ -55,7 +55,10 @@
 <span class="sd">* Having inkscape installed on the system and available in the PATH.</span>
 <span class="sd">  A recent version of inkscape (1.0 at least) is recommended to avoid units and</span>
 <span class="sd">  scaling problems.</span>
-<span class="sd">* Either:</span>
+<span class="sd">  **Inkscape is needed for 2D maps renderings**, it is not needed for the 3D</span>
+<span class="sd">  mode.</span>
+
+<span class="sd">* Either (**for 2D maps**):</span>
 
 <span class="sd">  * the Pillow (PIL) python module (see later)</span>
 <span class="sd">  * or ImageMagick &quot;convert&quot; tool to convert PNG to JPEG. If Pillow is present,</span>
@@ -86,6 +89,8 @@
 <span class="sd">* scipy</span>
 <span class="sd">* Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick</span>
 <span class="sd">  &quot;convert&quot; tool will be used (see above)</span>
+<span class="sd">* pyclipper, used in **2D maps** and only when **zoomed zones** are used. You</span>
+<span class="sd">  can install it via pip.</span>
 
 <span class="sd">The 3D part has additional requirements:</span>
 
@@ -417,6 +422,19 @@
 <span class="sd">    **lambert93** coordinates are provied in the appropriate layer, the scale</span>
 <span class="sd">    factor will be processed according to these &quot;true&quot; coordinates to match x</span>
 <span class="sd">    and y scales.</span>
+<span class="sd">**zoom_area_id:** str (**2D maps**)</span>
+<span class="sd">    Identifier for a zoomed area zone layer. Should be present in a layer</span>
+<span class="sd">    containing a polygon which defines a source region. The identifier is also</span>
+<span class="sd">    present in a target zoom region layer, see ``zoom_id``.</span>
+<span class="sd">    See also :ref:`zoomed regions` for details.</span>
+<span class="sd">**zoom_hidden:** bool (**2D maps**)</span>
+<span class="sd">    Layers marked with this will be excluded from zoomed areas.</span>
+<span class="sd">    See also :ref:`zoomed regions` for details.</span>
+<span class="sd">*zoom_id:** str (**2D maps**)</span>
+<span class="sd">    Identifier for a zoomed area zone layer. Should be present in a layer</span>
+<span class="sd">    containing a rectangle for the target zoomed region. The identifier is also</span>
+<span class="sd">    present in a source zoom region polygon layer, see ``zoom_area_id``.</span>
+<span class="sd">    See also :ref:`zoomed regions` for details.</span>
 
 <span class="sd">.. _maps_types:</span>
 
@@ -616,6 +634,20 @@
 <span class="sd">    20220304_202810.jpg	1</span>
 
 <span class="sd">will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.</span>
+
+
+<span class="sd">.. _zoomed regions:</span>
+
+<span class="sd">Zoomed regions</span>
+<span class="sd">--------------</span>
+
+<span class="sd">Zoomed regions may be displayed to represent en enlarged duplicated portion of the original map. To do so we need 3 components, in 3 different layers:</span>
+
+<span class="sd">* a source zoomed region definition. This is done in a layer containing a ``zoom_area_id`` property, this layer should contain a single closed and connected polygon, which traces the region to be zoomed. The `zoom_area_id`` identifier will be matched to a target zoom region.</span>
+
+<span class="sd">* a target zoomed region area definition (where the zoomed copy will be drawn). This is done in a layer containing a ``zoom_id`` property (matching a source region definition identifier). This layer should contain a single rectangle, which marks the bounding box of where the zoomed copy of the map will be drawn.</span>
+
+<span class="sd">Other layers can be marked with a ``zoom_hidden`` property, which indicates that these layers should not be part of zoomed regions.</span>
 
 
 <span class="sd">Lights</span>
@@ -4748,7 +4780,7 @@
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;label:&#39;</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+            <span class="c1"># print(&#39;label:&#39;, label)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span> \
                     <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;profondeurs&#39;</span><span class="p">)</span> \
                     <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;background_bitm&#39;</span><span class="p">)):</span>
@@ -4756,13 +4788,13 @@
                 <span class="n">style</span><span class="p">[</span><span class="s1">&#39;display&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;inline&#39;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
                 <span class="n">shadow</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadow&#39;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;shadow:&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="p">)</span>
+                <span class="c1"># print(&#39;shadow:&#39;, shadow)</span>
                 <span class="k">if</span> <span class="n">shadow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shadow</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span>
                                                          <span class="s1">&#39;FALSE&#39;</span><span class="p">):</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">shadow</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;shadow  :&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="p">)</span>
+                <span class="c1"># print(&#39;shadow  :&#39;, shadow)</span>
                 <span class="k">if</span> <span class="n">shadow</span> <span class="ow">or</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span>
                         <span class="s1">&#39;galeries inaccessibles inf&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;anciennes galeries inf&#39;</span><span class="p">,</span>
@@ -4893,6 +4925,7 @@
 
     <span class="k">def</span> <span class="nf">clip_and_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">target_layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">region_bbox</span><span class="p">,</span>
                        <span class="n">src_trans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># verbose = verbose or ((layer.get(&#39;id&#39;) == &#39;layer8&#39;) and target_layer.get(&#39;id&#39;) == &#39;layer81&#39;)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip_and_scale:&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="s1">&#39;into:&#39;</span><span class="p">,</span>
                   <span class="n">target_layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
@@ -4906,10 +4939,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">src_trans</span> <span class="o">=</span> <span class="n">src_trans</span> <span class="o">*</span> <span class="n">trans2</span>
         <span class="n">to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># to_add = []</span>
         <span class="n">copied</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1">#if layer.get(&#39;id&#39;) == &#39;layer31&#39;:</span>
-            <span class="c1">#verbose = True</span>
-        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">layer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">layer</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">with_copy</span><span class="p">:</span>
                 <span class="n">element</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
                 <span class="n">target_layer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
@@ -4920,7 +4952,8 @@
                 <span class="n">in_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_in_region</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">region_bbox</span><span class="p">,</span>
                                             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">in_out</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1">#print(&#39;out:&#39;, element.tag, element.get(&#39;id&#39;))</span>
+                    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;out:&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
                     <span class="c1">#to_remove.append(element)</span>
                 <span class="c1">#elif in_out == 0:</span>
                     <span class="c1"># intesect</span>
@@ -4928,19 +4961,38 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;intersect:&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}g&#39;</span><span class="p">):</span>
                         <span class="c1"># group: look inside</span>
-                        <span class="n">trans2</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">trans2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="n">src_trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                                <span class="n">trans2</span> <span class="o">=</span> <span class="n">src_trans</span> <span class="o">*</span> <span class="n">trans2</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">trans2</span> <span class="o">=</span> <span class="n">src_trans</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">clip_and_scale</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
                                             <span class="n">region_bbox</span><span class="p">,</span> <span class="n">src_trans</span><span class="p">,</span>
                                             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># real object intersect: reject</span>
-                        <span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+                        <span class="c1"># real object intersect</span>
+                        <span class="n">remove</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}path&#39;</span><span class="p">):</span>
+                            <span class="n">trans2</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">trans2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">trans2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">src_trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                    <span class="n">trans2</span> <span class="o">=</span> <span class="n">src_trans</span> <span class="o">*</span> <span class="n">trans2</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">src_trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                    <span class="n">trans2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">trans2</span> <span class="o">=</span> <span class="n">src_trans</span>
+                            <span class="n">intersect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_path</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">trans2</span><span class="p">,</span>
+                                                       <span class="n">region</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;clip:&#39;</span><span class="p">,</span> <span class="n">intersect</span><span class="p">,</span>
+                                      <span class="nb">len</span><span class="p">(</span><span class="n">intersect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)))</span>
+                            <span class="k">if</span> <span class="n">intersect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                                    <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;keep intersection&#39;</span><span class="p">)</span>
+                                <span class="c1">#to_add.append((index, intersect))</span>
+                                <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">intersect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">))</span>
+                                <span class="n">remove</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">if</span> <span class="n">remove</span><span class="p">:</span>
+                            <span class="c1"># reject</span>
+                            <span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** in **:&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -4970,6 +5022,8 @@
                     <span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;** in **:&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+        <span class="c1"># for index, element in to_add:</span>
+        <span class="c1">#     target_layer.insert(index, element)</span>
         <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
             <span class="n">target_layer</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -4985,38 +5039,25 @@
                     <span class="n">trans2</span> <span class="o">=</span> <span class="n">trans</span>
                 <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">))</span>
 
-
     <span class="k">def</span> <span class="nf">enlarge_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_xml</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">keep_private</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">layer_label</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;masque </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">region</span>
-        <span class="n">target_layer_label</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;agrandissement </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">region</span>
         <span class="n">mask_layer</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">src_xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-                <span class="o">==</span> <span class="n">layer_label</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_area_id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">region</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">mask_layer</span><span class="p">:</span>
             <span class="n">mask_layer</span> <span class="o">=</span> <span class="n">mask_layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span>  <span class="c1"># this region doesn&#39;t exist in the map</span>
         <span class="n">target_layer</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-                <span class="o">==</span> <span class="n">target_layer_label</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">region</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">target_trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">target_layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">))</span>
         <span class="n">target_rect</span> <span class="o">=</span> <span class="n">target_layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">target_rect</span><span class="p">,</span> <span class="n">target_trans</span><span class="p">)</span>
-        <span class="c1">#rect = [float(target_rect.get(&#39;x&#39;)),</span>
-                <span class="c1">#float(target_rect.get(&#39;y&#39;)),</span>
-                <span class="c1">#float(target_rect.get(&#39;width&#39;)),</span>
-                <span class="c1">#float(target_rect.get(&#39;height&#39;))]</span>
-        <span class="c1">#rect[2] += rect[0]</span>
-        <span class="c1">#rect[3] += rect[1]</span>
         <span class="c1">#print(&#39;target rect:&#39;, rect)</span>
         <span class="c1"># calculate transform</span>
         <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">mask_layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">))</span>
         <span class="n">in_rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">mask_layer</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trans</span><span class="p">)</span>
         <span class="c1">#print(&#39;in_rect:&#39;, in_rect)</span>
-        <span class="n">transl</span> <span class="o">=</span> <span class="p">[</span><span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">in_rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">in_rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
-        <span class="c1">#print(&#39;transl:&#39;, transl)</span>
         <span class="n">enl_tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">scl1</span> <span class="o">=</span> <span class="p">(</span><span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">in_rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">scl2</span> <span class="o">=</span> <span class="p">(</span><span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">in_rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
@@ -5024,11 +5065,10 @@
         <span class="n">scl</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">scl1</span><span class="p">,</span> <span class="n">scl2</span><span class="p">))</span>
         <span class="n">enl_tr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">scl</span>
         <span class="n">enl_tr</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">scl</span>
-        <span class="c1">#enl_tr[:2, 2] = np.expand_dims(transl[:2], 1) * scl</span>
         <span class="n">enl_tr</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> \
             <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">([</span><span class="n">rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mf">1.</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
                <span class="o">-</span> <span class="n">enl_tr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">([</span><span class="n">in_rect</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-                                          <span class="n">in_rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mf">1.</span><span class="p">],</span> <span class="mi">1</span><span class="p">))[:</span><span class="mi">2</span><span class="p">,]</span>
+                                          <span class="n">in_rect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mf">1.</span><span class="p">],</span> <span class="mi">1</span><span class="p">))[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="c1"># get back into target layer coords</span>
         <span class="n">enl_tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">target_trans</span><span class="p">)</span> <span class="o">*</span> <span class="n">enl_tr</span>
         <span class="c1">#print(&#39;enlarge_region:&#39;, region)</span>
@@ -5039,22 +5079,6 @@
 
         <span class="c1"># replace rect by actual data</span>
         <span class="n">target_layer</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target_rect</span><span class="p">)</span>
-        <span class="c1">#if region == &#39;vdg&#39;:</span>
-            <span class="c1">## special case VDG: take specific corridors</span>
-            <span class="c1">#corridors_layer = [</span>
-                <span class="c1">#x for x in xml.getroot()</span>
-                <span class="c1">#if x.get(&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;)</span>
-                    <span class="c1">#== &#39;galeries big PARIS&#39;][0]</span>
-            <span class="c1">#tr = self.get_transform(corridors_layer.get(&#39;transform&#39;))</span>
-            <span class="c1">#group = [x for x in corridors_layer if x.tag.endswith(&#39;}g&#39;)][0]</span>
-            <span class="c1">#tr *= self.get_transform(group.get(&#39;transform&#39;))</span>
-            <span class="c1">#g2 = [x for x in group if x.get(&#39;id&#39;) == &#39;Z + VdG&#39;][0]</span>
-            <span class="c1">## tr *= tr.get_transform(g2.get(&#39;transform&#39;))</span>
-            <span class="c1">#new_g = copy.deepcopy(g2)</span>
-            <span class="c1">##print(&#39;current tr:&#39;, tr)</span>
-            <span class="c1">##print(&#39;final tr:&#39;, enl_tr * tr)</span>
-            <span class="c1">#new_g.set(&#39;transform&#39;, self.to_transform(enl_tr * tr))</span>
-            <span class="c1">#target_layer.append(new_g)</span>
 
         <span class="n">clip_region</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">mask_layer</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trans</span><span class="p">)</span>
 
@@ -5066,17 +5090,15 @@
                 <span class="k">continue</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> \
-                    <span class="ow">or</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;parcelles&#39;</span><span class="p">,</span> <span class="p">)</span> \
-                    <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;masque &#39;</span><span class="p">)</span> \
-                    <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;agrandissement &#39;</span><span class="p">)</span> \
-                    <span class="ow">or</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;bord &#39;</span><span class="p">):</span>
+            <span class="n">hidden</span> <span class="o">=</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_hidden&#39;</span><span class="p">))</span> \
+                <span class="ow">or</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_id&#39;</span><span class="p">))</span> \
+                <span class="ow">or</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_area_id&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">hidden</span> <span class="ow">or</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">clip_and_scale</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">target_layer</span><span class="p">,</span> <span class="n">enl_tr</span><span class="p">,</span> <span class="n">clip_region</span><span class="p">,</span>
                                 <span class="n">in_rect</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">with_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1">#print(&#39;in_rect:&#39;, in_rect)</span>
         <span class="c1">#print(np.asarray(clip_region.vertex()))</span>
-
 
 <div class="viewcode-block" id="CataMapTo2DMap.replace_filter_element"><a class="viewcode-back" href="../../index.html#catamap.map_to_meshes.CataMapTo2DMap.replace_filter_element">[docs]</a>    <span class="k">def</span> <span class="nf">replace_filter_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="c1">#if not self.keep_private and xml.get(&#39;level&#39;) in (&#39;tech&#39;, ):</span>
@@ -5084,7 +5106,6 @@
             <span class="k">if</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;tech&#39;</span><span class="p">,</span> <span class="p">):</span>
                 <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">xml</span></div>
-
 
     <span class="k">def</span> <span class="nf">do_remove_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">to_remove</span> <span class="o">=</span> <span class="p">[]</span>
@@ -5301,7 +5322,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">remove_limestone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -5312,7 +5332,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">remove_zooms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -5322,7 +5341,6 @@
             <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;agrandissement&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">resize_poster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">page_width</span><span class="o">=</span><span class="mi">1050</span><span class="p">):</span>
         <span class="n">target_width</span> <span class="o">=</span> <span class="n">page_width</span> <span class="o">/</span> <span class="mf">.254</span>  <span class="c1"># mm -&gt; inch</span>
@@ -5343,22 +5361,21 @@
         <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">scale</span><span class="p">))</span>
         <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="s1">&#39;scale(</span><span class="si">%f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">scale</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">remove_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="o">*</span><span class="n">labels</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">replace_symbols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">protos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_protos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replace_elements</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">protos</span><span class="p">)</span>
 
-
     <span class="k">def</span> <span class="nf">zoom_areas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;vdg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;cimetière&#39;</span><span class="p">,</span> <span class="s1">&#39;plage&#39;</span><span class="p">):</span>
+        <span class="n">zoom_regions</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_area_id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;zoom_area_id&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;zoom regions:&#39;</span><span class="p">,</span> <span class="n">zoom_regions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">zoom_regions</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">enlarge_region</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span>
                                 <span class="n">keep_private</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keep_private</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">set_date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
@@ -5371,13 +5388,11 @@
                         <span class="c1"># set date in appropriate field</span>
                         <span class="n">d</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
                         <span class="n">child</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\xe9</span><span class="s1">dition du </span><span class="si">%s</span><span class="s1">&#39;</span> \
-                          <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatted_date</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-
+                            <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatted_date</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">show_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;display:inline&#39;</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">shadow_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">xml2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>

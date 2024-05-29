@@ -75,15 +75,23 @@
 <span class="sd">* numpy</span>
 <span class="sd">* scipy</span>
 <span class="sd">* optionally, soma.aims</span>
+<span class="sd">* optionally, pyclipper</span>
 
-<span class="sd">  The AIMS library is used to build and manpulate meshes.</span>
-<span class="sd">  (https://github.com/brainvisa/aims-free)</span>
-<span class="sd">  This lib is compiled (C++ + python bindings) thus is not completely</span>
-<span class="sd">  straightforward to install.</span>
-<span class="sd">  Alternately we can implement basic replacements for vector and mesh classes.</span>
-<span class="sd">  This allows to use the 2D part.</span>
-<span class="sd">  The 3D part however needs more algorithmic things in Aims, and Anatomist</span>
-<span class="sd">  to render depth maps.</span>
+<span class="sd">aims:</span>
+
+<span class="sd">    The AIMS library is used to build and manpulate meshes.</span>
+<span class="sd">    (https://github.com/brainvisa/aims-free)</span>
+<span class="sd">    This lib is compiled (C++ + python bindings) thus is not completely</span>
+<span class="sd">    straightforward to install.</span>
+<span class="sd">    Alternately we have implemented basic replacements for vector and mesh</span>
+<span class="sd">    classes. This allows to use the 2D part.</span>
+<span class="sd">    The 3D part however needs more algorithmic things in Aims, and Anatomist</span>
+<span class="sd">    to render depth maps.</span>
+
+<span class="sd">pyclipper:</span>
+<span class="sd">    Used to perform polygons clipping, which is now used in zoomed regions. If</span>
+<span class="sd">    not installed the program will print a warning message, and clipped</span>
+<span class="sd">    polygons will just disappear.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
 
@@ -122,11 +130,20 @@
             <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
+            <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="p">,</span> <span class="n">vec</span><span class="p">))</span>
+
+            <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elem</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_vec</span><span class="p">,</span> <span class="p">[</span><span class="n">elem</span><span class="p">]))</span>
+
             <span class="nd">@property</span>
             <span class="k">def</span> <span class="nf">np</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span></div>
 
-<div class="viewcode-block" id="aims.AimsTimeSurface"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">class</span> <span class="nc">_AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
 
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
@@ -141,21 +158,26 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polygon</span>
 
             <span class="k">def</span> <span class="nf">header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span></div>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span>
 
-
-<div class="viewcode-block" id="aims.AimsTimeSurface_2"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_2">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_2</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
+<div class="viewcode-block" id="aims.AimsTimeSurface_2"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_2">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_2</span><span class="p">(</span><span class="n">_AimsTimeSurface</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Segments mesh (2 points per polygon) &#39;&#39;&#39;</span>
 
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
 
-
-<div class="viewcode-block" id="aims.AimsTimeSurface_3"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_3">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_3</span><span class="p">(</span><span class="n">AimsTimeSurface</span><span class="p">):</span>
+<div class="viewcode-block" id="aims.AimsTimeSurface_3"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.AimsTimeSurface_3">[docs]</a>        <span class="k">class</span> <span class="nc">AimsTimeSurface_3</span><span class="p">(</span><span class="n">_AimsTimeSurface</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Triangles mesh (3 points per polygon) &#39;&#39;&#39;</span>
 
             <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_3</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div></div>
+                <span class="nb">super</span><span class="p">(</span><span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_3</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+        <span class="k">def</span> <span class="nf">AimsTimeSurface</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_3</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">_AimsTimeSurface</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SvgToMesh"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh">[docs]</a><span class="k">class</span> <span class="nc">SvgToMesh</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1727,149 +1749,267 @@
                          <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
                 <span class="n">todo</span> <span class="o">=</span> <span class="n">added</span> <span class="o">+</span> <span class="n">todo</span>
 
-    <span class="c1">#def clip_path(self, xml_path, trans, bmin, bmax):</span>
-        <span class="c1">#def read_point(pdesc, i, pt=None):</span>
-            <span class="c1">#j = i + 1</span>
-            <span class="c1">#try:</span>
-                <span class="c1">#while j &lt; n and pdesc[j] in &#39;0123456789.e-&#39;:</span>
-                    <span class="c1">#j += 1</span>
-                <span class="c1">#x = float(pdesc[i:j])</span>
-                <span class="c1">#i = j + 1</span>
-                <span class="c1">#while i&lt;len(pdesc) and pdesc[i] in &#39; ,&#39;:</span>
-                    <span class="c1">#i += 1</span>
-            <span class="c1">#except Exception as e:</span>
-                <span class="c1">#print(e)</span>
-                <span class="c1">#print(&#39;failed reading&#39;, pt, &#39;, i:&#39;, i)</span>
-                <span class="c1">#raise</span>
-            <span class="c1">#return x, i</span>
+    <span class="k">def</span> <span class="nf">cut_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># drop segment</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v1b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v1</span><span class="p">)(</span><span class="n">v1</span><span class="p">)</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> \
+                    <span class="o">+</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1b</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># drop segment</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v1b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v1</span><span class="p">)(</span><span class="n">v1</span><span class="p">)</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> \
+                    <span class="o">+</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1b</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
 
-        <span class="c1">#pdesc = xml_path.get(&#39;d&#39;)</span>
-        <span class="c1">#n = len(pdesc)</span>
-        <span class="c1">#i = 0</span>
-        <span class="c1">#cmd = &#39;M&#39;</span>
-        <span class="c1">#x = 0</span>
-        <span class="c1">#y = 0</span>
-        <span class="c1">#tp = [0, 0]</span>
-        <span class="c1">#first = x, y, tp</span>
-        <span class="c1">#out_cmd = []</span>
-        <span class="c1">#clip = None</span>
-        <span class="c1">#points_kept = 0</span>
-        <span class="c1">#cond_cmd = []</span>
-        <span class="c1">#valid = False</span>
+        <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">v2b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v2</span><span class="p">)(</span><span class="n">v2</span><span class="p">)</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> \
+                <span class="o">+</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2b</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">v2b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v2</span><span class="p">)(</span><span class="n">v2</span><span class="p">)</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> \
+                <span class="o">+</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2b</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
 
-        <span class="c1">#while i &lt; n:</span>
-            <span class="c1">#while(i &lt; n and pdesc[i] == &#39; &#39;):</span>
-                <span class="c1">#i += 1</span>
-            <span class="c1">#if i == n:</span>
-                <span class="c1">##print(&#39;end of path in:&#39;, pdesc)</span>
-                <span class="c1">#break</span>
-            <span class="c1">##print(&#39;i:&#39;, i)</span>
-            <span class="c1">#last_x, last_y = x, y</span>
-            <span class="c1">#last_valid = valid</span>
-            <span class="c1">#last_tp = tp</span>
-            <span class="c1">#if pdesc[i] in &#39;mMcClLhHvVsSqQtTaA&#39;:</span>
-                <span class="c1">#cmd = pdesc[i]</span>
-                <span class="c1">#clip = 0</span>
-                <span class="c1">#cond_cmd.append(cmd)</span>
-                <span class="c1">#np = 0</span>
-                <span class="c1">##print(&#39;cmd:&#39;, cmd)</span>
-                <span class="c1">#i += 1</span>
-                <span class="c1">#while pdesc[i] == &#39; &#39;:</span>
-                    <span class="c1">#i += 1</span>
-            <span class="c1">#elif pdesc[i] in &#39;-0123456789.&#39;:</span>
-                <span class="c1">#if cmd not in &#39;vV&#39;:</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x&#39;)</span>
-                    <span class="c1">#cond_cmd.append(x)</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#x += last_x</span>
-                <span class="c1">#if cmd not in &#39;hH&#39;:</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;y&#39;)</span>
-                    <span class="c1">#cond_cmd.append(y)</span>
-                    <span class="c1">#j = i + 1</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#y += last_y</span>
-                <span class="c1">#tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()</span>
-                <span class="c1">#np += 1</span>
-                <span class="c1">#if tp[0] &lt; bmin[0] or tp[0] &gt; bmax[0] \</span>
-                        <span class="c1">#or tp[1] &lt; bmin[1] or tp[1] &gt; bmax[1]:</span>
-                    <span class="c1">#clip += 1</span>
-                    <span class="c1">#valid = False</span>
-                <span class="c1">#else:</span>
-                    <span class="c1">#valid = True</span>
-                <span class="c1">#if cmd in &#39;cC&#39;:</span>
-                    <span class="c1">##last_x, last_y = x, y</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x2&#39;)</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;y2&#39;)</span>
-                    <span class="c1">#cond_cmd.append(x)</span>
-                    <span class="c1">#cond_cmd.append(y)</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#x += last_x</span>
-                        <span class="c1">#y += last_y</span>
-                    <span class="c1">#tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()</span>
-                    <span class="c1">##last_x, last_y = x, y</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x3&#39;)</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;y3&#39;)</span>
-                    <span class="c1">#cond_cmd.append(x)</span>
-                    <span class="c1">#cond_cmd.append(y)</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#x += last_x</span>
-                        <span class="c1">#y += last_y</span>
-                    <span class="c1">#tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()</span>
-                <span class="c1">#elif cmd in &#39;sSqQ&#39;:</span>
-                    <span class="c1">##last_x, last_y = x, y</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x2&#39;)</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;y2&#39;)</span>
-                    <span class="c1">#cond_cmd.append(x)</span>
-                    <span class="c1">#cond_cmd.append(y)</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#x += last_x</span>
-                        <span class="c1">#y += last_y</span>
-                    <span class="c1">#tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()</span>
-                <span class="c1">#if cmd in &#39;aA&#39;:</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x-axis-rotation&#39;)</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;large-arc-flag&#39;)</span>
-                    <span class="c1">#s, i = read_point(pdesc, i, &#39;sweep-flag&#39;)</span>
-                    <span class="c1">#cond_cmd += [x, int(y), int(s)]</span>
-                    <span class="c1">#x, i = read_point(pdesc, i, &#39;x2&#39;)</span>
-                    <span class="c1">#y, i = read_point(pdesc, i, &#39;y2&#39;)</span>
-                    <span class="c1">#cond_cmd += [x, y]</span>
-                    <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                        <span class="c1">#x += last_x</span>
-                        <span class="c1">#y += last_y</span>
-                    <span class="c1">#tp = np.asarray(trans.dot([[x], [y], [1.]])).ravel()</span>
-                <span class="c1">#if cmd in &#39;cCsSqQaA&#39;:</span>
-                    <span class="c1">#np += 1</span>
-                    <span class="c1">#if tp[0] &lt; bmin[0] or tp[0] &gt; bmax[0] \</span>
-                            <span class="c1">#or tp[1] &lt; bmin[1] or tp[1] &gt; bmax[1]:</span>
-                        <span class="c1">#clip += 1</span>
-                        <span class="c1">#valid2 = False</span>
-                    <span class="c1">#else:</span>
-                        <span class="c1">#valid2 = True</span>
-                    <span class="c1">#if not valid and not valid2:</span>
-                        <span class="c1">## invalid segment: keep last as potential Move</span>
-                        <span class="c1">#if cmd &gt;= &#39;a&#39;:</span>
-                            <span class="c1">#cond_cmd = [&#39;m&#39;, x, y]</span>
-                        <span class="c1">#else:</span>
-                            <span class="c1">#cond_cmd = [&#39;M&#39;, x, y]</span>
-                <span class="c1">#if cmd == &#39;m&#39;:</span>
-                    <span class="c1">#cmd = &#39;l&#39;</span>
-                    <span class="c1">#first = x, y, tp</span>
-                <span class="c1">#elif cmd == &#39;M&#39;:</span>
-                    <span class="c1">#cmd = &#39;L&#39;</span>
-                    <span class="c1">#first = x, y, tp</span>
-            <span class="c1">#elif pdesc[i] in &#39;zZ&#39;:</span>
-                <span class="c1">#if valid:</span>
-                    <span class="c1">#out_cmd.append(pdesc[i])</span>
-                    <span class="c1">#cond_cmd = []</span>
-                <span class="c1">#else:</span>
-                    <span class="c1">#cond_cmd = [pdesc[i], x, y]</span>
-                <span class="c1">#x, y, tp = first</span>
-                <span class="c1">#i += 1</span>
-            <span class="c1">#else:</span>
-                <span class="c1">#out_cmd.append(pdesc[i])</span>
-                <span class="c1">#i += 1</span>
+        <span class="k">if</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># drop segment</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v1b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v1</span><span class="p">)(</span><span class="n">v1</span><span class="p">)</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> \
+                    <span class="o">+</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1b</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># drop segment</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">v1b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v1</span><span class="p">)(</span><span class="n">v1</span><span class="p">)</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">v1b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> \
+                    <span class="o">+</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1b</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
 
-        <span class="c1">#return &#39; &#39;.join([str(x) for x in out_cmd])</span>
+        <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">v2b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v2</span><span class="p">)(</span><span class="n">v2</span><span class="p">)</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> \
+                <span class="o">+</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2b</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">v2b</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v2</span><span class="p">)(</span><span class="n">v2</span><span class="p">)</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">v2b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> \
+                <span class="o">+</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">bmax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2b</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">clip_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">):</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+        <span class="n">cmesh</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mesh</span><span class="p">)()</span>
+        <span class="n">cmesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">())</span>
+        <span class="n">cvert</span> <span class="o">=</span> <span class="n">cmesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">cpoly</span> <span class="o">=</span> <span class="n">cmesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+        <span class="c1"># print(&#39;clip vertices:&#39;, len(vert), &#39;, segments:&#39;, len(poly))</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># reverse map pos: index</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">poly</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">seg: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1"> / </span><span class="si">{</span><span class="n">ns</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">100</span><span class="w"> </span><span class="o">/</span><span class="n">ns</span><span class="p">)</span><span class="si">}</span><span class="s1">% &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">npoly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut_segment</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">npoly</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">v1b</span><span class="p">,</span> <span class="n">v2b</span> <span class="o">=</span> <span class="n">npoly</span>
+            <span class="n">index1</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v1b</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">index1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">index1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+                <span class="n">pts</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v1b</span><span class="p">)]</span> <span class="o">=</span> <span class="n">index1</span>
+                <span class="n">cvert</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v1b</span><span class="p">)</span>
+            <span class="n">index2</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v2b</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">index2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">index2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+                <span class="n">pts</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v2b</span><span class="p">)]</span> <span class="o">=</span> <span class="n">index2</span>
+                <span class="n">cvert</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v2b</span><span class="p">)</span>
+            <span class="n">cpoly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">cmesh</span>
+
+    <span class="k">def</span> <span class="nf">mesh_to_pyclipper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">closed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">poly</span><span class="p">):</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">scale</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">scale</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">prev</span> <span class="o">!=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">path</span> <span class="o">+=</span> <span class="p">[</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">]</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">first</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">closed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">paths</span><span class="p">,</span> <span class="n">closed</span>
+
+    <span class="k">def</span> <span class="nf">pyclipper_to_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">itrans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">iscale</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">scale</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">tree</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">Contour</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
+                <span class="n">vert</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">x</span> <span class="o">*</span> <span class="n">iscale</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">iscale</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">Contour</span><span class="p">]</span>
+                <span class="n">poly</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">IsOpen</span><span class="p">:</span>
+                    <span class="n">poly</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">Childs</span><span class="p">:</span>
+                <span class="n">todo</span> <span class="o">+=</span> <span class="n">item</span><span class="o">.</span><span class="n">Childs</span>
+
+        <span class="k">if</span> <span class="n">itrans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">vert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">vert</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">itrans</span> <span class="o">*</span> <span class="n">vert</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">vert</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mesh</span>
+
+    <span class="k">def</span> <span class="nf">mesh_to_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;{http://www.w3.org/2000/svg}path&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">style</span> <span class="o">=</span> <span class="s1">&#39;stroke-width: 1.1; stroke-dasharray: none; &#39;</span> \
+                <span class="s1">&#39;stroke: #d7b497; stroke-opacity: 1;&#39;</span>
+            <span class="c1"># TODO: else get material etc.</span>
+
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+        <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+
+        <span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">lastx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">lasty</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">pdesc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">poly</span><span class="p">:</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="n">vert</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">prev</span> <span class="o">!=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">lastx</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lasty</span>
+                <span class="n">pdesc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;m </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">pdesc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">first</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">pdesc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">lastx</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lasty</span>
+                <span class="n">pdesc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">lastx</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lasty</span> <span class="o">=</span> <span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1000</span><span class="p">:</span>
+                <span class="c1"># squeeze for memory / perf</span>
+                <span class="n">pdesc</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)]</span>
+
+        <span class="n">pdesc</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pdesc</span><span class="p">)</span>
+        <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">pdesc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">element</span>
+
+    <span class="k">def</span> <span class="nf">clip_path_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">):</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+        <span class="n">cmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
+        <span class="n">clipped</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_to_path</span><span class="p">(</span><span class="n">cmesh</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">clipped</span>
+
+    <span class="k">def</span> <span class="nf">clip_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">clip_poly</span><span class="p">,</span> <span class="n">clip_trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">pyclipper</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">global</span> <span class="n">_pyclipper_failed</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_pyclipper_failed</span><span class="p">:</span>
+                <span class="n">_pyclipper_failed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;PROBLEM: the pyclipper module is not installed. &#39;</span>
+                      <span class="s1">&#39;Polygon clipping will not be possible without this &#39;</span>
+                      <span class="s1">&#39;module. Please install it using the command:&#39;</span><span class="p">,</span>
+                      <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;python -m pip install pyclipper&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;For the time being, some objects will disappear from &#39;</span>
+                      <span class="s1">&#39;clipped zoomed regions.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clip_poly</span><span class="p">,</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">):</span>
+            <span class="n">clip_mesh</span> <span class="o">=</span> <span class="n">clip_poly</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">clip_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_path</span><span class="p">(</span><span class="n">clip_poly</span><span class="p">,</span> <span class="n">clip_trans</span><span class="p">)</span>
+        <span class="n">clip</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_to_pyclipper</span><span class="p">(</span><span class="n">clip_mesh</span><span class="p">)</span>
+        <span class="n">subj</span><span class="p">,</span> <span class="n">closed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_to_pyclipper</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">clip_mesh</span>
+        <span class="n">pc</span> <span class="o">=</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">Pyclipper</span><span class="p">()</span>
+        <span class="c1"># print(&#39;clip:&#39;, clip)</span>
+        <span class="n">pc</span><span class="o">.</span><span class="n">AddPath</span><span class="p">(</span><span class="n">clip</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PT_CLIP</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># print(&#39;subj:&#39;, subj)</span>
+        <span class="n">pc</span><span class="o">.</span><span class="n">AddPaths</span><span class="p">(</span><span class="n">subj</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PT_SUBJECT</span><span class="p">,</span> <span class="n">closed</span><span class="p">)</span>
+        <span class="n">clipped</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">Execute2</span><span class="p">(</span><span class="n">pyclipper</span><span class="o">.</span><span class="n">CT_INTERSECTION</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PFT_EVENODD</span><span class="p">,</span>
+                              <span class="n">pyclipper</span><span class="o">.</span><span class="n">PFT_EVENODD</span><span class="p">)</span>
+        <span class="n">itrans</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">itrans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
+        <span class="n">cmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pyclipper_to_mesh</span><span class="p">(</span><span class="n">clipped</span><span class="p">,</span> <span class="n">itrans</span><span class="o">=</span><span class="n">itrans</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">clipped</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_style</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
+        <span class="n">clipped_xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_to_path</span><span class="p">(</span><span class="n">cmesh</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">clipped_xml</span>
 
     <span class="k">def</span> <span class="nf">remove_paths_outside_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_group</span><span class="p">,</span> <span class="n">bbmin</span><span class="p">,</span> <span class="n">bbmax</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">xml_group</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>

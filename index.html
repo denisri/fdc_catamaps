@@ -53,8 +53,10 @@
 <ul>
 <li><p>Having inkscape installed on the system and available in the PATH.
 A recent version of inkscape (1.0 at least) is recommended to avoid units and
-scaling problems.</p></li>
-<li><p>Either:</p>
+scaling problems.
+<strong>Inkscape is needed for 2D maps renderings</strong>, it is not needed for the 3D
+mode.</p></li>
+<li><p>Either (<strong>for 2D maps</strong>):</p>
 <ul>
 <li><p>the Pillow (PIL) python module (see later)</p></li>
 <li><p>or ImageMagick “convert” tool to convert PNG to JPEG. If Pillow is present,
@@ -88,6 +90,8 @@ project)</p></li>
 <li><p>scipy</p></li>
 <li><p>Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
 “convert” tool will be used (see above)</p></li>
+<li><p>pyclipper, used in <strong>2D maps</strong> and only when <strong>zoomed zones</strong> are used. You
+can install it via pip.</p></li>
 </ul>
 <p>The 3D part has additional requirements:</p>
 <ul class="simple">
@@ -396,6 +400,19 @@ The default is 0.5 and is also arbitrary. If it is set to “auto”, then if
 factor will be processed according to these “true” coordinates to match x
 and y scales.</p>
 </dd>
+<dt><strong>zoom_area_id:</strong> str (<strong>2D maps</strong>)</dt><dd><p>Identifier for a zoomed area zone layer. Should be present in a layer
+containing a polygon which defines a source region. The identifier is also
+present in a target zoom region layer, see <code class="docutils literal notranslate"><span class="pre">zoom_id</span></code>.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
+<dt><strong>zoom_hidden:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>Layers marked with this will be excluded from zoomed areas.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
+<dt><em>zoom_id:*</em> str (<strong>2D maps</strong>)</dt><dd><p>Identifier for a zoomed area zone layer. Should be present in a layer
+containing a rectangle for the target zoomed region. The identifier is also
+present in a source zoom region polygon layer, see <code class="docutils literal notranslate"><span class="pre">zoom_area_id</span></code>.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
 </dl>
 </section>
 <section id="maps-types">
@@ -551,6 +568,15 @@ The result in 2D is (left: original map, right: result):</p>
 <p>will assign to marker <code class="docutils literal notranslate"><span class="pre">1</span></code> the files: <code class="docutils literal notranslate"><span class="pre">20220304_201758.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_201804.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_202810.jpg</span></code>, and so on. Each of the file names will undergo the prefix/suffix transformations using <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> etc.</p>
 </section>
 </section>
+<section id="zoomed-regions">
+<span id="id11"></span><h3>Zoomed regions<a class="headerlink" href="#zoomed-regions" title="Permalink to this heading">¶</a></h3>
+<p>Zoomed regions may be displayed to represent en enlarged duplicated portion of the original map. To do so we need 3 components, in 3 different layers:</p>
+<ul class="simple">
+<li><p>a source zoomed region definition. This is done in a layer containing a <code class="docutils literal notranslate"><span class="pre">zoom_area_id</span></code> property, this layer should contain a single closed and connected polygon, which traces the region to be zoomed. The <cite>zoom_area_id`</cite> identifier will be matched to a target zoom region.</p></li>
+<li><p>a target zoomed region area definition (where the zoomed copy will be drawn). This is done in a layer containing a <code class="docutils literal notranslate"><span class="pre">zoom_id</span></code> property (matching a source region definition identifier). This layer should contain a single rectangle, which marks the bounding box of where the zoomed copy of the map will be drawn.</p></li>
+</ul>
+<p>Other layers can be marked with a <code class="docutils literal notranslate"><span class="pre">zoom_hidden</span></code> property, which indicates that these layers should not be part of zoomed regions.</p>
+</section>
 <section id="lights">
 <h3>Lights<a class="headerlink" href="#lights" title="Permalink to this heading">¶</a></h3>
 <p>Lights may be inserted in the 3D maps. They are actually handled as a special marker type. Thus they are specified in a dedicated layer, using the <code class="docutils literal notranslate"><span class="pre">marker</span></code> property with the value <code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
@@ -570,7 +596,7 @@ The result in 2D is (left: original map, right: result):</p>
 <p>Other properties may be specified (like the spot cone angle) as in <a class="reference external" href="https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md">https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md</a></p>
 </section>
 <section id="texturing">
-<span id="id11"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Permalink to this heading">¶</a></h3>
+<span id="id12"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Permalink to this heading">¶</a></h3>
 <p>In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</p>
 <p>Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.</p>
 <section id="texture-images">
@@ -961,12 +987,6 @@ otrans: transform in the output subtree. default=in_trans</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.svg_to_mesh.</span></span><span class="sig-name descname"><span class="pre">aims</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fake aims-lite module</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="catamap.svg_to_mesh.aims.AimsTimeSurface">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AimsTimeSurface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mesh structure</p>
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.aims.AimsTimeSurface_2">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AimsTimeSurface_2</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segments mesh (2 points per polygon)</p>
@@ -1091,6 +1111,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#markers-text-syntax">Markers text syntax</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#zoomed-regions">Zoomed regions</a></li>
 <li><a class="reference internal" href="#lights">Lights</a></li>
 <li><a class="reference internal" href="#texturing">Texturing</a><ul>
 <li><a class="reference internal" href="#texture-images">Texture images</a></li>
@@ -1150,7 +1171,6 @@ children in a readable dictionary.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.aims"><code class="docutils literal notranslate"><span class="pre">aims</span></code></a><ul>
-<li><a class="reference internal" href="#catamap.svg_to_mesh.aims.AimsTimeSurface"><code class="docutils literal notranslate"><span class="pre">aims.AimsTimeSurface</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_2"><code class="docutils literal notranslate"><span class="pre">aims.AimsTimeSurface_2</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_3"><code class="docutils literal notranslate"><span class="pre">aims.AimsTimeSurface_3</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.aims.vector"><code class="docutils literal notranslate"><span class="pre">aims.vector</span></code></a></li>
