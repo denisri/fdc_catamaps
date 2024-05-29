@@ -16,7 +16,10 @@ Requirements
 * Having inkscape installed on the system and available in the PATH.
   A recent version of inkscape (1.0 at least) is recommended to avoid units and
   scaling problems.
-* Either:
+  **Inkscape is needed for 2D maps renderings**, it is not needed for the 3D
+  mode.
+
+* Either (**for 2D maps**):
 
   * the Pillow (PIL) python module (see later)
   * or ImageMagick "convert" tool to convert PNG to JPEG. If Pillow is present,
@@ -47,6 +50,8 @@ These can be installed using the command::
 * scipy
 * Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
   "convert" tool will be used (see above)
+* pyclipper, used in **2D maps** and only when **zoomed zones** are used. You
+  can install it via pip.
 
 The 3D part has additional requirements:
 
@@ -378,6 +383,19 @@ Properties list
     **lambert93** coordinates are provied in the appropriate layer, the scale
     factor will be processed according to these "true" coordinates to match x
     and y scales.
+**zoom_area_id:** str (**2D maps**)
+    Identifier for a zoomed area zone layer. Should be present in a layer
+    containing a polygon which defines a source region. The identifier is also
+    present in a target zoom region layer, see ``zoom_id``.
+    See also :ref:`zoomed regions` for details.
+**zoom_hidden:** bool (**2D maps**)
+    Layers marked with this will be excluded from zoomed areas.
+    See also :ref:`zoomed regions` for details.
+*zoom_id:** str (**2D maps**)
+    Identifier for a zoomed area zone layer. Should be present in a layer
+    containing a rectangle for the target zoomed region. The identifier is also
+    present in a source zoom region polygon layer, see ``zoom_area_id``.
+    See also :ref:`zoomed regions` for details.
 
 .. _maps_types:
 
@@ -577,6 +595,20 @@ In addition to the "direct URL" mechanism above, it is also possible to specify,
     20220304_202810.jpg	1
 
 will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.
+
+
+.. _zoomed regions:
+
+Zoomed regions
+--------------
+
+Zoomed regions may be displayed to represent en enlarged duplicated portion of the original map. To do so we need 3 components, in 3 different layers:
+
+* a source zoomed region definition. This is done in a layer containing a ``zoom_area_id`` property, this layer should contain a single closed and connected polygon, which traces the region to be zoomed. The `zoom_area_id`` identifier will be matched to a target zoom region.
+
+* a target zoomed region area definition (where the zoomed copy will be drawn). This is done in a layer containing a ``zoom_id`` property (matching a source region definition identifier). This layer should contain a single rectangle, which marks the bounding box of where the zoomed copy of the map will be drawn.
+
+Other layers can be marked with a ``zoom_hidden`` property, which indicates that these layers should not be part of zoomed regions.
 
 
 Lights
@@ -4709,7 +4741,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
-            print('label:', label)
+            # print('label:', label)
             if not (label in self.removed_labels \
                     or label.startswith('profondeurs') \
                     or label.startswith('background_bitm')):
@@ -4717,13 +4749,13 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 style['display'] = 'inline'
                 self.set_style(layer, style)
                 shadow = layer.get('shadow')
-                print('shadow:', shadow)
+                # print('shadow:', shadow)
                 if shadow is not None and shadow not in ('0', 'false', 'False',
                                                          'FALSE'):
                     shadow = True
                 else:
                     shadow = False
-                print('shadow  :', shadow)
+                # print('shadow  :', shadow)
                 if shadow or label in (
                         'galeries inaccessibles inf',
                         'anciennes galeries inf',
@@ -4854,6 +4886,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
     def clip_and_scale(self, layer, target_layer, trans, region, region_bbox,
                        src_trans=None, with_copy=False, verbose=False):
+        # verbose = verbose or ((layer.get('id') == 'layer8') and target_layer.get('id') == 'layer81')
         if verbose:
             print('clip_and_scale:', layer.tag, layer.get('id'), 'into:',
                   target_layer.get('id'))
@@ -4867,10 +4900,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             else:
                 src_trans = src_trans * trans2
         to_remove = []
+        # to_add = []
         copied = []
-        #if layer.get('id') == 'layer31':
-            #verbose = True
-        for element in layer:
+        for index, element in enumerate(layer):
             if with_copy:
                 element = copy.deepcopy(element)
                 target_layer.append(element)
@@ -4881,7 +4913,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 in_out = self.box_in_region(bbox, region, region_bbox,
                                             verbose=verbose)
                 if in_out <= 0:
-                    #print('out:', element.tag, element.get('id'))
+                    if verbose:
+                        print('out:', element.tag, element.get('id'))
                     #to_remove.append(element)
                 #elif in_out == 0:
                     # intesect
@@ -4889,19 +4922,38 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         print('intersect:', element.tag, element.get('id'))
                     if element.tag.endswith('}g'):
                         # group: look inside
-                        trans2 = element.get('transform')
-                        if trans2 is not None:
-                            trans2 = self.get_transform(trans2)
-                            if src_trans is not None:
-                                trans2 = src_trans * trans2
-                        else:
-                            trans2 = src_trans
                         self.clip_and_scale(element, element, trans, region,
                                             region_bbox, src_trans,
                                             verbose=verbose)
                     else:
-                        # real object intersect: reject
-                        to_remove.append(element)
+                        # real object intersect
+                        remove = True
+                        if element.tag.endswith('}path'):
+                            trans2 = element.get('transform')
+                            if trans2 is not None:
+                                trans2 = self.get_transform(trans2)
+                                if src_trans is not None:
+                                    trans2 = src_trans * trans2
+                            else:
+                                if src_trans is None:
+                                    trans2 = np.matrix(np.eye(3))
+                                else:
+                                    trans2 = src_trans
+                            intersect = self.clip_path(element, trans2,
+                                                       region)
+                            if verbose:
+                                print('clip:', intersect,
+                                      len(intersect.get('d')))
+                            if intersect is not None \
+                                    and len(intersect.get('d')) != 0:
+                                if verbose:
+                                    print('keep intersection')
+                                #to_add.append((index, intersect))
+                                element.set('d', intersect.get('d'))
+                                remove = False
+                        if remove:
+                            # reject
+                            to_remove.append(element)
                 elif verbose:
                     print('** in **:', element.tag, element.get('id'))
             else:
@@ -4931,6 +4983,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     to_remove.append(element)
                 elif verbose:
                     print('** in **:', element.tag, element.get('id'))
+        # for index, element in to_add:
+        #     target_layer.insert(index, element)
         for element in to_remove:
             target_layer.remove(element)
         if trans is not None:
@@ -4946,38 +5000,25 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     trans2 = trans
                 element.set('transform', self.to_transform(trans2))
 
-
     def enlarge_region(self, src_xml, xml, region, keep_private=True):
-        layer_label = u'masque %s' % region
-        target_layer_label = u'agrandissement %s' % region
         mask_layer = [
             x for x in src_xml.getroot()
-            if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                == layer_label]
+            if x.get('zoom_area_id') == region]
         if mask_layer:
             mask_layer = mask_layer[0]
         else:
             return  # this region doesn't exist in the map
         target_layer = [
             x for x in xml.getroot()
-            if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                == target_layer_label][0]
+            if x.get('zoom_id') == region][0]
         target_trans = self.get_transform(target_layer.get('transform'))
         target_rect = target_layer[0]
         rect = self.boundingbox(target_rect, target_trans)
-        #rect = [float(target_rect.get('x')),
-                #float(target_rect.get('y')),
-                #float(target_rect.get('width')),
-                #float(target_rect.get('height'))]
-        #rect[2] += rect[0]
-        #rect[3] += rect[1]
         #print('target rect:', rect)
         # calculate transform
         trans = self.get_transform(mask_layer.get('transform'))
         in_rect = self.boundingbox(mask_layer[0], trans)
         #print('in_rect:', in_rect)
-        transl = [rect[0][0] - in_rect[0][0], rect[1][1] - in_rect[1][1]]
-        #print('transl:', transl)
         enl_tr = np.matrix(np.eye(3))
         scl1 = (rect[1][0] - rect[0][0]) / (in_rect[1][0] - in_rect[0][0])
         scl2 = (rect[1][1] - rect[0][1]) / (in_rect[1][1] - in_rect[0][1])
@@ -4985,11 +5026,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         scl = min((scl1, scl2))
         enl_tr[0, 0] = scl
         enl_tr[1, 1] = scl
-        #enl_tr[:2, 2] = np.expand_dims(transl[:2], 1) * scl
         enl_tr[:2, 2] \
             = (np.expand_dims([rect[0][0], rect[1][1], 1.], 1)
                - enl_tr * np.expand_dims([in_rect[0][0],
-                                          in_rect[1][1], 1.], 1))[:2,]
+                                          in_rect[1][1], 1.], 1))[:2]
         # get back into target layer coords
         enl_tr = np.linalg.inv(target_trans) * enl_tr
         #print('enlarge_region:', region)
@@ -5000,22 +5040,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         # replace rect by actual data
         target_layer.remove(target_rect)
-        #if region == 'vdg':
-            ## special case VDG: take specific corridors
-            #corridors_layer = [
-                #x for x in xml.getroot()
-                #if x.get('{http://www.inkscape.org/namespaces/inkscape}label')
-                    #== 'galeries big PARIS'][0]
-            #tr = self.get_transform(corridors_layer.get('transform'))
-            #group = [x for x in corridors_layer if x.tag.endswith('}g')][0]
-            #tr *= self.get_transform(group.get('transform'))
-            #g2 = [x for x in group if x.get('id') == 'Z + VdG'][0]
-            ## tr *= tr.get_transform(g2.get('transform'))
-            #new_g = copy.deepcopy(g2)
-            ##print('current tr:', tr)
-            ##print('final tr:', enl_tr * tr)
-            #new_g.set('transform', self.to_transform(enl_tr * tr))
-            #target_layer.append(new_g)
 
         clip_region = self.read_path(mask_layer[0], trans)
 
@@ -5027,17 +5051,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 continue
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            if label is None \
-                    or label in ('parcelles', ) \
-                    or label.startswith('masque ') \
-                    or label.startswith('agrandissement ') \
-                    or label.startswith('bord '):
+            hidden = ItemProperties.is_true(layer.get('zoom_hidden')) \
+                or ItemProperties.is_true(layer.get('zoom_id')) \
+                or ItemProperties.is_true(layer.get('zoom_area_id'))
+            if hidden or label is None:
                 continue
             self.clip_and_scale(layer, target_layer, enl_tr, clip_region,
                                 in_rect, None, with_copy=True)
         #print('in_rect:', in_rect)
         #print(np.asarray(clip_region.vertex()))
-
 
     def replace_filter_element(self, xml):
         #if not self.keep_private and xml.get('level') in ('tech', ):
@@ -5045,7 +5067,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if xml.get('level') in ('tech', ):
                 return None
         return xml
-
 
     def do_remove_layers(self, xml):
         to_remove = []
@@ -5262,7 +5283,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
 
-
     def remove_limestone(self, xml):
         for layer in xml.getroot():
             label = layer.get(
@@ -5273,7 +5293,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
 
-
     def remove_zooms(self, xml):
         for layer in xml.getroot():
             label = layer.get(
@@ -5283,7 +5302,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if label.startswith('agrandissement'):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
-
 
     def resize_poster(self, xml, page_width=1050):
         target_width = page_width / .254  # mm -> inch
@@ -5304,22 +5322,21 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         root.set('height', str(height * scale))
         root.set('transform', 'scale(%f)' % scale)
 
-
     def remove_other(self, xml, *labels):
         self.removed_labels.update(labels)
         self.do_remove_layers(xml)
-
 
     def replace_symbols(self, xml):
         protos = self.find_protos(self.xml)
         self.replace_elements(xml, protos)
 
-
     def zoom_areas(self, xml):
-        for region in ('vdg', u'cimetière', 'plage'):
+        zoom_regions = [x.get('zoom_area_id') for x in xml.getroot()
+                        if x.get('zoom_area_id') is not None]
+        print('zoom regions:', zoom_regions)
+        for region in zoom_regions:
             self.enlarge_region(self.xml, xml, region,
                                 keep_private=self.keep_private)
-
 
     def set_date(self, xml):
         for layer in xml.getroot():
@@ -5332,13 +5349,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         # set date in appropriate field
                         d = datetime.date.today()
                         child[0].text = u'\xe9dition du %s' \
-                          % self.formatted_date(d)
-
+                            % self.formatted_date(d)
 
     def show_all(self, xml):
         for layer in xml.getroot():
             layer.set('style', 'display:inline')
-
 
     def shadow_text(self, xml):
         xml2 = copy.deepcopy(xml)
