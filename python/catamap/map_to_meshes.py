@@ -1434,7 +1434,6 @@ class DefaultItemProperties(object):
     }
 
 
-
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     '''
     Process XML tree to build 3D meshes
@@ -1475,13 +1474,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             try:
                 from anatomist import headless as ana
                 a = ana.HeadlessAnatomist()
-            except:
+            except Exception:
                 headless = False
         if not headless:
             try:
                 from anatomist.direct import api as ana
                 a = ana.Anatomist()
-            except:
+            except Exception:
                 raise RuntimeError('anatomist is not available. It is needed '
                                    'for CataSvgToMesh to work.')
 
@@ -1524,7 +1523,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         if len(self.props_stack) == 1:
             self.explicitly_show.append(item_props.label)
-
 
         if is_group:
             # maintain the stack of parent properties to allow inheritance
@@ -1605,7 +1603,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
             elif label in ('fontis', 'fontis_inf', 'fontis private',
-                            'fontis private_inf'):
+                           'fontis private_inf'):
                 return (self.read_fontis, clean_return, True)
             elif label in ('stair_symbol', ):
                 return (self.read_stair_symbol, clean_return, True)
@@ -1620,17 +1618,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         return (None, clean_return, False)
 
-
     def noop(self, xml_path, trans, style=None):
         return None
-
 
     def exit_group(self):
         # print('leave group',
         #       self.props_stack[-1].main_group)
         # print('with properties:', self.item_props)
         self.props_stack.pop(-1)
-
 
     def read_path(self, xml_path, trans, style=None):
         if self.main_group is None:
@@ -1743,7 +1738,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if len(stair_xml[:]) == 0:
             return
 
-        #trans = self.get_transform(stair_xml, trans)
+        # trans = self.get_transform(stair_xml, trans)
 
         child = stair_xml[0]
         if child is None:
@@ -1771,7 +1766,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             wells_spec = self.mesh_dict.setdefault(self.main_group, [])
             wells_spec.append((center, radius, z, height))
 
-
     def read_bones(self, bones_xml, trans, style=None):
         bbox = self.boundingbox(bones_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
@@ -1793,10 +1787,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
-
     def read_fontis(self, fontis_xml, trans, style=None):
         bbox = self.boundingbox(fontis_xml[0], trans)
-        group = self.main_group
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
         center = [(bbox[0][0] + bbox[1][0]) / 2,
@@ -1818,7 +1810,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def read_lily(self, lily_xml, trans, style=None):
         bbox = self.boundingbox(lily_xml[0], trans)
-        group = self.main_group
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
         center = [(bbox[0][0] + bbox[1][0]) / 2,
@@ -1838,10 +1829,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
-
     def read_large_sign(self, lily_xml, trans, style=None):
         bbox = self.boundingbox(lily_xml[0], trans)
-        group = self.main_group
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
         center = [(bbox[0][0] + bbox[1][0]) / 2,
@@ -1851,11 +1840,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         tr.setTranslation(center)
         try:
             lily_mesh = aims.AimsTimeSurface(self.large_sign_mesh)
-        except:
+        except Exception:
             print('Mesh error:', type(self.large_sign_mesh), 'in',
                   self.item_props)
             return
-            #raise
         aims.SurfaceManip.meshTransform(lily_mesh, tr)
         aims.SurfaceManip.meshMerge(mesh, lily_mesh)
         if 'material' not in mesh.header():
@@ -1866,7 +1854,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 mat = {}
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
-
 
     def read_arch(self, arch_xml, trans, style=None):
         ## don't apply transform, we will do it later on the mesh
@@ -1880,13 +1867,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             else:
                 bbox[0] = [min(bbox[0][i], bboxc[0][i]) for i in range(2)]
                 bbox[1] = [max(bbox[1][i], bboxc[1][i]) for i in range(2)]
+        if bbox is None:
+            print('no bbox for arch:', arch_xml, arch_xml.items(),
+                  len(arch_xml))
+            return
         center = [(bbox[0][0] + bbox[1][0]) / 2,
                   (bbox[0][1] + bbox[1][1]) / 2,
                   0.]
         radius = max(np.array(bbox[1]) - bbox[0]) / 2
         arch_spec = self.mesh_dict.setdefault(self.main_group, [])
         arch_spec.append((center, (radius, trans), 0., 3.))
-
 
     def read_water_scale(self, ws_xml, trans, style=None):
         props = self.group_properties[self.main_group]
@@ -1905,7 +1895,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 mesh.header().update(ws_model.header())
                 self.group_properties[mesh_id] = props
             aims.SurfaceManip.meshMerge(mesh, ws_mesh)
-
 
     def read_stair_symbol(self, st_xml, trans, style=None):
         bbox = self.boundingbox(st_xml[0], trans)
@@ -1928,12 +1917,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
-
     def make_psh_sq_well(self, center, radius, z, height, props, faces=8):
         # square well
         return self.make_psh_well(center, radius, z, height, props, faces=4,
                                   smooth=False, rotate=math.pi / 4)
-
 
     def make_psh_well(self, center, radius, z, height, props, faces=8,
                       smooth=True, rotate=0.):
@@ -1995,7 +1982,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                      'face_culling': 0}
         return well
 
-
     def make_ladder(self, center, radius, z, height, props):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
@@ -2027,7 +2013,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         ladder.header()['material'] = {'diffuse': color}
         return ladder
 
-
     def make_spiral_stair(self, center, radius, z, height, props=None):
         p1 = aims.Point3df(center[0], center[1], z)
         p2 = aims.Point3df(center[0], center[1], z + height)
@@ -2037,7 +2022,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             'smooth': True, 'closed': False})
         vert = well.vertex()
         poly = well.polygon()
-        norm = well.normal()
         a = np.pi / 6.
         nv0 = len(vert)
         nv = nv0
@@ -2122,7 +2106,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                         props)
 
         return self.make_ps_well(center, radius, z, height, well_type, props)
-
 
     def make_arche(self, center, radius_and_trans, z, height, well_type=None,
                    props=None):
@@ -2211,7 +2194,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             depth_mesh = self.mesh_dict.setdefault(self.main_group,
                                                    aims.AimsTimeSurface_3())
             depth_mesh.header()['material'] = {'face_culling': 0,
-                                              'diffuse': [0., 0.6, 0., 1.]}
+                                               'diffuse': [0., 0.6, 0., 1.]}
         self.depth_maps.append(True)
         self.depth_meshes_def[level] = (depth_mesh, self.item_props)
         # print('start_depth_rect', self.main_group, '///', level)
@@ -2220,7 +2203,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def clean_depth(self):
         self.depth_maps.pop()
-
 
     def read_depth_group(self, child_xml, trans, style=None):
         if hasattr(self, 'depth_group'):
@@ -2423,14 +2405,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if pos is None:
                         try:
                             pos = [float(sub_el.get('x')),
-                                  float(sub_el.get('y'))]
-                        except Exception as e:
+                                   float(sub_el.get('y'))]
+                        except Exception:
                             if len(sub_el[:]) != 0 and sub_el[0].get('x') \
                                     and sub_el[0].get('y'):
                                 try:
                                     pos = [float(sub_el[0].get('x')),
                                            float(sub_el[0].get('y'))]
-                                except Exception as e:
+                                except Exception:
                                     print(
                                         'error while reading marker',
                                         sub_el.get('id'))
@@ -2457,7 +2439,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if len(mesh.vertex()) != 0:
                         try:
                             pos = mesh.vertex()[-1][:2]
-                        except:
+                        except Exception:
                             print('failed marker arrow in', mtype,
                                   ', vertices:')
                             print(np.array(mesh.vertex()))
@@ -2559,7 +2541,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if len(mesh.vertex()) != 0:
                         try:
                             pos = mesh.vertex()[-1][:2]
-                        except:
+                        except Exception:
                             print('failed lambert93 arrow, vertices:')
                             print(np.array(mesh.vertex()))
             if text and pos:
@@ -2591,12 +2573,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         + abs(self.lambert_coords.y.slope))
             # print('z_scale:', self.z_scale)
 
-
     def change_level(self, mesh, dz):
         vert = mesh.vertex()
         for v in vert:
             v[2] += dz
-
 
     @staticmethod
     def delaunay(mesh):
@@ -2604,7 +2584,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         tri = Delaunay(points)
         mesh.polygon().assign(tri.simplices)
         #mesh.header()['material']['face_culling'] = 0
-
 
     @staticmethod
     def build_depth_win(depth_mesh, size=(1000, 1000), object_win_size=(8, 8)):
@@ -2618,7 +2597,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         from soma.qt_gui.qt_backend import Qt
         import time
 
-        win = a.createWindow('Axial') #, options={'hidden': 1})
+        win = a.createWindow('Axial')  #, options={'hidden': 1})
         Qt.qApp.processEvents()
         time.sleep(0.5)
         win.windowConfig(view_size=size, cursor_visibility=0)
@@ -2638,7 +2617,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         view = win.view()
         bbmin = view.boundingMin()
         bbmax = view.boundingMax()
-        bbsize = bbmax - bbmin
 
         # close up on center
         tbbmin = (bbmin + bbmax) / 2 \
@@ -2652,7 +2630,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         view.paintScene()
         #view.updateGL()
         return win, admesh
-
 
     def load_ground_altitude(self, filename):
         self.ground_img = None
@@ -2668,7 +2645,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
             scl_min = alt_extr['scale_min']
             scl_max = alt_extr['scale_max']
-        except:
+        except Exception:
             print('no ground image', filename)
             return
         conv = aims.Converter(intype=ground_img, outtype=aims.Volume_FLOAT)
@@ -2684,7 +2661,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         grp = layer[0]
         self.main_group = 'altitude'
         self.alt_bounds = self.boundingbox(grp, None)
-
 
     def load_ground_altitude_bdalti(self, filename):
         '''
@@ -2702,7 +2678,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             print('warning, BDAlti meta-map is not available, file %s '
                   'does not exist' % filename)
 
-
     def ground_altitude(self, pos, use_scale=True):
         if hasattr(self, 'bdalti_map') and hasattr(self, 'lambert_coords'):
             alt = self.ground_altitude_bdalti(pos)
@@ -2712,7 +2687,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             # scale ground altitude the same way as depths in the map
             alt *= self.z_scale
         return alt
-
 
     def ground_altitude_topomap(self, pos):
         if not hasattr(self, 'alt_bounds') or self.alt_bounds is None \
@@ -2742,9 +2716,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def add_ground_alt(self, mesh, verbose=False):
         # print('add_ground_alt on:', mesh)
         for v in mesh.vertex():
-            if verbose: print(v[2], end=' ')
+            if verbose:
+                print(v[2], end=' ')
             v[2] += self.ground_altitude(v[:2])
-            if verbose: print('->', v[2])
+            if verbose:
+                print('->', v[2])
 
     def build_depth_wins(self, size=(1000, 1000),
                          object_win_size=(8, 8)):
@@ -2782,16 +2758,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.depth_meshes[level] = amesh
             self.depth_wins[level] = win
 
-
     def release_depth_wins(self):
         del self.depth_meshes, self.depth_wins
-
 
     def get_depth(self, pos, view, object_win_size=(8, 8)):
         if view is None:
             # surface map
             return self.ground_altitude(pos)
-        #pt = objectPositionFromWindow(pos)
+        # pt = objectPositionFromWindow(pos)
         pt = aims.Point3df()
         ok = view.cursorFromPosition(pos, pt)
         if ok and (pt[0] < 0 or pt[0] >= view.width()
@@ -2870,8 +2844,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 c1 = color[1::2]
                 c2 = color[2::2]
                 col = [float(int('%s%s' % (x, y), base=16)) / 255. for x, y in
-                      zip(c1, c2)]
-                #print('alt color:', props.main_group, col)
+                       zip(c1, c2)]
+                # print('alt color:', props.main_group, col)
                 return col
             try:
                 return float(color)
@@ -2978,7 +2952,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if alt_color:
             mesh.header()['material']['diffuse'] = alt_color
 
-        arrow_type = props.label
         level = props.level
         tz_level = props.upper_level
         hshift = props.height_shift
@@ -2992,7 +2965,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         text_win = self.depth_wins.get(tz_level)
         object_win_size = (8, 8)
         win = self.depth_wins.get(level)
-        hshift1 = hshift + text_hshift
         view = None
         text_view = None
         if win is not None:
@@ -3212,7 +3184,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if prev_v is None:
                     return (aims.Point3df(0, 0, 0), 0., 0.)
                 prev_direc = (v0 - prev_v).normalize()
-                diff_axis = prev_direc.crossed(direc) # rotation axis
+                diff_axis = prev_direc.crossed(direc)  # rotation axis
                 if diff_axis.norm2() != 0:
                     diff_plane = direc.crossed(diff_axis).normalize()
                     diff_offset = -diff_plane.dot(v0)
@@ -3230,7 +3202,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if next_v is None:
                     return (aims.Point3df(0, 0, 0), 0., 0.)
                 next_direc = (next_v - v).normalize()
-                diff_axis = direc.crossed(next_direc) # rotation axis
+                diff_axis = direc.crossed(next_direc)  # rotation axis
                 if diff_axis.norm2() != 0:
                     diff_plane = direc.crossed(diff_axis).normalize()
                     diff_offset = -diff_plane.dot(v)
@@ -3259,7 +3231,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 zdir = xdir.crossed(direc)
 
             prev_shift_s = build_shift(v0, prev_v, direc)
-            #next_v = None
+            # next_v = None
             next_shift_s = build_shift2(next_v, v, direc)
             shift_s = prev_shift_s + next_shift_s + (direc, )
 
@@ -3319,8 +3291,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             offset = (offset + mlen) - int((offset + mlen) / slen) * slen
             return alt, offset
 
-        slen = 1. # length of zebra item
-        cols = [color, [1., 1., 1., 0.8]] # alterning colors
+        slen = 1.  # length of zebra item
+        cols = [color, [1., 1., 1., 0.8]]  # alterning colors
         xradius = 0.3
         zradius = 0.2
         meshes = connected_meshes(mesh)
@@ -3333,7 +3305,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             offset = 0.
             connected = False
             prev_v = None
-            #smesh = [aims.AimsSurfaceTriangle(), aims.AimsSurfaceTriangle()]
+            # smesh = [aims.AimsSurfaceTriangle(), aims.AimsSurfaceTriangle()]
             v0 = vert[sub_mesh[0]]
             n = len(sub_mesh)
             for i, v in enumerate(sub_mesh[1:]):
@@ -3465,8 +3437,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         if intensity <= 0.75:
                             for i in range(3):
                                 c = color[i] + 0.4
-                                #if c > 1.:
-                                    #c = 1.
+                                # if c > 1.:
+                                    # c = 1.
                                 color[i] = c
                             m = max(color[:3])
                             if m > 1.:
@@ -3501,7 +3473,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # print('tesselate corridor:', props.main_group)
                         tess_mesh = self.tesselate(mesh, flat=True)
                         if tess_mesh is not None:
-                            meshes.setdefault(main_group+ '_floor_tri',
+                            meshes.setdefault(main_group + '_floor_tri',
                                               []).append(tess_mesh)
                             self.group_properties[main_group + '_floor_tri'] \
                                 = props
@@ -3722,17 +3694,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         dmin = -1
         text_min = None
         point = mesh.vertex()[0][:2]
-        #print('find_text_for_arrow', mesh, point)
+        # print('find_text_for_arrow', mesh, point)
         for mtype, mesh_items in meshes.items():
             if mtype.endswith('_text'):
-                #print(mtype, ' text:', mesh_items)
+                # print(mtype, ' text:', mesh_items)
                 for text in mesh_items['objects']:
-                    #print('text:', text)
+                    # print('text:', text)
                     props = text['properties']
-                    #print('props:', props)
+                    # print('props:', props)
                     pos = props.get('position')
                     size = props['size']
-                    #print('pos:', pos, ', size:', size)
+                    # print('pos:', pos, ', size:', size)
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
                     x1 = pos[0] + size[0] / 2
@@ -3758,7 +3730,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # found a good match, skip other tests
                         break
         return text_min
-
 
     def build_ground_grid(self):
         for border in ('bord complet', 'bord_general', 'bord_sud'):
@@ -3793,8 +3764,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   for j in range(grid.shape[0])
                   for i in range(grid.shape[1] - 1)] \
             + [(i + j*grid.shape[1], i + (j + 1) * grid.shape[1])
-                  for j in range(grid.shape[0] - 1)
-                  for i in range(grid.shape[1])]
+               for j in range(grid.shape[0] - 1)
+               for i in range(grid.shape[1])]
         mesh = aims.AimsTimeSurface_2()
         mesh.vertex().assign(grid_v)
         mesh.polygon().assign(grid_s)
@@ -3802,7 +3773,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.ground_grid = mesh
         # print('ground grid:', mesh.vertex().size(), 'vertices')
         return mesh
-
 
     def make_skull_model(self, xml):
         cm = CataMapTo2DMap()
@@ -4130,7 +4100,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if map2d_filename:
             json_obj['map'] = map2d_filename
 
-
         # build 3D layers:
         # 0: main_corridors
         # 1: unreachable
@@ -4377,7 +4346,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                           ensure_ascii=False)
 
         return json_obj
-
 
 
 class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
@@ -4686,7 +4654,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         return f
 
-
     def make_shadow_filter(self, xml, scale=1.):
         if not hasattr(self, 'shadow_filters'):
             self.shadow_filters = {}
@@ -4705,7 +4672,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.shadow_filters[scalei] = f
         return f
 
-
     def add_shadow(self, layer, filter):
         child = layer
         if True:
@@ -4717,7 +4683,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 style += '; '
             style += 'filter:url(#%s)' % filter
             child.set('style', style)
-
 
     def add_shadows(self, xml):
         if inkscape_version()[:2] == [1, 1]:
@@ -4742,8 +4707,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if label is None:
                 continue
             # print('label:', label)
-            if not (label in self.removed_labels \
-                    or label.startswith('profondeurs') \
+            if not (label in self.removed_labels
+                    or label.startswith('profondeurs')
                     or label.startswith('background_bitm')):
                 style = self.get_style(layer)
                 style['display'] = 'inline'
@@ -4776,13 +4741,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     shadow = self.make_shadow_filter(xml, scale).get('id')
                     self.add_shadow(layer, shadow)
 
-
     def remove_shadows(self, xml):
         defs = [l for l in xml.getroot()
                 if l.tag == '{http://www.w3.org/2000/svg}defs'][0]
         if defs[-1].tag == '{http://www.w3.org/2000/svg}filter':
             del defs[-1]
-
 
     @staticmethod
     def roman(number):
@@ -4806,7 +4769,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             div = int(div / 10)
         return onum
 
-
     @staticmethod
     def formatted_date(date):
         months = (u'', u'Janvier', u'Février', u'Mars', u'Avril', u'Mai',
@@ -4814,7 +4776,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                   u'Novembre', u'Décembre')
         return '%d %s %s' % (date.day, months[date.month],
                              CataMapTo2DMap.roman(date.year))
-
 
     @staticmethod
     def in_region(pt, region, bbox, verbose=False):
@@ -4854,7 +4815,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             print('__', (left_pts & 1 == 1), '__', left_pts)
         return (left_pts & 1 == 1)
 
-
     @staticmethod
     def box_in_region(box, region, bbox, verbose=False):
         ''' check if a box is totally inside a region, or totally outside, or
@@ -4883,7 +4843,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         else:
             return 0
 
-
     def clip_and_scale(self, layer, target_layer, trans, region, region_bbox,
                        src_trans=None, with_copy=False, verbose=False):
         # verbose = verbose or ((layer.get('id') == 'layer8') and target_layer.get('id') == 'layer81')
@@ -4908,7 +4867,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 target_layer.append(element)
                 copied.append(element)
             bbox = self.boundingbox(element, src_trans)
-            #print('bbox:', bbox)
+            # print('bbox:', bbox)
             if bbox != [None, None]:
                 in_out = self.box_in_region(bbox, region, region_bbox,
                                             verbose=verbose)
@@ -4916,7 +4875,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     if verbose:
                         print('out:', element.tag, element.get('id'))
                     #to_remove.append(element)
-                #elif in_out == 0:
+                # elif in_out == 0:
                     # intesect
                     if verbose:
                         print('intersect:', element.tag, element.get('id'))
@@ -4948,7 +4907,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                                     and len(intersect.get('d')) != 0:
                                 if verbose:
                                     print('keep intersection')
-                                #to_add.append((index, intersect))
+                                # to_add.append((index, intersect))
                                 element.set('d', intersect.get('d'))
                                 remove = False
                         if remove:
@@ -4976,10 +4935,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if trans2 is not None:
                     p = trans2 * np.expand_dims([x, y, 1.], 1)
                     x, y = p[0, 0], p[1, 0]
-                #print('tag:', element.tag, x, y)
+                # print('tag:', element.tag, x, y)
                 if not self.in_region((x, y), region, region_bbox,
                                       verbose=verbose):
-                    #print('remove from:', target_layer, target_layer.get('id'))
+                    # print('remove from:', target_layer, target_layer.get('id'))
                     to_remove.append(element)
                 elif verbose:
                     print('** in **:', element.tag, element.get('id'))
@@ -5014,15 +4973,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         target_trans = self.get_transform(target_layer.get('transform'))
         target_rect = target_layer[0]
         rect = self.boundingbox(target_rect, target_trans)
-        #print('target rect:', rect)
+        # print('target rect:', rect)
         # calculate transform
         trans = self.get_transform(mask_layer.get('transform'))
         in_rect = self.boundingbox(mask_layer[0], trans)
-        #print('in_rect:', in_rect)
+        # print('in_rect:', in_rect)
         enl_tr = np.matrix(np.eye(3))
         scl1 = (rect[1][0] - rect[0][0]) / (in_rect[1][0] - in_rect[0][0])
         scl2 = (rect[1][1] - rect[0][1]) / (in_rect[1][1] - in_rect[0][1])
-        #print('scales:', scl1, scl2)
+        # print('scales:', scl1, scl2)
         scl = min((scl1, scl2))
         enl_tr[0, 0] = scl
         enl_tr[1, 1] = scl
@@ -5032,11 +4991,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                                           in_rect[1][1], 1.], 1))[:2]
         # get back into target layer coords
         enl_tr = np.linalg.inv(target_trans) * enl_tr
-        #print('enlarge_region:', region)
-        #print('rect:', rect)
-        #print('in_rect:', in_rect)
-        #print('enl_tr:', enl_tr)
-        #print('target_trans:', target_trans)
+        # print('enlarge_region:', region)
+        # print('rect:', rect)
+        # print('in_rect:', in_rect)
+        # print('enl_tr:', enl_tr)
+        # print('target_trans:', target_trans)
 
         # replace rect by actual data
         target_layer.remove(target_rect)
@@ -5058,11 +5017,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 continue
             self.clip_and_scale(layer, target_layer, enl_tr, clip_region,
                                 in_rect, None, with_copy=True)
-        #print('in_rect:', in_rect)
-        #print(np.asarray(clip_region.vertex()))
+        # print('in_rect:', in_rect)
+        # print(np.asarray(clip_region.vertex()))
 
     def replace_filter_element(self, xml):
-        #if not self.keep_private and xml.get('level') in ('tech', ):
+        # if not self.keep_private and xml.get('level') in ('tech', ):
         if not self.keep_private:
             if xml.get('level') in ('tech', ):
                 return None
@@ -5125,17 +5084,14 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
              u'à vérifier', ))
         self.do_remove_layers(xml)
 
-
     def remove_south(self, xml):
         self.removed_labels.update(
             ('galeries_big_sud',))
         self.do_remove_layers(xml)
 
-
     def remove_background(self, xml):
         self.removed_labels.update(('couleur_fond', 'couleur_fond sud',))
         self.do_remove_layers(xml)
-
 
     def remove_private(self, xml):
         priv_labels = ['inscriptions', 'inscriptions conso',
@@ -5170,8 +5126,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     parent.remove(element)
                 else:
                     todo += [(element, item) for item in element]
-        
-        
+
     def remove_gtech(self, xml):
         self.removed_labels.update(('ebauches', 'galeries techniques',
                                     'PS gtech', 'PSh gtech', 'PSh vers gtech',
@@ -5188,7 +5143,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         ))
         self.do_remove_layers(xml)
 
-
     def remove_calcaire(self, xml):
         self.removed_labels.update(('calcaire 2010', 'calcaire ciel ouvert', 
         'calcaire masse2', 'calcaire masse', 'calcaire med',
@@ -5197,7 +5151,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.do_remove_layers(xml)
 
     def remove_igc(self, xml):
-        self.removed_labels.update(('planches', 'planches fond', 'planches IGC',
+        self.removed_labels.update(('planches', 'planches fond',
+                                    'planches IGC',
         ))
         self.do_remove_layers(xml)
 
@@ -5210,7 +5165,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
-             #'bord_sud', 'galeries big sud',
+             # 'bord_sud', 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93',
              'bord'])
         for layer in xml.getroot():
@@ -5222,7 +5177,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     or label.startswith('background_bitm'):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
-
 
     def remove_non_printable1_main(self, xml):
         self.removed_labels.update(
@@ -5240,13 +5194,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
 
-
     def remove_non_printable1_pub(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
-             'bord_sud', 'bord', # 'galeries big sud',
-             u'légende_alt', 'sons', 'altitude', 'lambert93',])
+             'bord_sud', 'bord',  # 'galeries big sud',
+             u'légende_alt', 'sons', 'altitude', 'lambert93', ])
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -5257,7 +5210,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 self.removed_labels.add(label)
         self.do_remove_layers(xml)
 
-
     def remove_non_printable2(self, xml):
         self.removed_labels.update(
             ['galeries agrandissements',
@@ -5265,13 +5217,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
              'masque plage'])
         self.do_remove_layers(xml)
 
-
     def remove_non_printable_igc_private(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
              'bord',
-             #'bord_sud', 'galeries big sud',
+             # 'bord_sud', 'galeries big sud',
              u'légende_alt', 'sons', 'altitude', 'lambert93'])
         for layer in xml.getroot():
             label = layer.get(
@@ -5543,14 +5494,14 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if alt_col:
                 try:
                     alt_col = json.loads(alt_col)
-                except:
+                except Exception:
                     raise
                 colorsets.update(alt_col.keys())
             label_alt_col = item.get('label_alt_colors')
             if label_alt_col:
                 try:
                     label_alt_col = json.loads(label_alt_col)
-                except:
+                except Exception:
                     raise
                 for c in label_alt_col.values():
                     colorsets.update(c.keys())
@@ -5900,7 +5851,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             if layer.get('layer_num'):
                 del layer.attrib['layer_num']
 
-
     def layer_opacity(self, xml, label, opacity):
         print('set layer opacity:', label, opacity)
         for layer in xml.getroot():
@@ -6052,9 +6002,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def build_2d_map(self, xml, keep_private=True, wip=False,
                      filters=[], map_name=None):
 
-        #igc_colorset = 'igc'
-        #if map_name.startswith('igcportail'):
-            #igc_colorset = 'igcportail'
+        # igc_colorset = 'igc'
+        # if map_name.startswith('igcportail'):
+            # igc_colorset = 'igcportail'
 
         meta = self.get_metadata(xml)
 
@@ -6065,7 +6015,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 colorsets = json.loads(colorsets)
                 def_colorset = colorsets.get(map_name)
                 # TODO: remove the exception here:
-                if def_colorset: # and not map_name.startswith('igc'):
+                if def_colorset:  # and not map_name.startswith('igc'):
                     filters.insert(0, 'recolor="%s"' % def_colorset)
         # if forcing recolor=default, just remove the filter
         if 'recolor="default"' in filters:
@@ -6113,6 +6063,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
 _inksape_ubuntu16 = None
 
+
 def get_inkscape_ub16():
     global _inksape_ubuntu16
 
@@ -6146,12 +6097,13 @@ def get_inkscape_ub16():
                 subprocess.check_call(cmd + ['inkscape', '--help'])
                 inkscape_ub16 = cmd + ['cwd=%s' % pwd, 'inkscape']
                 break
-            except:
+            except Exception:
                 pass
     return inkscape_ub16
 
 
 _inkscape_version = {}
+
 
 def inkscape_version(inkscape_exe='inkscape'):
     global _inkscape_version
@@ -6192,8 +6144,9 @@ def export_pdf(in_file, out_file=None):
             out_file = in_file.replace('.svg', '.pdf')
         subprocess.check_call(
             inkscape_exe + ['-z',
-             '--export-pdf-version', '1.5', '--export-area-page',
-             '--export-pdf', out_file, in_file])
+                '--export-pdf-version', '1.5', '--export-area-page',
+                '--export-pdf', out_file, in_file])
+
 
 def export_png(in_file, resolution=180, rect_id=None, out_file=None,
                ignore_errors=False):
@@ -6217,15 +6170,16 @@ def export_png(in_file, resolution=180, rect_id=None, out_file=None,
              '--export-type', 'png', '--export-dpi', str(resolution),
              '-o', out_file]
         if rect_id:
-             cmd += ['--export-id', rect_id]
+            cmd += ['--export-id', rect_id]
         call(cmd + [in_file])
     else:
         cmd = inkscape_exe + ['-z',
-             '--export-dpi', str(resolution),
-             '--export-png', out_file]
+            '--export-dpi', str(resolution),
+            '--export-png', out_file]
         if rect_id:
-             cmd += ['--export-id', rect_id]
+            cmd += ['--export-id', rect_id]
         call(cmd + [in_file])
+
 
 def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
     outfile = png_file.replace('.png', '.%s' % format)
@@ -6245,12 +6199,12 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
                             (255 - alpha)
                             + (front[:, :, i].astype(np.float32)
                                * alpha / 255).astype(np.uint8))
-                    front[:,:,3] = 255
+                    front[:, :, 3] = 255
 
                     im = PIL.Image.fromarray(front, 'RGBA')
                     im = im.convert(mode='RGB')
 
-                save_options={}
+                save_options = {}
                 if format == 'tif':
                     # save_options['compression'] = 'tiff_lzw'
                     save_options['compression'] = 'jpeg'
@@ -6258,7 +6212,7 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
                     save_options['quality'] = 95
                 try:
                     im.save(outfile, **save_options)
-                except:
+                except Exception:
                     if format == 'tif':
                         # we smetimes run into the error:
                         # JPEGSetupEncode: RowsPerStrip must be multiple of 8
@@ -6275,8 +6229,7 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
         # use ImageMagick convert tool
         subprocess.check_call(
             ['convert', '-quality', '98', '-background', 'white', '-flatten',
-            '-alpha', 'on',
-              png_file, outfile])
+             '-alpha', 'on', png_file, outfile])
     if remove:
         os.unlink(png_file)
 
@@ -6293,7 +6246,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
         clip_rect = main_clip_rects.get(map_name)
         if not clip_rect:
             clip_rect = main_clip_rect
-    #print('clip_rect:', clip_rect, ', main_clip_rect:', main_clip_rect)
+    # print('clip_rect:', clip_rect, ', main_clip_rect:', main_clip_rect)
 
     svg2d.clip_rect_name = clip_rect
     clip_rect_name = clip_rect
@@ -6436,7 +6389,9 @@ def main():
             paragraphs = text.split('|n')
             multiline_text = ''
             for paragraph in paragraphs:
-                formatted_paragraph = _textwrap.fill(paragraph, width, initial_indent=indent, subsequent_indent=indent) + '\n\n'
+                formatted_paragraph = _textwrap.fill(
+                    paragraph, width, initial_indent=indent,
+                    subsequent_indent=indent) + '\n\n'
                 multiline_text = multiline_text + formatted_paragraph
             return multiline_text
 
@@ -6492,7 +6447,7 @@ The program allows to produce:
         help='split the SVG file into 4 smaller ones, each containing a '
         'subset of the layers')
     parser.add_argument(
-        '--dpi', # nargs='+',
+        '--dpi',  # nargs='+',
         help='output JPEG images resolution. May be global (for all outputs): '
         '"360", or scoped to a single map: "igc:360". Several --dpi options '
         'may specify resolutions for several output maps: '
@@ -6593,7 +6548,7 @@ The program allows to produce:
         svg_mesh.enable_texturing = texturing
     else:
         svg_mesh = CataMapTo2DMap()
-    #svg_mesh.debug = True
+    # svg_mesh.debug = True
 
     georef = options.georef
 
@@ -6674,6 +6629,7 @@ The program allows to produce:
     time_len = time.time() - time_start
     print('execution time: %d:%05.2f min:sec.'
           % (int(time_len / 60.), time_len - int(time_len / 60.) * 60))
+
 
 if __name__ == '__main__':
     main()
