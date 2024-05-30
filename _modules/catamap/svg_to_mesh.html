@@ -1852,6 +1852,10 @@
         <span class="k">return</span> <span class="n">cmesh</span>
 
     <span class="k">def</span> <span class="nf">mesh_to_pyclipper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">pc_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pyclipper&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pc_mesh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pc_mesh</span>
+
         <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
         <span class="n">poly</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
