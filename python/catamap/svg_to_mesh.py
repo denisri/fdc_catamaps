@@ -1813,6 +1813,10 @@ class SvgToMesh(object):
         return cmesh
 
     def mesh_to_pyclipper(self, mesh, scale=1000):
+        pc_mesh = mesh.header().get('pyclipper')
+        if pc_mesh:
+            return pc_mesh
+
         vert = mesh.vertex()
         poly = mesh.polygon()
         paths = []
