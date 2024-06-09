@@ -2866,7 +2866,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def apply_depths(self, meshes):
         self.nrenders = 0
 
-        object_win_size = (20., 20.)
+        object_win_size = (2., 2.)
         self.build_depth_wins((250, 250))
 
         for main_group, mesh_l in meshes.items():
