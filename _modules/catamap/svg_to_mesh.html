@@ -830,14 +830,13 @@
                                            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">trans</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
         <span class="n">xml_elem</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="n">mat_str</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SvgToMesh.get_transform"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.get_transform">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SvgToMesh.get_transform"><a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.get_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        trans: str or XML element</span>
 <span class="sd">            if str: transform field in the SVG element.</span>
-<span class="sd">            if element: element itself</span>
+<span class="sd">            if element: XML element itself</span>
 <span class="sd">        previous: np array or None</span>
 <span class="sd">            parent transform to be composed with</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -845,27 +844,49 @@
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">mat3d</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">tmat3d</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tmat3d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">trans3d</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform_3d&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">trans3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">mat3d</span> <span class="o">=</span> <span class="n">SvgToMesh</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans3d</span><span class="p">)</span>
+            <span class="n">hshift</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height_shift&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">hshift</span><span class="p">)</span> <span class="o">*</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;z_scale&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+                <span class="c1"># print(&#39;z_scale:&#39;, getattr(self, &#39;z_scale&#39;, 1.), hshift)</span>
+            <span class="k">if</span> <span class="n">trans3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">trans3d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">mat3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mat3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans3d</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hshift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+                    <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">hshift</span>
+                    <span class="c1"># print(&#39;height_shift 3d:&#39;, m)</span>
+                    <span class="n">mat3d</span> <span class="o">=</span> <span class="n">mat3d</span> <span class="o">*</span> <span class="n">m</span>
             <span class="n">trans_str</span> <span class="o">=</span> <span class="n">trans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">trans_str</span><span class="p">:</span>
-                <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">mat</span> <span class="o">=</span> <span class="n">previous</span> <span class="o">*</span> <span class="n">mat</span>
-                    <span class="k">if</span> <span class="n">trans3d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">):</span>
-                        <span class="n">mat3d</span> <span class="o">=</span> <span class="n">previous</span><span class="o">.</span><span class="n">transform_3d</span>
-                <span class="k">if</span> <span class="n">mat3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">mat</span><span class="o">.</span><span class="n">transform_3d</span> <span class="o">=</span> <span class="n">mat3d</span>
-                <span class="k">return</span> <span class="n">mat</span>
-
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trans_str</span> <span class="o">=</span> <span class="n">trans</span>
+
+        <span class="k">if</span> <span class="n">tmat3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mat3d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mat3d</span> <span class="o">=</span> <span class="n">tmat3d</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mat3d</span> <span class="o">=</span> <span class="n">tmat3d</span> <span class="o">*</span> <span class="n">mat3d</span>
+
+        <span class="k">if</span> <span class="n">trans_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mat</span> <span class="o">=</span> <span class="n">previous</span> <span class="o">*</span> <span class="n">mat</span>
+            <span class="k">if</span> <span class="n">mat3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mat</span><span class="o">.</span><span class="n">transform_3d</span> <span class="o">=</span> <span class="n">mat3d</span>
+            <span class="k">return</span> <span class="n">mat</span>
 
         <span class="n">tr_list</span> <span class="o">=</span> <span class="n">trans_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;) &#39;</span><span class="p">)</span>
         <span class="n">tr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tr_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">tr_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">tmat</span> <span class="o">=</span> <span class="n">previous</span>
+
         <span class="k">for</span> <span class="n">trans_strx</span> <span class="ow">in</span> <span class="n">tr_list</span><span class="p">:</span>
             <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">trans_strx</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
@@ -919,6 +940,10 @@
 
         <span class="c1"># print(&#39;mat:&#39;, tmat)</span>
         <span class="k">if</span> <span class="n">mat3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">tmat</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">tmat</span><span class="o">.</span><span class="n">transform_3d</span> <span class="o">=</span> <span class="n">mat3d</span>
         <span class="k">return</span> <span class="n">tmat</span></div>
 
