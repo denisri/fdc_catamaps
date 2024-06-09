@@ -791,14 +791,13 @@ class SvgToMesh(object):
                                            for x in np.ravel(trans[:2, :].T))
         xml_elem.set('transform', mat_str)
 
-    @staticmethod
-    def get_transform(trans, previous=None):
+    def get_transform(self, trans, previous=None):
         '''
         Parameters
         ----------
         trans: str or XML element
             if str: transform field in the SVG element.
-            if element: element itself
+            if element: XML element itself
         previous: np array or None
             parent transform to be composed with
         '''
@@ -806,27 +805,49 @@ class SvgToMesh(object):
         if trans is None:
             return np.matrix(np.eye(3))
         mat3d = None
+        tmat3d = None
+
+        if previous is not None:
+            tmat3d = getattr(previous, 'transform_3d', None)
+
         if not isinstance(trans, str):
             trans3d = trans.get('transform_3d')
-            if trans3d is not None:
-                mat3d = SvgToMesh.get_transform(trans3d)
+            hshift = trans.get('height_shift')
+            if hshift is not None:
+                hshift = float(hshift) * getattr(self, 'z_scale', 1.)
+                # print('z_scale:', getattr(self, 'z_scale', 1.), hshift)
+            if trans3d is not None or hshift is not None:
+                if trans3d is None:
+                    mat3d = np.matrix(np.eye(4))
+                else:
+                    mat3d = self.get_transform(trans3d)
+                if hshift is not None:
+                    m = np.matrix(np.eye(4))
+                    m[2, 3] = hshift
+                    # print('height_shift 3d:', m)
+                    mat3d = mat3d * m
             trans_str = trans.get('transform')
-            if not trans_str:
-                mat = np.matrix(np.eye(3))
-                if previous is not None:
-                    mat = previous * mat
-                    if trans3d is None and hasattr(previous, 'transform_3d'):
-                        mat3d = previous.transform_3d
-                if mat3d is not None:
-                    mat.transform_3d = mat3d
-                return mat
-
         else:
             trans_str = trans
+
+        if tmat3d is not None:
+            if mat3d is None:
+                mat3d = tmat3d
+            else:
+                mat3d = tmat3d * mat3d
+
+        if trans_str is None:
+            mat = np.matrix(np.eye(3))
+            if previous is not None:
+                mat = previous * mat
+            if mat3d is not None:
+                mat.transform_3d = mat3d
+            return mat
 
         tr_list = trans_str.split(') ')
         tr_list = [x + ')' for x in tr_list[:-1]] + [tr_list[-1]]
         tmat = previous
+
         for trans_strx in tr_list:
             mat = np.matrix(np.eye(3))
             i = trans_strx.find('(')
@@ -880,6 +901,10 @@ class SvgToMesh(object):
 
         # print('mat:', tmat)
         if mat3d is not None:
+            if tmat is None:
+                tmat = np.matrix(np.eye(3))
+            else:
+                tmat = np.matrix(tmat, copy=True)
             tmat.transform_3d = mat3d
         return tmat
 
