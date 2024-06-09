@@ -2761,15 +2761,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def release_depth_wins(self):
         del self.depth_meshes, self.depth_wins
 
-    def get_depth(self, pos, view, object_win_size=(8, 8)):
+    def get_depth(self, pos, view, object_win_size=(8., 8.), verbose=False):
         if view is None:
             # surface map
             return self.ground_altitude(pos)
-        # pt = objectPositionFromWindow(pos)
         pt = aims.Point3df()
         ok = view.cursorFromPosition(pos, pt)
+        if verbose: print('cursorFromPosition', list(pos), ':', ok, pt.np)
         if ok and (pt[0] < 0 or pt[0] >= view.width()
                    or pt[1] < 0 or pt[1] >= view.height()):
+            if verbose: print('changing camera')
             ok = False
         if not ok:
             tbbmin = pos \
@@ -2786,8 +2787,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             ##view.updateGL()
             self.nrenders += 1
             ok = view.cursorFromPosition(pos, pt)
+            if verbose: print('ok:', ok, pt.np)
         if ok:
             ok = view.positionFromCursor(int(pt[0]), int(pt[1]), pt)
+            if verbose: print('depth:', ok, pt.np)
             if ok:
                 return pt[2]
         # print('get_depth: point not found:', pos, pt)
@@ -2863,7 +2866,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def apply_depths(self, meshes):
         self.nrenders = 0
 
-        object_win_size = (2., 2.)
+        object_win_size = (20., 20.)
         self.build_depth_wins((250, 250))
 
         for main_group, mesh_l in meshes.items():
@@ -2906,9 +2909,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if alt_colors[1] is not None:
                         material['border_color'] = alt_colors[1]
                     for v in mesh.vertex():
+                        if np.isnan(v[0]):
+                            print('NAN in mesh:', mesh.vertex().np)
                         z = self.get_depth(v, view, object_win_size)
                         if z is not None:
-                            v[2] += z + hshift
+                            v[2] += z  # + hshift  # done via transform3d
                         else:
                             failed += 1
                             if debug:
