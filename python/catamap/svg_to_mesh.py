@@ -791,7 +791,7 @@ class SvgToMesh(object):
                                            for x in np.ravel(trans[:2, :].T))
         xml_elem.set('transform', mat_str)
 
-    def get_transform(self, trans, previous=None):
+    def get_transform(self, trans, previous=None, no_3d=False):
         '''
         Parameters
         ----------
@@ -802,111 +802,186 @@ class SvgToMesh(object):
             parent transform to be composed with
         '''
         # print('transform:', trans_str)
-        if trans is None:
-            return np.matrix(np.eye(3))
         mat3d = None
         tmat3d = None
-
-        if previous is not None:
-            tmat3d = getattr(previous, 'transform_3d', None)
-
-        if not isinstance(trans, str):
-            trans3d = trans.get('transform_3d')
-            hshift = trans.get('height_shift')
-            if hshift is not None:
-                hshift = float(hshift) * getattr(self, 'z_scale', 1.)
-                # print('z_scale:', getattr(self, 'z_scale', 1.), hshift)
-            if trans3d is not None or hshift is not None:
-                if trans3d is None:
-                    mat3d = np.matrix(np.eye(4))
-                else:
-                    mat3d = self.get_transform(trans3d)
+        if not no_3d:
+            if previous is not None:
+                tmat3d = getattr(previous, 'transform_3d', None)
+            if not isinstance(trans, str):
+                mat3d = self._get_transform(trans, trans.get('transform_3d'),
+                                            tmat3d, as_3d=True,
+                                            previous_2d=previous)
+                hshift = trans.get('height_shift')
                 if hshift is not None:
+                    hshift = float(hshift) * getattr(self, 'z_scale', 1.)
+                    # print('z_scale:', getattr(self, 'z_scale', 1.), hshift)
                     m = np.matrix(np.eye(4))
                     m[2, 3] = hshift
                     # print('height_shift 3d:', m)
                     mat3d = mat3d * m
-            trans_str = trans.get('transform')
-        else:
-            trans_str = trans
-
-        if tmat3d is not None:
-            if mat3d is None:
-                mat3d = tmat3d
             else:
-                mat3d = tmat3d * mat3d
+                mat3d = tmat3d
 
+        if isinstance(trans, str):
+            trans_str = trans
+        else:
+            trans_str = trans.get('transform')
+        mat = self._get_transform(trans, trans_str, previous, as_3d=False)
+        if mat3d is not None:
+            mat = np.matrix(mat, copy=True)
+            mat.transform_3d = mat3d
+
+        return mat
+
+    def _get_transform(self, element, trans_str, previous, as_3d,
+                       previous_2d=None):
+        '''
+        element: xml element
+        trans_str: str
+        previous: np.matrix
+        as_3d: bool
+        '''
         if trans_str is None:
-            mat = np.matrix(np.eye(3))
             if previous is not None:
-                mat = previous * mat
-            if mat3d is not None:
-                mat.transform_3d = mat3d
-            return mat
+                return previous
+            if as_3d:
+                return np.matrix(np.eye(4))
+            else:
+                return np.matrix(np.eye(3))
 
         tr_list = trans_str.split(') ')
         tr_list = [x + ')' for x in tr_list[:-1]] + [tr_list[-1]]
         tmat = previous
 
         for trans_strx in tr_list:
-            mat = np.matrix(np.eye(3))
+            if as_3d:
+                mat = np.matrix(np.eye(4))
+            else:
+                mat = np.matrix(np.eye(3))
             i = trans_strx.find('(')
             if not i or trans_strx[-1] != ')':
                 print('unrecognized transform: %s', trans_strx)
                 return tmat
             ttype = trans_strx[:i]
             tdef1 = trans_strx[i+1:-1].strip().split(',')
+            tdef1 = [x.strip() for x in tdef1]
+            tdef1 = [x for x in tdef1 if x != '']
             tdef = []
             for t in tdef1:
-                tdef += [float(x.strip()) for x in t.strip().split(' ')]
-            if ttype == 'matrix':
+                tdef += [float(x.strip()) for x in t.split(' ')]
+            if ttype == 'matrix' and not as_3d:
                 mat[:2, 0] = np.reshape(tdef[:2], (2, 1))
                 mat[:2, 1] = np.reshape(tdef[2:4], (2, 1))
                 mat[:2, 2] = np.reshape(tdef[4:], (2, 1))
             elif ttype == 'translate':
-                mat[0, 2] = tdef[0]
+                mat[0, -1] = tdef[0]
                 if len(tdef) > 1:
-                    mat[1, 2] = tdef[1]
+                    mat[1, -1] = tdef[1]
+                if len(tdef) > 2:
+                    mat[2, -1] = tdef[2]
             elif ttype == 'scale':
                 mat[0, 0] = tdef[0]
                 if len(tdef) > 1:
                     mat[1, 1] = tdef[1]
                 else:
                     mat[1, 1] = tdef[0]
+                if as_3d:
+                    if len(tdef) > 2:
+                        mat[2, 2] = tdef[2]
+                    else:
+                        mat[2, 2] = tdef[0]
             elif ttype == 'rotate':
-                ca = np.cos(tdef[0] / 180. * np.pi)
-                sa = np.sin(tdef[0] / 180. * np.pi)
-                mat[0:2, 0] = np.reshape((ca, sa), (2, 1))
-                mat[0:2, 1] = np.reshape((-sa, ca), (2, 1))
-                if len(tdef) >= 3:
-                    m2 = np.matrix(np.eye(3))
-                    m2[:2, 2] = ((tdef[1], ), (tdef[2], ))
-                    mat = m2 * mat
-                    m2[:2, 2] *= -1
-                    mat *= m2
+                if as_3d:
+                    q1 = aims.Quaternion()
+                    q1.fromAxis([1, 0, 0], tdef[0] * np.pi / 180.)
+                    q2 = aims.Quaternion()
+                    q2.fromAxis([0, 1, 0], tdef[1] * np.pi / 180.)
+                    q3 = aims.Quaternion()
+                    q3.fromAxis([0, 0, 1], tdef[2] * np.pi / 180.)
+                    # rotate around z, then y, then x
+                    mat = aims.AffineTransformation3d(q1 * q2 * q3).np
+                    if len(tdef) == 6:
+                        m2 = np.matrix(np.eye(4))
+                        m2[:3, 3] = tdef[3:]
+                        mat *= m2
+                    else:
+                        c = self.get_center(element, previous_2d)
+                        m2 = np.matrix(np.eye(4))
+                        m2[:3, 3] = c[:3]
+                        mat = m2 * mat * np.linalg.inv(m2)
+                else:
+                    ca = np.cos(tdef[0] / 180. * np.pi)
+                    sa = np.sin(tdef[0] / 180. * np.pi)
+                    mat[0:2, 0] = np.reshape((ca, sa), (2, 1))
+                    mat[0:2, 1] = np.reshape((-sa, ca), (2, 1))
+                    if len(tdef) >= 3:
+                        m2 = np.matrix(np.eye(3))
+                        m2[:2, 2] = ((tdef[1], ), (tdef[2], ))
+                        mat = m2 * mat
+                        m2[:2, 2] *= -1
+                        mat *= m2
             elif ttype == 'skewX':
                 mat[0, 1] = np.tan(tdef[0] / 180. * np.pi)
             elif ttype == 'skewY':
                 mat[1, 0] = np.tan(tdef[0] / 180. * np.pi)
-            if ttype == 'matrix4':
+            elif ttype == 'matrix4' or (ttype == 'matrix' and as_3d):
                 mat = np.matrix(np.eye(4))
                 mat[:3, 0] = np.reshape(tdef[:3], (3, 1))
                 mat[:3, 1] = np.reshape(tdef[3:6], (3, 1))
                 mat[:3, 2] = np.reshape(tdef[6:9], (3, 1))
                 mat[:3, 3] = np.reshape(tdef[9:], (3, 1))
+            elif ttype == 'center4' or ttype == 'center':
+                # print('CENTER4', element.get('id'))
+                mat = np.matrix(np.eye(4))
+                # if isinstance(element, str):
+                #     print('center4 in string:', element)
+                if not isinstance(element, str):
+                    bbox = self.boundingbox(element, previous_2d)
+                    # print('bbox:', bbox)
+                    if bbox[0] is not None and bbox[1] is not None:
+                        c = np.matrix(((bbox[1][0] + bbox[0][0]) / 2,
+                                       (bbox[1][1] + bbox[0][1]) / 2, 0., 1.))
+                        if tmat is not None:
+                            tc = tmat.dot(c.T)
+                        else:
+                            tc = np.matrix(np.zeros((4, ))).T
+                        if tmat is None:
+                            tmat = np.matrix(np.eye(4))
+                        else:
+                            tmat = np.matrix(tmat, copy=True)
+                        tmat[:3, 3] += (c.T - tc)[:3]
+                        # print('center4, tmat:', tmat)
+                        # print('c:', c)
+            else:
+                msg = f'unrecognized transform function: {ttype}'
+                if isinstance(element, str):
+                    msg += f' in transform string: {element}'
+                else:
+                    msg += f' in element: {element.get("id")}'
+                raise ValueError(msg)
             if tmat is None:
                 tmat = mat
             else:
                 tmat = tmat * mat
 
         # print('mat:', tmat)
-        if mat3d is not None:
-            if tmat is None:
-                tmat = np.matrix(np.eye(3))
-            else:
-                tmat = np.matrix(tmat, copy=True)
-            tmat.transform_3d = mat3d
         return tmat
+
+    def get_center(self, element, trans):
+        bbox = self.boundingbox(element, trans)
+        if bbox[0] is not None and bbox[1] is not None:
+            c = np.matrix(((bbox[1][0] + bbox[0][0]) / 2,
+                           (bbox[1][1] + bbox[0][1]) / 2, 0., 1.)).T
+            trans3 = getattr(trans, 'transform_3d', None)
+            print('get_center', element.get('id'), ', trans3d:', trans3)
+            if trans3 is not None:
+                c = trans3.dot(c)
+            hshift = element.get('height_shift')
+            if hshift is not None:
+                hs = float(hshift) * getattr(self, 'z_scale', 1.)
+                c[2] += hs
+            return c
+        return None
 
     @staticmethod
     def to_transform(matrix):
@@ -920,7 +995,7 @@ class SvgToMesh(object):
         bmin, bmax = bbox
         while todo:
             element, trans = todo.pop(0)
-            trans = self.get_transform(element, trans)
+            trans = self.get_transform(element, trans, no_3d=True)
             if element.tag.endswith('}g'):
                 todo = [(c, trans) for c in element] + todo
             else:
