@@ -3055,14 +3055,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         import anatomist.api as ana
         a = ana.Anatomist()
         a.setUserLevel(5)  # needed to use tesselation fusion
-        orig_pos = np.array(mesh.vertex())
-        if 'transformation' in mesh.header():
-            # if the mesh has a 3D transformation, don't do that
-            flat = False
+        #if 'transformation' in mesh.header():
+            ## if the mesh has a 3D transformation, don't do that
+            #flat = False  ## FIXME
         if flat:
-            # tessalate at constant Z, then set back Z after tesselation
-            for v in mesh.vertex():
-                v[2] = 0.
+            projv = aims.Point3df(0., 0., 1.)  # project vertically
+            if 'transformation' in mesh.header():
+                tr = aims.AffineTransformation3d(
+                    mesh.header()['transformation'])
+                projv = tr.transform(projv) \
+                    - tr.transform(aims.Point3df(0, 0, 0))
+            orig_pos = np.array(mesh.vertex(), copy=True)
+            # tessalate a projected, flmattened mesh, restore after tesselation
+            v = mesh.vertex().np
+            v -= np.expand_dims(projv.np, 0) * np.expand_dims(v.dot(projv), 1)
         amesh = a.toAObject(mesh)
         a.releaseObject(amesh)
         all_obj = a.getObjects()
@@ -3076,17 +3082,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         atess.render([], ana.cpp.ViewState())
         tess = a.toAimsObject(atess_m)
         if flat:
+            if len(tess.vertex()) != 0:
+                mvert = mesh.vertex().np
+                for tv in tess.vertex():
+                    i = np.argmin(np.sum((mvert - tv) ** 2, axis=1))
+                    tv[:] = orig_pos[i]
             #print('tesselate flat. orig vert:', len(orig_pos), len(tess.vertex()))
             for v, ov in zip(mesh.vertex(), orig_pos):
-                v[2] = ov[2]
+                v[:] = ov
                 # find nearest vertex for tesselated
         if len(tess.vertex()) == 0:
             return None  # no tesselation
-        if flat:
-            mvert = np.array(orig_pos)[:, :2]
-            for tv in tess.vertex():
-                i = np.argmin(np.sum((mvert - tv[:2]) ** 2, axis=1))
-                tv[2] = orig_pos[i][2]
         del atess
         del atess_m
         del amesh
