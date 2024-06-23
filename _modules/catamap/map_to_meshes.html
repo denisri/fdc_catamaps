@@ -3093,6 +3093,12 @@
     <span class="k">def</span> <span class="nf">tesselate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">anatomist.api</span> <span class="k">as</span> <span class="nn">ana</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">ana</span><span class="o">.</span><span class="n">Anatomist</span><span class="p">()</span>
+        <span class="n">win</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_tesselate_win&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">win</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># we might need to have an existing window in order to initialize</span>
+            <span class="c1"># OpenGL things.</span>
+            <span class="n">win</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">createWindow</span><span class="p">(</span><span class="s1">&#39;3D&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tesselate_win</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">a</span><span class="o">.</span><span class="n">setUserLevel</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># needed to use tesselation fusion</span>
         <span class="c1">#if &#39;transformation&#39; in mesh.header():</span>
             <span class="c1">## if the mesh has a 3D transformation, don&#39;t do that</span>
