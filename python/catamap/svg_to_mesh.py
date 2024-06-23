@@ -973,7 +973,7 @@ class SvgToMesh(object):
             c = np.matrix(((bbox[1][0] + bbox[0][0]) / 2,
                            (bbox[1][1] + bbox[0][1]) / 2, 0., 1.)).T
             trans3 = getattr(trans, 'transform_3d', None)
-            print('get_center', element.get('id'), ', trans3d:', trans3)
+            # print('get_center', element.get('id'), ', trans3d:', trans3)
             if trans3 is not None:
                 c = trans3.dot(c)
             hshift = element.get('height_shift')
