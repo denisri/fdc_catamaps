@@ -3054,6 +3054,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def tesselate(self, mesh, flat=False):
         import anatomist.api as ana
         a = ana.Anatomist()
+        win = getattr(self, '_tesselate_win', None)
+        if win is None:
+            # we might need to have an existing window in order to initialize
+            # OpenGL things.
+            win = a.createWindow('3D')
+            self._tesselate_win = True
         a.setUserLevel(5)  # needed to use tesselation fusion
         #if 'transformation' in mesh.header():
             ## if the mesh has a 3D transformation, don't do that
