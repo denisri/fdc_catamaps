@@ -2938,16 +2938,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if position is not None:
                     level = text_item.get('properties', {}).get('level',
                                                                 '')
+                    # print('text:', text_item)
+                    # print('text depth:', text_item['objects'][0]['properties']['text'], position, ', level:', level)
                     win = self.depth_wins.get(level)
                     if win is not None:
                         view = win.view()
                     else:
                         view = None
-                    hshift = ((props.height_shift
-                               if props.height_shift else 0.)
-                              + text_zshift) * self.z_scale
+                    hshift = (props.height_shift
+                              if props.height_shift else text_zshift) \
+                                  * self.z_scale
+                    # print('hshift:', hshift)
                     z = self.get_depth(position, view, object_win_size)
-                    if z is not None and z + hshift > position[2]:
+                    # print('z:', z, '->', z + hshift)
+                    if z is not None:  # and z + hshift > position[2]:
                         position[2] = z + hshift
 
         print('built depths in', self.nrenders, 'renderings')
@@ -3678,17 +3682,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         print('faulty mesh:', mesh)
                         continue
                     text_o = self.find_text_for_arrow(meshes, mesh)
+                    # print('arrow/text:', mesh, text_o)
                     if text_o:
                         props = text_o['properties']
                         pos = props['position']
                         vert = mesh.vertex()
                         size = props['size']
+                        # print('text pos:', pos)
                         # vert2 = aims.vector_POINT3DF(vert)
                         decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
                             - vert[0]
-                        #print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
+                        # print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
                         n = len(vert)
                         for i, v in enumerate(vert):
+                            # print('vert', i, ':', v.np, '->', (v + decal * (1. - v[2])).np)
                             # v += decal * float(n - i) / n
                             v += decal * (1. - v[2])
                         if with_squares:
@@ -3765,6 +3772,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.main_group = label
         bounds = self.boundingbox(layer)
         # print('ground grid bounds:', bounds)
+        if bounds[0] is None:
+            print('No border bounding box. Not building ground grid.')
+            return aims.AimsTimeSurface_2()
         props = [y for x, y in self.group_properties.items()
                  if y.label == label]
         interval = 5.
