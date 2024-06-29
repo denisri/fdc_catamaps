@@ -2977,16 +2977,20 @@
                 <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">level</span> <span class="o">=</span> <span class="n">text_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span>
                                                                 <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="c1"># print(&#39;text:&#39;, text_item)</span>
+                    <span class="c1"># print(&#39;text depth:&#39;, text_item[&#39;objects&#39;][0][&#39;properties&#39;][&#39;text&#39;], position, &#39;, level:&#39;, level)</span>
                     <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_wins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">win</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">view</span> <span class="o">=</span> <span class="n">win</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">view</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="n">hshift</span> <span class="o">=</span> <span class="p">((</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
-                               <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span>
-                              <span class="o">+</span> <span class="n">text_zshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
+                    <span class="n">hshift</span> <span class="o">=</span> <span class="p">(</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
+                              <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="n">text_zshift</span><span class="p">)</span> \
+                                  <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
+                    <span class="c1"># print(&#39;hshift:&#39;, hshift)</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span> <span class="o">&gt;</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                    <span class="c1"># print(&#39;z:&#39;, z, &#39;-&gt;&#39;, z + hshift)</span>
+                    <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># and z + hshift &gt; position[2]:</span>
                         <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;built depths in&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrenders</span><span class="p">,</span> <span class="s1">&#39;renderings&#39;</span><span class="p">)</span>
@@ -3717,17 +3721,20 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;faulty mesh:&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
                         <span class="k">continue</span>
                     <span class="n">text_o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_text_for_arrow</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
+                    <span class="c1"># print(&#39;arrow/text:&#39;, mesh, text_o)</span>
                     <span class="k">if</span> <span class="n">text_o</span><span class="p">:</span>
                         <span class="n">props</span> <span class="o">=</span> <span class="n">text_o</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
                         <span class="n">pos</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
                         <span class="n">vert</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span>
                         <span class="n">size</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
+                        <span class="c1"># print(&#39;text pos:&#39;, pos)</span>
                         <span class="c1"># vert2 = aims.vector_POINT3DF(vert)</span>
                         <span class="n">decal</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vert</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> \
                             <span class="o">-</span> <span class="n">vert</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="c1">#print(&#39;decal text&#39;, text_o[&#39;objects&#39;][0][&#39;properties&#39;][&#39;text&#39;], list(decal), &#39;to:&#39;, pos, &#39;, size&#39;, size)</span>
+                        <span class="c1"># print(&#39;decal text&#39;, text_o[&#39;objects&#39;][0][&#39;properties&#39;][&#39;text&#39;], list(decal), &#39;to:&#39;, pos, &#39;, size&#39;, size)</span>
                         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vert</span><span class="p">):</span>
+                            <span class="c1"># print(&#39;vert&#39;, i, &#39;:&#39;, v.np, &#39;-&gt;&#39;, (v + decal * (1. - v[2])).np)</span>
                             <span class="c1"># v += decal * float(n - i) / n</span>
                             <span class="n">v</span> <span class="o">+=</span> <span class="n">decal</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
                         <span class="k">if</span> <span class="n">with_squares</span><span class="p">:</span>
@@ -3804,6 +3811,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="n">label</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
         <span class="c1"># print(&#39;ground grid bounds:&#39;, bounds)</span>
+        <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No border bounding box. Not building ground grid.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">aims</span><span class="o">.</span><span class="n">AimsTimeSurface_2</span><span class="p">()</span>
         <span class="n">props</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                  <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">label</span><span class="p">]</span>
         <span class="n">interval</span> <span class="o">=</span> <span class="mf">5.</span>
