@@ -760,6 +760,7 @@
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">PIL.Image</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -4481,6 +4482,12 @@
                     <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
                     <span class="n">pmap</span> <span class="o">=</span> <span class="n">labels</span>
             <span class="k">if</span> <span class="n">ptype</span><span class="p">:</span>
+                <span class="c1"># TODO: we should manage &quot;use&quot; elements in a more general way</span>
+                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}use&#39;</span><span class="p">:</span>
+                    <span class="n">orig_id</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.w3.org/1999/xlink}href&#39;</span><span class="p">)</span>
+                    <span class="n">orig_id</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">orig_id</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">new_child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">orig_id</span><span class="p">)</span>
+                    <span class="n">child</span> <span class="o">=</span> <span class="n">new_child</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">element</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
                 <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">plabel</span><span class="p">,</span> <span class="n">ptype</span><span class="p">)</span>
                 <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;element&#39;</span><span class="p">:</span> <span class="n">element</span><span class="p">}</span>
@@ -4493,6 +4500,9 @@
                     <span class="n">pscalem</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
                     <span class="n">etrans</span> <span class="o">=</span> <span class="n">pscalem</span> <span class="o">*</span> <span class="n">trans_org</span>
                 <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">etrans</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">bbox</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO BBOX FOR:&#39;</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                    <span class="c1"># will crash next but we&#39;ll know why.</span>
                 <span class="n">item</span><span class="p">[</span><span class="s1">&#39;boundingbox&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
                 <span class="n">item</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
                                   <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
