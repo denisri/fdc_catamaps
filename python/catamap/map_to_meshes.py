@@ -721,6 +721,7 @@ import argparse
 import csv
 import pprint
 import re
+import urllib
 try:
     import PIL.Image
 except ImportError:
@@ -4442,6 +4443,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     plabel = 'label'
                     pmap = labels
             if ptype:
+                # TODO: we should manage "use" elements in a more general way
+                if child.tag == '{http://www.w3.org/2000/svg}use':
+                    orig_id = child.get('{http://www.w3.org/1999/xlink}href')
+                    orig_id = urllib.parse.unquote(orig_id).split('#')[-1]
+                    new_child = self.find_element(xml, orig_id)
+                    child = new_child[0]
                 element = copy.deepcopy(child)
                 element.set(plabel, ptype)
                 item = {'element': element}
@@ -4454,6 +4461,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     pscalem[1, 1] = pscale
                     etrans = pscalem * trans_org
                 bbox = self.boundingbox(child, etrans)
+                if bbox is None or bbox[0] is None:
+                    print('NO BBOX FOR:', child.tag, child.get('id'))
+                    # will crash next but we'll know why.
                 item['boundingbox'] = bbox
                 item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
                                   (bbox[0][1] + bbox[1][1]) / 2)
