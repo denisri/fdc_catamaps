@@ -2894,8 +2894,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                       level, ')')
                 alt_colors = self.get_alt_colors(props)
 
-                hshift = (props.height_shift
-                          if props.height_shift else 0.) * self.z_scale
+                # hshift = (props.height_shift
+                #           if props.height_shift else 0.) * self.z_scale
                 failed = 0
                 done = 0
                 if not isinstance(mesh_l, list):
@@ -2914,7 +2914,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             print('NAN in mesh:', mesh.vertex().np)
                         z = self.get_depth(v, view, object_win_size)
                         if z is not None:
-                            v[2] += z  # + hshift  # done via transform3d
+                            v[2] += z  # + hshift  # done via transform_3d
                         else:
                             failed += 1
                             if debug:
@@ -3850,6 +3850,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if not protos:
             return
         fproto = protos['label'].get('fontis')
+        trans = self.get_transform(fproto['element'])
         if fproto is None:
             return
         self.main_group = 'fontis'
@@ -3877,6 +3878,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         vert = np.asarray(fmesh_w.vertex())
         bbmin = aims.Point3df(np.min(vert, axis=0))
         vert += [0., 0., - bbmin[2]]
+        trans3d = getattr(trans, 'transform_3d', None)
+        if trans3d is not None:
+            vert = (trans3d * np.hstack(
+                (vert, np.ones((vert.shape[0], 1)))).T).T[:, :3]
         fmesh_w.vertex().assign(vert)
         return fmesh_w
 
