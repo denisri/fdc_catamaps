@@ -2933,8 +2933,8 @@
                       <span class="n">level</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
                 <span class="n">alt_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_colors</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
 
-                <span class="n">hshift</span> <span class="o">=</span> <span class="p">(</span><span class="n">props</span><span class="o">.</span><span class="n">height_shift</span>
-                          <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">height_shift</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
+                <span class="c1"># hshift = (props.height_shift</span>
+                <span class="c1">#           if props.height_shift else 0.) * self.z_scale</span>
                 <span class="n">failed</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="n">done</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh_l</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -2953,7 +2953,7 @@
                             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NAN in mesh:&#39;</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">np</span><span class="p">)</span>
                         <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_depth</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">object_win_size</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                            <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">z</span>  <span class="c1"># + hshift  # done via transform3d</span>
+                            <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">z</span>  <span class="c1"># + hshift  # done via transform_3d</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">failed</span> <span class="o">+=</span> <span class="mi">1</span>
                             <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
@@ -3889,6 +3889,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">protos</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">fproto</span> <span class="o">=</span> <span class="n">protos</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontis&#39;</span><span class="p">)</span>
+        <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">fproto</span><span class="p">[</span><span class="s1">&#39;element&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">fproto</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="s1">&#39;fontis&#39;</span>
@@ -3916,6 +3917,10 @@
         <span class="n">vert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">fmesh_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">())</span>
         <span class="n">bbmin</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">Point3df</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">vert</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
         <span class="n">vert</span> <span class="o">+=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span> <span class="n">bbmin</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">trans3d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">trans</span><span class="p">,</span> <span class="s1">&#39;transform_3d&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trans3d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vert</span> <span class="o">=</span> <span class="p">(</span><span class="n">trans3d</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">vert</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">vert</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">fmesh_w</span><span class="o">.</span><span class="n">vertex</span><span class="p">()</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">vert</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fmesh_w</span>
 
