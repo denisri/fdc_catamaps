@@ -188,7 +188,7 @@ Properties list
     "group label" used to replace elements with ones from the legends layer.
     The ``glabel`` is associated to one legends element if the legends element
     ``label`` property has the value of the ``glabel`` property of the element
-    plus the duffix ``_proto``. Ex, in the legends::
+    plus the suffix ``_proto``. Ex, in the legends::
 
         label: colim_proto
 
@@ -817,6 +817,13 @@ class ItemProperties(object):
         for prop in self.properties:
             setattr(self, prop, getattr(other, prop))
 
+    def __eq__(self, other):
+        for prop in self.properties:
+            if prop == 'eid':
+                continue
+            if getattr(self, prop) != getattr(other, prop):
+                return False
+
     @staticmethod
     def get_typed_prop(prop, value):
         if ItemProperties.prop_types is None:
@@ -899,7 +906,7 @@ class ItemProperties(object):
                     visibility = [visibility]
                 if 'private' in visibility:
                     self.private = True
-            self.visibility = visibility
+                self.visibility = visibility
 
             non_visibility = element.get('non_visibility')
             #if not non_visibility:
@@ -909,7 +916,7 @@ class ItemProperties(object):
                     non_visibility = json.loads(non_visibility)
                 else:
                     non_visibility = [non_visibility]
-            self.non_visibility = non_visibility
+                self.non_visibility = non_visibility
 
             for kind in ('corridor', 'block', 'wall', # 'wireframe',
                          'well',
@@ -1548,6 +1555,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # keep this properties for the whole group (hope there are no
         # inconistencies)
         if item_props.main_group:
+            if item_props.label != 'undefined' \
+                    and item_props.main_group in self.group_properties \
+                    and item_props \
+                        != self.group_properties[item_props.main_group]:
+                if self.group_properties[item_props.main_group].layer \
+                        and not item_props.well:
+                    # priority to layer defs (maybe not a good idea...)
+                    item_props = self.group_properties[item_props.main_group]
+                    self.item_props = item_props
+                    # raise ValueError('inconsistency.')
             self.group_properties[item_props.main_group] = item_props
             # print(item_props.main_group)
 
@@ -2333,7 +2350,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             continue
                         if len(row) == 0:
                             continue  # empty line
-                        mmap.setdefault(row[1], []).append(row[0])
+                        mmap.setdefault(row[1].strip(),
+                                        []).append(row[0].strip())
         except Exception as e:
             print('error reading markers map file:', filename, file=sys.stderr)
             raise
@@ -3030,6 +3048,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         print('ws:', ws)
                         print('method:', method)
                         print('specs:', specs)
+                        print('props:', props)
                         raise
                     c3 = (center[0], center[1], 0.)
                     z0 = self.get_depth(c3, view)
