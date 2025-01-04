@@ -1345,8 +1345,9 @@ class DefaultItemProperties(object):
         'agrandissement vdg', u'agrandissement cimetière',
         'agrandissement plage', 'agrandissements fond',
         'couleur_fond', 'couleur_fond sud',
-        'planches', 'planches fond', 'calcaire sup',
-        'calcaire limites', 'calcaire masse', 'calcaire masse2',
+        'planches', 'planches fond',
+        # 'calcaire sup',
+        # 'calcaire limites', 'calcaire masse', 'calcaire masse2',
         'lambert93',
         #'légende',
     }
@@ -2978,7 +2979,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def apply_arrow_depth(self, mesh, props):
         alt_color = self.get_alt_color(props)
         if alt_color:
-            mesh.header()['material']['diffuse'] = alt_color
+            try:
+                mesh.header()['material']['diffuse'] = alt_color
+            except Exception as e:
+                print('exc in apply_arrow_depth:', e)
+                print(props)
+                print(mesh)
+                raise
 
         level = props.level
         tz_level = props.upper_level
@@ -5547,7 +5554,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     self.set_style(item, style)
 
     def list_colorsets(self, xml):
-        colorsets = set()
+        colorsets = set(['default'])
         todo = [xml.getroot()]
         while todo:
             item = todo.pop()
