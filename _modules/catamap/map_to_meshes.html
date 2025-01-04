@@ -1384,8 +1384,9 @@
         <span class="s1">&#39;agrandissement vdg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;agrandissement cimetière&#39;</span><span class="p">,</span>
         <span class="s1">&#39;agrandissement plage&#39;</span><span class="p">,</span> <span class="s1">&#39;agrandissements fond&#39;</span><span class="p">,</span>
         <span class="s1">&#39;couleur_fond&#39;</span><span class="p">,</span> <span class="s1">&#39;couleur_fond sud&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;planches&#39;</span><span class="p">,</span> <span class="s1">&#39;planches fond&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire sup&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;calcaire limites&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire masse&#39;</span><span class="p">,</span> <span class="s1">&#39;calcaire masse2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;planches&#39;</span><span class="p">,</span> <span class="s1">&#39;planches fond&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;calcaire sup&#39;,</span>
+        <span class="c1"># &#39;calcaire limites&#39;, &#39;calcaire masse&#39;, &#39;calcaire masse2&#39;,</span>
         <span class="s1">&#39;lambert93&#39;</span><span class="p">,</span>
         <span class="c1">#&#39;légende&#39;,</span>
     <span class="p">}</span>
@@ -3017,7 +3018,13 @@
     <span class="k">def</span> <span class="nf">apply_arrow_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
         <span class="n">alt_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alt_color</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">alt_color</span><span class="p">:</span>
-            <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">][</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_color</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mesh</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">][</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_color</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;exc in apply_arrow_depth:&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+                <span class="k">raise</span>
 
         <span class="n">level</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">level</span>
         <span class="n">tz_level</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">upper_level</span>
@@ -5586,7 +5593,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">list_colorsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
-        <span class="n">colorsets</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">colorsets</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;default&#39;</span><span class="p">])</span>
         <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()]</span>
         <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
             <span class="n">item</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
