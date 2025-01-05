@@ -151,6 +151,7 @@ function OrbitControls( object, camera, domElement ) {
 	var STATE = { NONE: - 1, ROTATE: 0, DRIVE: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DRIVE: 4, TOUCH_PAN: 5, FLY: 6, TOUCH_FLY: 7, MAP: 8 };
 
 	var state = STATE.NONE;
+	var speed_factor = 1.;
 
 	var EPS = 0.000001;
 
@@ -288,11 +289,12 @@ function OrbitControls( object, camera, domElement ) {
             var z = scope.camera.position.z;
 	    var pm = scope.travel_speed_projection;
 	    // console.log('z:', z, ', dist factor:', ( Math.abs( scope.camera.position.x * pm[0] + scope.camera.position.x * pm[1] + scope.camera.position.z * pm[2] + pm[3] ) + pm[4] ) );
-	    return distance * ( Math.abs( scope.camera.position.x * pm[0]
-					  + scope.camera.position.x * pm[1]
-					  + scope.camera.position.z * pm[2]
-					  + pm[3] )
-				+ pm[4] );
+	    return distance * speed_factor *
+		    ( Math.abs( scope.camera.position.x * pm[0]
+				+ scope.camera.position.x * pm[1]
+				+ scope.camera.position.z * pm[2]
+				+ pm[3] )
+		      + pm[4] );
         }
 
 	// deltaX and deltaY are in pixels; right and down are positive
@@ -782,6 +784,12 @@ function OrbitControls( object, camera, domElement ) {
 
                 event.preventDefault();
 
+		speed_factor = 1.;
+		if( event.altKey == true )
+		    speed_factor = 0.1;
+		else if( event.shiftKey == true )
+		    speed_factor = 5.;
+
 		switch ( event.button ) {
 
 			case scope.mouseButtons.DRIVE:
@@ -1057,6 +1065,7 @@ function OrbitControls( object, camera, domElement ) {
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
+		return false;
 
 	}
 
