@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>catamap.diff_svg &#8212; CataMap 2.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/default.css?v=bae79c5f" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
     
@@ -62,15 +62,15 @@
 <span class="sd">-------------------</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xml.etree.cElementTree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ET</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
 <span class="n">size_limit</span> <span class="o">=</span> <span class="mi">1000</span>
 
 
-<div class="viewcode-block" id="diff_element"><a class="viewcode-back" href="../../index.html#catamap.diff_svg.diff_element">[docs]</a><span class="k">def</span> <span class="nf">diff_element</span><span class="p">(</span><span class="n">el1</span><span class="p">,</span> <span class="n">el2</span><span class="p">,</span> <span class="n">verbose_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose_depth_max</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="diff_element"><a class="viewcode-back" href="../../index.html#catamap.diff_svg.diff_element">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">diff_element</span><span class="p">(</span><span class="n">el1</span><span class="p">,</span> <span class="n">el2</span><span class="p">,</span> <span class="n">verbose_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose_depth_max</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Compare two SVG XML trees, record differences in both properties and</span>
