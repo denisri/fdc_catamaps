@@ -290,7 +290,9 @@ Properties list
     is the markers type (``photos``, ``sounds``), in relative mode.
 **markers_map:** str (**3D maps**)
     Set on a :ref:`marker layer <markers>`: correspondence map file name (CSV
-    file) for markers text. See :ref:`markers` for more details.
+    file) for markers text. Alternatively it may be a pattern for filenames as
+    a regular expression.
+    See :ref:`markers` for more details.
 **non_visibility:** str (**2D maps**)
     list of maps types (json-like), for which this layer is removed. The
     inverse of **visibility** (see below).
@@ -595,6 +597,31 @@ In addition to the "direct URL" mechanism above, it is also possible to specify,
     20220304_202810.jpg	1
 
 will assign to marker ``1`` the files: ``20220304_201758.jpg``, ``20220304_201804.jpg``, ``20220304_202810.jpg``, and so on. Each of the file names will undergo the prefix/suffix transformations using ``markers_base_url`` etc.
+
+Alternatively, the ``markers_map`` property on the layer may specify, not a correspondance file, but a pattern which will match files found in the ``markers_base_url`` directory. In this case, ``markers_map`` has the form: ``regex://<expr>``, where ``<expr>`` is a regular expression. It will be used to match all filenames found in the markers directory. Ex::
+
+    markers_base_url: regex://^[^_]+_[^_]+_([^_.]+).*$
+
+with a files directory containing::
+
+    XVI_20230817_122.jpg
+    XVI_20230817_123.jpg
+    XVI_20230817_124.jpg
+    XVI_20230817_125_2.jpg
+    XVI_20230817_125.jpg
+    XVI_20230817_127.jpg
+    XVI_20230817_128.jpg
+
+will make this correspondance::
+
+    122: XVI_20230817_122.jpg
+    123: XVI_20230817_123.jpg
+    124: XVI_20230817_124.jpg
+    125: [XVI_20230817_125_2.jpg, XVI_20230817_125.jpg]
+    127: XVI_20230817_127.jpg
+    128: XVI_20230817_128.jpg
+
+``122``, ``123``, etc, being the markers in the SVG file.
 
 
 .. _zoomed regions:
@@ -2358,6 +2385,36 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             raise
         return mmap
 
+    def build_markers_map_from_regex(self, pattern, base_url):
+        ignored = ['.csv', ]
+        rep = re.compile(pattern)
+        mmap = {}
+
+        for p in os.listdir(base_url):
+            skip = False
+            for i in ignored:
+                if p.endswith(i):
+                    skip = True
+                    break
+            if skip:
+                continue
+            pf = p.rsplit('.', 1)[0]
+            m = rep.match(pf)
+            if not m:
+                print(f'marker filename "{p}" does not match pattern',
+                      repr(pattern))
+                continue
+            num = m.group(1)
+            # print('p:', p, ', num:', num)
+            #try:
+                #num = int(num)
+            #except Exception as e:
+                #print(f'marker num: {num} in "{p}" is not a number')
+                #continue
+            mmap.setdefault(num, []).append(p)
+
+        return mmap
+
     def read_markers(self, xml, marker_model, mtype, trans=None, style=None):
         print('READ', mtype.upper())
         if not hasattr(self, mtype):
@@ -2369,14 +2426,19 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             trans = np.matrix(np.eye(3))
         # print('trans:', trans)
         base_url = xml.get('markers_base_url')
-        markers_map = {}
-        markers_map_file = xml.get('markers_map')
-        if markers_map_file:
-            markers_map = self.read_markers_map(markers_map_file)
         if base_url is None:
             base_url = mtype + '/'
         if not base_url.endswith('/'):
             base_url += '/'
+
+        markers_map = {}
+        markers_map_file = xml.get('markers_map')
+        if markers_map_file:
+            if markers_map_file.startswith('regex://'):
+                markers_map = self.build_markers_map_from_regex(
+                    markers_map_file[8:], base_url)
+            else:
+                markers_map = self.read_markers_map(markers_map_file)
 
         layer_radius = xml.get('radius')
         if layer_radius is not None:
@@ -3008,6 +3070,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             text_view = text_win.view()
 
         # print('ARROW DEPTH for', props)
+        if not hasattr(mesh, 'vertex'):
+            print('Wrong mesh type for', props.main_group,
+                  ', which is not a mesh:')
+            print(mesh)
+            raise TypeError('Wrong mesh type')
         for v in mesh.vertex():
             z = self.get_depth(v, view, object_win_size)
             if z is not None:
