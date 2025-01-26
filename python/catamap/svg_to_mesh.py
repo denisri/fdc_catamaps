@@ -173,6 +173,7 @@ class SvgToMesh(object):
             'geodesic_z': self.make_texcoord_geodesic_z,
         }
         self.enable_texturing = False
+        self.priority_layers = ['metadata', 'defs']
 
     @staticmethod
     def get_style(xml_elem):
@@ -629,6 +630,9 @@ class SvgToMesh(object):
                     uri = osp.join(osp.dirname(osp.realpath(
                         self.svg_filename)), uri)
                 image = aims.read(uri)
+                # ensure RGB or RGBA mode, avoid greyscale
+                if not type(image).__name__.split('_')[-1].startswith('RGB'):
+                    image = image.astype('RGB')
         svg_p = image.header()
         svg_p['name'] = xml_element.get('id')  # to re-identify the image later
         svg_p['svg_size'] = [w, h]
@@ -1330,6 +1334,30 @@ class SvgToMesh(object):
                     aims.SurfaceManip.meshMerge(mesh, smesh)
                 meshes[key] = mesh
 
+    def reorder_layers(self, xml_et=None):
+        if xml_et is None:
+            xml_et = self.svg
+
+        labels = []
+        for g in xml_et.getroot():
+            label = None
+            if g.tag != '{http://www.w3.org/2000/svg}g':
+                label = g.tag.rsplit('}')[-1]
+            else:
+                label = g.get(
+                    '{http://www.inkscape.org/namespaces/inkscape}label')
+            labels.append(label)
+        layers = []
+        for pl in self.priority_layers:
+            if pl in labels:
+                index = labels.index(pl)
+                layer = xml_et.getroot()[index]
+                layers.append(layer)
+        for layer in layers:
+            xml_et.getroot().remove(layer)
+        for index, layer in enumerate(layers):
+            xml_et.getroot().insert(index, layer)
+
     def read_paths(self, xml_et):
         '''
         Parse XML tree and extract meshes, text and other objects
@@ -1342,6 +1370,10 @@ class SvgToMesh(object):
         if not aims:
             raise RuntimeError('aims module is not available. read_paths() '
                                'needs it.')
+        # move some higher priority layers first (like metadata which are used
+        # by later ones)
+        self.reorder_layers()
+
         trans = np.matrix(np.eye(3))
         todo = [(xml_et.getroot(), trans, None, [])]
         self.mesh = aims.AimsTimeSurface(2)

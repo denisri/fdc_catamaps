@@ -468,7 +468,7 @@ Geolocalisation of the SVG file
 
 The SVG file should contain a layer named ``lambert93`` which contains, as its name says it, world coordinates in the **Lambert 93 coordinates system**.
 
-Coordinates can be spacified at any location of the map. At least 3 points are needed to estimate a transformation, but the more points are provided, the more precise the estimation will be. The coordinates transformation between the SVG positions and the Lambert93 coordinates will be estimated as a linear transformation fit to all SVG/Lambert 93 coortinates couples.
+Coordinates can be specified at any location of the map. At least 3 points are needed to estimate a transformation, but the more points are provided, the more precise the estimation will be. The coordinates transformation between the SVG positions and the Lambert93 coordinates will be estimated as a linear transformation fit to all SVG/Lambert 93 coortinates couples.
 
 A Lambert93 point is specified in this ``lambert93`` layer as a group containing 2 objects:
 
@@ -1505,6 +1505,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.colorset_inheritance = {}
         self.map_name = 'map_3d'
         self.lambert93_z_scaling = False
+        self.priority_layers.append('lambert93')
 
         if headless:
             try:
@@ -2023,7 +2024,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         norm += [(0., 0., 1.)] * (len(vert) - nv0)
         color = self.get_alt_color(props)
         if not color:
-            color = [0.5, 0.7, .6, 1.]
+            color = [0.69, 0.59, .5, 1.]
         well.header()['material'] = {'diffuse': color,
                                      'face_culling': 0}
         return well
@@ -2055,7 +2056,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             aims.SurfaceManip.meshMerge(ladder, bar)
         color = self.get_alt_color(props)
         if not color:
-            color = [1., 0., .6, 1.]
+            color = [.69, .25, .25, 1.]
         ladder.header()['material'] = {'diffuse': color}
         return ladder
 
@@ -2091,7 +2092,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         well.updateNormals()
         color = self.get_alt_color(props)
         if not color:
-            color = [1., .6, 0., 1.]
+            color = [.81, .62, .29, 1.]
         well.header()['material'] = {'diffuse': color,
                                      'face_culling': 0}
         return well
@@ -2118,14 +2119,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             aims.SurfaceManip.meshTransform(well, mat)
         color = self.get_alt_color(props)
         if not color:
-            color = [0., 1., .6, 1.]
+            color = [.42, .81, .44, 1.]
             if well_type.startswith('PE'):
                 color = [0., 0.7, 1., 1.]
             elif well_type == 'PS' or well_type.startswith('PS_') \
                     or well_type.startswith('PS '):
                 color = [1., 1., 1., 1.]
             elif well_type.startswith('P ossements'):
-                color = [1., 1., 0., 1.]
+                color = [.96, .87, .15, 1.]
         well.header()['material'] = {'diffuse': color, 'face_culling': 0}
         return well
 
@@ -2181,7 +2182,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         r0 = radius * 0.2 # radius of pillar stones
         amax = np.pi * .35 # max angle of the vault
         zscl = 1. # Z scaling of the vault ellipse
-        wheight = 1.5 # straight wall height
+        wheight = 1.5 * self.z_scale # straight wall height
         a0 = amax * 0.98
         c0 = center0 + (-wp * np.cos(a0), 0, wheight)
 
@@ -2653,7 +2654,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.z_scale \
                 = 2. / (abs(self.lambert_coords.x.slope)
                         + abs(self.lambert_coords.y.slope))
-            # print('z_scale:', self.z_scale)
+            print('z_scale:', self.z_scale)
 
     def change_level(self, mesh, dz):
         vert = mesh.vertex()
