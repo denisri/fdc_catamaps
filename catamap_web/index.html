@@ -338,6 +338,7 @@
             document.getElementById( categories[i] ).checked = true;
         for( i=0; i!=categories.length; i++ )
             category_clicked( i, document.getElementById( categories[i] ) );
+        event.stopPropagation();
     }
 
     function category_clicked(category, event)
@@ -350,6 +351,7 @@
             load_meshes( category );
         else
             unload_meshes( category );
+        event.stopPropagation();
     }
 
     function map_mode_clicked(event)
@@ -361,6 +363,7 @@
         controls.mode_2d = display;
         if( display )
             set_map_2d_mode();
+        event.stopPropagation();
     }
 
     function set_font_sizes()
@@ -1031,7 +1034,8 @@
     controls.addEventListener( 'change', render ); // use if there is no animation loop
     window.addEventListener( 'resize', onWindowResize, false );
     document.addEventListener( 'mousedown', on_press_scene );
-    document.addEventListener( 'mouseup', on_release_scene );
+//     document.addEventListener( 'mouseup', on_release_scene );
+    document.addEventListener( 'click', on_release_scene );
 
 
     function render() {
@@ -1432,6 +1436,8 @@
 
             function close_media_clicked( event )
             {
+              if( event != null )
+                  event.stopPropagation();
               document.getElementById( 'media_player' ).style.display = 'none';
               var media = document.getElementById( 'photo_frame' );
               if( media )
@@ -1520,6 +1526,7 @@
 
             function prev_media_clicked()
             {
+              event.stopPropagation();
               var media = document.getElementById( 'media_frame' );
               var photo_files = media.photos;
               var num = media.num;
@@ -1528,8 +1535,9 @@
             }
 
 
-            function next_media_clicked()
+            function next_media_clicked(event)
             {
+              event.stopPropagation();
               var media = document.getElementById( 'media_frame' );
               var photo_files = media.photos;
               var num = media.num;
@@ -1537,8 +1545,9 @@
                 display_photo( num + 1 );
             }
 
-            function enlarge_media_clicked()
+            function enlarge_media_clicked(event)
             {
+              event.stopPropagation();
               var media = document.getElementById( 'media_frame' );
               var large = media.large;
               large = !large;
