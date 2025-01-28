@@ -739,7 +739,7 @@ import hashlib
 import collections
 import sys
 import subprocess
-import distutils.spawn
+import shutil
 import imp
 import time  # just for exec time stats
 from argparse import ArgumentParser
@@ -6218,7 +6218,7 @@ def get_inkscape_ub16():
         if pwd.startswith(os.path.realpath(os.environ.get('HOME'))):
             pwd = pwd.replace(os.path.realpath(os.environ.get('HOME')),
                               os.environ.get('HOME'))
-        casa_distro = distutils.spawn.find_executable('casa_distro')
+        casa_distro = shutil.which('casa_distro')
         if not casa_distro:
             return inkscape_ub16
         dist = subprocess.check_output(['casa_distro', 'list'])
