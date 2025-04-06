@@ -1,0 +1,16 @@
+{
+    "name": "CataMap",
+    "short_name": "CataMap",
+    "description": "Catacombs 3D map",
+    "icons": [
+        {
+            "src": "catamap_icon.jpg",
+            "sizes": "60x64",
+            "type": "image/png"
+        },
+    ],
+    "start_url": "/maps/grs/index.html",
+    "display": "fullscreen",
+    "theme_color": "#B12A34",
+    "background_color": "#B12A34"
+}

@@ -141,7 +141,8 @@
                 display: block;
             }
         </style>
-    </head>
+        <link rel="manifest" href="catamap.webmanifest" />
+   </head>
     <body>
 
 
@@ -168,6 +169,23 @@
       <div style="border: 0px; bottom: 0%; left: 0%; width: 100%; height: auto; display: block; position: absolute; margin: auto;">
         <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
       </div>
+
+      <script>
+      // Registering Service Worker
+      if ('serviceWorker' in navigator)
+      {
+        console.log('registrer service');
+        const my_path =  window.location.pathname;
+        const s = my_path.split('/');
+        const my_dir = my_path.substring(0, my_path.length - s[s.length - 1].length);
+        console.log('service:', my_dir + 'sw.js');
+        navigator.serviceWorker.register(my_dir + 'sw.js');
+      }
+      else
+      {
+        console.log('serviceWorker not available in browser.');
+      }
+      </script>
 
         <script type="importmap">
           {
