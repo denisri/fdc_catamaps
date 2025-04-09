@@ -85,7 +85,7 @@ function install_callback(e)
 
 function fetch_callback(e)
 {
-    console.log('fetch:', e.request.url);
+    // console.log('fetch:', e.request.url);
     // Cache http and https only, skip unsupported chrome-extension:// and file://...
     if (!(
        e.request.url.startsWith('http:') || e.request.url.startsWith('https:')
@@ -94,13 +94,33 @@ function fetch_callback(e)
     }
 
   e.respondWith((async () => {
-    const r = await caches.match(e.request);
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
+    if( e.request.url.substring(e.request.url.length - 16)
+        == 'map_objects.json')
+    {
+      // try without cache first, in order to reload after a version change
+      // console.log('Fetching map_objects.json');
+      try
+      {
+        const response = await fetch( e.request,
+                                      {signal: AbortSignal.timeout(3000)} );
+        const cache = await caches.open(cacheName);
+        console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
+        cache.put(e.request, response.clone());
+        return response;
+      }
+      catch( error )
+      {
+        console.log('Fetch failed, probable timeout:', error );
+      }
+    }
+
+    const r = await caches.match(e.request);
     if (r) {
-//       console.log(`[Service Worker] Cached: ${e.request.url}`);
+      // console.log(`[Service Worker] Cached: ${e.request.url}`);
       return r;
     }
-//     console.log(`[Service Worker] Get: ${e.request.url}`);
+    // console.log(`[Service Worker] Get: ${e.request.url}`);
     const response = await fetch(e.request);
     const cache = await caches.open(cacheName);
     console.log(`[Service Worker] Caching new resource: ${e.request.url}`);

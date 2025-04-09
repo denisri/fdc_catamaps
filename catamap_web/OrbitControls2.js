@@ -488,14 +488,6 @@ function OrbitControls( object, camera, domElement ) {
 
         }
 
-        function handleMouseDownPanMap( event ) {
-
-                //console.log( 'handleMouseDownPanMap' );
-
-                panMapStart.set( event.clientX, event.clientY );
-
-        }
-
 	function handleMouseDownFly( event ) {
 
 		//console.log( 'handleMouseDownFly' );
@@ -633,7 +625,8 @@ function OrbitControls( object, camera, domElement ) {
 				break;
 
 			case scope.keys.LEFT:
-                                if( event.ctrlKey == true )
+                                if( event.ctrlKey == true
+				    || scope.mode_2d == true )
                                     pan( scope.keyPanSpeed, 0 );
                                 else
                                     rotateLeft( -scope.keyRotateAngleSpeed );
@@ -641,7 +634,8 @@ function OrbitControls( object, camera, domElement ) {
 				break;
 
 			case scope.keys.RIGHT:
-                                if( event.ctrlKey == true )
+                                if( event.ctrlKey == true
+				    || scope.mode_2d == true )
                                     pan( -scope.keyPanSpeed, 0 );
                                 else
                                     rotateLeft( scope.keyRotateAngleSpeed );
@@ -670,6 +664,21 @@ function OrbitControls( object, camera, domElement ) {
                                     event.touches[ 1 ].pageY );
                 var diff = new THREE.Vector2();
                 diff.subVectors( panTouch2Start, panStart );
+                panPinchDistance = Math.sqrt( diff.x * diff.x
+                                              + diff.y * diff.y );
+
+	}
+
+	function handleTouchStartPanMap( event ) {
+
+		//console.log( 'handleTouchStartPanMap' );
+
+		panMapStart.set( event.touches[ 0 ].pageX,
+                                 event.touches[ 0 ].pageY );
+                panTouch2Start.set( event.touches[ 1 ].pageX,
+                                    event.touches[ 1 ].pageY );
+                var diff = new THREE.Vector2();
+                diff.subVectors( panTouch2Start, panMapStart );
                 panPinchDistance = Math.sqrt( diff.x * diff.x
                                               + diff.y * diff.y );
 
@@ -767,6 +776,22 @@ function OrbitControls( object, camera, domElement ) {
 		scope.update();
 
 	}
+
+	function handleTouchMovePanMap( event ) {
+
+		//console.log( 'handleTouchMovePanMap' );
+
+		panMapEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+		panMapDelta.subVectors( panMapEnd, panMapStart );
+
+		panMap( -panMapDelta.x, -panMapDelta.y );
+
+		panMapStart.copy( panMapEnd );
+
+		scope.update();
+
+	}^
 
 	function handleTouchEnd( event ) {
 
@@ -962,7 +987,10 @@ function OrbitControls( object, camera, domElement ) {
 
 				if ( scope.enableZoom === false ) return;
 
-				handleTouchStartPanZ( event );
+				if( scope.mode_2d == true )
+				    handleTouchStartPanMap( event );
+				else
+				    handleTouchStartPanZ( event );
 
 				state = STATE.TOUCH_DRIVE;
 
@@ -1015,7 +1043,10 @@ function OrbitControls( object, camera, domElement ) {
 				if ( scope.enableZoom === false ) return;
 				if ( state !== STATE.TOUCH_DRIVE ) return; // is this needed?...
 
-				handleTouchMovePanZ( event );
+				if( scope.mode_2d == true )
+				    handleTouchMovePanMap( event );
+				else
+				    handleTouchMovePanZ( event );
 
 				break;
 
