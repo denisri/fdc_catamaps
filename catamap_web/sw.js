@@ -22,8 +22,8 @@ const appShellFiles = [
   my_path + '/catamap_icon.jpg',
   my_path + '/catamap.webmanifest',
   my_path + '/photos/',
-  my_path + '/sounds/',
-  par_path + '/three/',
+//   my_path + '/sounds/',
+  par_path + 'three/',
 ];
 
 
@@ -65,16 +65,17 @@ function install_callback(e)
     e.waitUntil((async () => {
 
       map_objects = await wait_json();
-      console.log('map_objects res:', map_objects);
+      // console.log('map_objects res:', map_objects);
       version = map_objects.version;
       console.log('map_objects version:', version);
       cacheName = mapname + '-' + version;
       console.log('[Service Worker] cacheName:', cacheName);
 
       const meshFiles = get_meshes();
+      // console.log('meshes:', meshFiles);
 
       const contentToCache = appShellFiles.concat(meshFiles);
-      console.log('caching:', contentToCache);
+      // console.log('caching:', contentToCache);
 
       const cache = await caches.open(cacheName);
       console.log('[Service Worker] Caching all: app shell and content');
@@ -95,23 +96,40 @@ function fetch_callback(e)
 
   e.respondWith((async () => {
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
+    // console.log('cache:', cacheName);
     if( e.request.url.substring(e.request.url.length - 16)
         == 'map_objects.json')
     {
+      // console.log('get map_objects.json');
       // try without cache first, in order to reload after a version change
       // console.log('Fetching map_objects.json');
       try
       {
+        const r = await caches.match(e.request);
+        if (r) {
+          const cache = await caches.open(cacheName);
+          cache.delete(e.request);
+        }
         const response = await fetch( e.request,
                                       {signal: AbortSignal.timeout(3000)} );
+        const c = response.clone();
+        const map_objects = await response.json();
+        // console.log('map_objects:', map_objects);
+        version = map_objects.version;
+        // console.log('map_objects version:', version);
+        cacheName = mapname + '-' + version;
         const cache = await caches.open(cacheName);
-        console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
-        cache.put(e.request, response.clone());
-        return response;
+        console.log(`[Service Worker] Caching new version ${cacheName}: ${e.request.url}`);
+        cache.put(e.request, c.clone());
+        return c;
       }
       catch( error )
       {
         console.log('Fetch failed, probable timeout:', error );
+        if( r )
+        {
+          cache.put(e.request, r);
+        }
       }
     }
 
@@ -123,7 +141,7 @@ function fetch_callback(e)
     // console.log(`[Service Worker] Get: ${e.request.url}`);
     const response = await fetch(e.request);
     const cache = await caches.open(cacheName);
-    console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
+    console.log(`[Service Worker] Caching new resource in ${cacheName}: ${e.request.url}`);
     cache.put(e.request, response.clone());
     return response;
   })());
@@ -148,7 +166,7 @@ function activate_callback(e)
 }
 
 
-// Installing Service Worker
+// // Installing Service Worker
 console.log('[Service Worker] Installing'); // , cacheName);
 //       console.log('self:', self);
 self.addEventListener('install', install_callback);

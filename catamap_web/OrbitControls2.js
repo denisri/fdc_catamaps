@@ -860,15 +860,15 @@ function OrbitControls( object, camera, domElement ) {
 
 				break;
 
-                        case scope.mouseButtons.MAP:
-
-                                if ( scope.enablePan === false ) return;
-
-                                handleMouseDownPanMap( event );
-
-                                state = STATE.PAN;
-
-                                break;
+//                         case scope.mouseButtons.MAP:
+//
+//                                 if ( scope.enablePan === false ) return;
+//
+//                                 handleMouseDownPanMap( event );
+//
+//                                 state = STATE.PAN;
+//
+//                                 break;
 
 		}
 
@@ -988,11 +988,15 @@ function OrbitControls( object, camera, domElement ) {
 				if ( scope.enableZoom === false ) return;
 
 				if( scope.mode_2d == true )
+				{
 				    handleTouchStartPanMap( event );
+                                    state = STATE.MAP;
+				}
 				else
+				{
 				    handleTouchStartPanZ( event );
-
-				state = STATE.TOUCH_DRIVE;
+				    state = STATE.TOUCH_DRIVE;
+				}
 
 				break;
 
@@ -1040,8 +1044,9 @@ function OrbitControls( object, camera, domElement ) {
 
 			case 1: // one-fingered touch: rotate
 
-				if ( scope.enableZoom === false ) return;
-				if ( state !== STATE.TOUCH_DRIVE ) return; // is this needed?...
+				// if ( scope.enableZoom === false ) return;
+				if ( state !== STATE.TOUCH_DRIVE
+				     && state != STATE.MAP ) return; // is this needed?...
 
 				if( scope.mode_2d == true )
 				    handleTouchMovePanMap( event );
