@@ -791,7 +791,7 @@ function OrbitControls( object, camera, domElement ) {
 
 		scope.update();
 
-	}^
+	}
 
 	function handleTouchEnd( event ) {
 
