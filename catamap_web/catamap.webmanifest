@@ -7,7 +7,7 @@
             "src": "catamap_icon.jpg",
             "sizes": "60x64",
             "type": "image/png"
-        },
+        }
     ],
     "start_url": "/maps/grs/index.html",
     "display": "fullscreen",

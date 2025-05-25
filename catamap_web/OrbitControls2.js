@@ -675,12 +675,6 @@ function OrbitControls( object, camera, domElement ) {
 
 		panMapStart.set( event.touches[ 0 ].pageX,
                                  event.touches[ 0 ].pageY );
-                panTouch2Start.set( event.touches[ 1 ].pageX,
-                                    event.touches[ 1 ].pageY );
-                var diff = new THREE.Vector2();
-                diff.subVectors( panTouch2Start, panMapStart );
-                panPinchDistance = Math.sqrt( diff.x * diff.x
-                                              + diff.y * diff.y );
 
 	}
 
@@ -882,6 +876,31 @@ function OrbitControls( object, camera, domElement ) {
 		}
 
 	}
+
+
+	function onMouseDblClick( event )
+	{
+		console.log("Double click");
+		if ( scope.enabled === false ) return;
+
+                event.preventDefault();
+
+		if ( scope.enableRotate === false ) return;
+
+		handleMouseDownRotate( event );
+
+		state = STATE.ROTATE;
+
+		if ( state !== STATE.NONE ) {
+
+			document.addEventListener( 'mousemove', onMouseMove, false );
+			document.addEventListener( 'mouseup', onMouseUp, false );
+
+			scope.dispatchEvent( startEvent );
+
+		}
+	}
+
 
 	function onMouseMove( event ) {
 
@@ -1110,6 +1129,8 @@ function OrbitControls( object, camera, domElement ) {
 	scope.domElement.addEventListener( 'contextmenu', onContextMenu, false );
 
 	scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
+	scope.domElement.addEventListener( 'dblclick', onMouseDblClick,
+					   false );
 	scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
 
 	scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
