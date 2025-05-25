@@ -1431,7 +1431,13 @@ class SvgToMesh(object):
                     or child.tag.endswith('}circle') \
                     or child.tag.endswith('}ellipse'):
                 child_mesh = self.read_path(child, trans, style)
-                if self.concat_mesh == 'merge':
+                if self.main_group.endswith('_text'):
+                    # mesh in a text layer: should be rendered as the text, in
+                    # a fixed orientation from the camera
+                    # DOTO FIXME
+                    # for now we just skip and ignore it...
+                    pass
+                elif self.concat_mesh == 'merge':
                     aims.SurfaceManip.meshMerge(self.mesh, child_mesh)
                     self.mesh.header().update(child_mesh.header())
                     self.get_textures(self.mesh, child, parents)
@@ -1457,8 +1463,12 @@ class SvgToMesh(object):
                     except Exception as e:
                         print('FAILED TO READ MESH:', e)
                         print('main_group:', self.main_group)
-                        print(child.tag)
-                        print(list(child.items()))
+                        print('child item tag:', child.tag)
+                        print('child sub-items:', list(child.items()))
+                        print('child mesh type:', type(child_mesh))
+                        print('child mesh:', child_mesh)
+                        print('meshes type:', type(meshes))
+                        print('meshes:', meshes)
                         raise
                     self.get_textures(meshes[0], child, parents)
                     try:
@@ -1488,6 +1498,8 @@ class SvgToMesh(object):
                     child, trans, style=style, text=text)
                 current_text['objects'].append(current_text_o)
                 size = self.text_size(current_text_o)
+                # size = self.boundingbox(child, trans)
+                # print('text size:', size, child, trans)
                 current_text_o['properties']['size'] = size
                 current_text_o['objects'][0]['properties']['position'] \
                     = [-size[0]/2., size[1]/2., 0]
@@ -1518,6 +1530,7 @@ class SvgToMesh(object):
                     current_text += '\n' + text
                 current_text_d['text'] = current_text
                 size = self.text_size(current_text_o)
+                # size = self.boundingbox(child, trans)[1]
                 current_text_o['properties']['size'] = size
                 current_text_o['objects'][0]['properties']['position'] \
                     = [-size[0]/2., size[1]/2., 0]
@@ -1570,7 +1583,7 @@ class SvgToMesh(object):
         obj_props = {'text': text, 'position': [0, 0, 0.],
                      'font_size': 10., 'scale': 0.1,
                      'material': {'diffuse': [.5, .5, .5, 1.]}}
-        trobj_props = {'position': [pos[0], pos[1], 4.]}
+        trobj_props = {'position': [pos[0], pos[1], 4.]}  # 4 is arbitrary
         props['properties'] = trobj_props
         props['objects'].append({
             'object_type': 'TextObject',
@@ -1584,6 +1597,7 @@ class SvgToMesh(object):
                 if text_anchor == 'middle':
                     pass  # TODO
             font_size = style.get('font-size')
+            scale = 0.1
             if font_size is not None:
                 unit = ''
                 i = 1
@@ -1600,7 +1614,14 @@ class SvgToMesh(object):
                                         + pt[1, 0] * pt[1, 0])
                 if unit in ('', 'pt', 'px'):
                     font_size *= 10. / 3.95  # arbitrary
+                if font_size < 10:
+                    scale *= font_size / 10.
+                    font_size = 10.
+                elif font_size > 20:
+                    scale *= font_size / 20.
+                    font_size = 20
                 obj_props['font_size'] = font_size
+                obj_props['scale'] = scale
             font_family = style.get('font-family')
             if font_family is not None:
                 obj_props['font_family'] = font_family
@@ -1620,6 +1641,19 @@ class SvgToMesh(object):
                 if col[0] * col[0] + col[1] * col[1] + col[2] * col[2] < 0.16:
                     col = [1., 1., 1., 1.]
                 obj_props['material'] = {'diffuse': col}
+            bg = style.get('stroke')
+            if bg is not None and bg != 'none':
+                try:
+                    bgcol = [float(int(bg[1:3], 16)) / 255.,
+                             float(int(bg[3:5], 16)) / 255.,
+                             float(int(bg[5:7], 16)) / 255.,
+                             1.]
+                except Exception as e:
+                    print(e)
+                    print('error while reading text fg color:', repr(bg))
+                    print('in element:', xml_item.get('id'))
+                    raise
+                trobj_props['background'] = bgcol
         return props
 
     @staticmethod
@@ -1627,20 +1661,47 @@ class SvgToMesh(object):
         if not text_item:
             return [0, 0]
         text_obj = text_item['objects'][0]['properties']
-        scale = text_obj.get('scale', 1.) * text_obj.get('font_size', 10.)
+        scale = text_obj.get('scale', 1.)
+        fsize = text_obj.get('font_size', 10.)
         text = text_obj.get('text')
         if not text:
             return [0, 0]
         if isinstance(text, bytes):
             text = text.decode()
         text = text.split('\n')
-        # assume fixed size font, with height/width ratio of 3.3.
-        # also assume a final scale factor of 2.12 (old: 0.0827)
-        # this is arbitrary but I don't know how to do better
-        scale *= 2.12  # 0.0827
-        hw_ratio = 2.5
-        height = len(text) * scale
-        width = max([len(line) for line in text]) * scale / hw_ratio
+        try:
+            # try using Qt
+            from soma.qt_gui.qt_backend import QtGui, QtCore
+
+            if QtCore.QCoreApplication.instance() is None:
+                qapp = QtGui.QtGuiApplication([])
+
+            line_height = 1.1
+            ffamily = text_obj.get('font_family')
+            if ffamily is None:
+                ffamily = QtGui.QFont().family()
+            font = QtGui.QFont(ffamily, int(fsize), QtGui.QFont.Bold)
+            fm = QtGui.QFontMetrics(font)
+            width = 0
+            height = 0
+            for line in text:
+                r = fm.boundingRect(line)
+                width = max(width, r.width())
+                if height != 0:
+                    height += r.height() * (line_height - 1.)
+                height += r.height()
+            width *= scale
+            height *= scale
+
+        except ImportError:
+            # assume fixed size font, with height/width ratio of 3.3.
+            # also assume a final scale factor of 2.12 (old: 0.0827)
+            # this is arbitrary but I don't know how to do better
+            scale *= 2.12 * fsize  # 0.0827
+            hw_ratio = 2.5
+            height = len(text) * scale
+            width = max([len(line) for line in text]) * scale / hw_ratio
+
         return [width, height]
 
     @staticmethod

@@ -445,20 +445,59 @@
 
 
     // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
-    function fillTextMultiLine(ctx, text, x, y, hratio) {
-      var lineHeight = ctx.measureText("M").width * hratio;
+    function fillTextMultiLine(ctx, text, x, y, hratio, centered) {
+      // var lineHeight = ctx.measureText("M").width * hratio;
+      var m = ctx.measureText('M')
+      var lineHeight = m.actualBoundingBoxAscent * hratio;
       var lines = text.split("\n");
+      var xd = 0;
+      var lw = new Array(lines.length);
+
+      if( centered )
+      {
+        for (var i = 0; i < lines.length; ++i) {
+          m = ctx.measureText(lines[i]);
+          lw[i] = m.actualBoundingBoxRight / 2;
+          if( m.actualBoundingBoxRight > xd )
+            xd = m.actualBoundingBoxRight;
+        }
+        xd /= 2;
+      }
+
+      var xdl = 0;
       for (var i = 0; i < lines.length; ++i) {
-        ctx.fillText(lines[i], x, y);
+        if( centered )
+          xdl = xd - lw[i]
+        ctx.fillText(lines[i], x + xdl, y - m.actualBoundingBoxDescent + m.ideographicBaseline);
         y += lineHeight;
       }
     }
 
-    function strokeTextMultiLine(ctx, text, x, y, hratio) {
-      var lineHeight = ctx.measureText("M").width * hratio;
+    function strokeTextMultiLine(ctx, text, x, y, hratio, centered) {
+      // var lineHeight = ctx.measureText("M").width * hratio;
+      var m = ctx.measureText("M")
+      var lineHeight = m.actualBoundingBoxAscent * hratio;
       var lines = text.split("\n");
+      var lines = text.split("\n");
+      var xd = 0;
+      var lw = new Array(lines.length);
+
+      if( centered )
+      {
+        for (var i = 0; i < lines.length; ++i) {
+          m = ctx.measureText(lines[i]);
+          lw[i] = m.actualBoundingBoxRight / 2;
+          if( m.actualBoundingBoxRight > xd )
+            xd = m.actualBoundingBoxRight;
+        }
+        xd /= 2;
+      }
+
+      var xdl = 0;
       for (var i = 0; i < lines.length; ++i) {
-        ctx.strokeText(lines[i], x, y);
+        if( centered )
+          xdl = xd - lw[i]
+        ctx.strokeText(lines[i], x + xdl, y - m.actualBoundingBoxDescent + m.ideographicBaseline);
         y += lineHeight;
       }
     }
@@ -891,10 +930,11 @@
 
         if( category == 2 && texts ) // texts
         {
-            for( i=0; i<texts.length; i++ )
+            var ti = 0;
+            for( ti=0; ti<texts.length; ti++ )
             {
 
-                var fname = url + texts[i][1];
+                var fname = url + texts[ti][1];
 
                 if( mesh_cat[fname] == null )
                     mesh_cat[fname] = [0, null]; // not loaded
@@ -904,118 +944,249 @@
                 if( mesh_cat[fname][0] != 0 )
                     continue; // loaded or loading: don't do it again
 
-//                 console.log('fname', i, ':', fname);
+//                 console.log('fname', ti, ':', fname);
                 var text_json = $.getJSON(fname,
                     function(json)
                     {
                       var tobjs = json.objects;
                       var group = new THREE.Group();
+                      var oi = 0;
 
-                      for( i in tobjs )
+                      for( oi in tobjs )
                       {
-                        var trobj = tobjs[i];
+                        var debug = false;
+                        var trobj = tobjs[oi];
                         var pos = trobj.properties.position;
-                        var tobj = trobj.objects[0];
-                        var scale = tobj.properties.scale;
-                        var fsize = tobj.properties.font_size;
-                        var ffamily = tobj.properties.font_family;
-                        var material = tobj.properties.material;
-                        var fillcol = 'white';
-                        if( material != null )
+                        var bsize = trobj.properties.size;
+                        var bitmap = document.createElement('canvas');
+                        var g = bitmap.getContext('2d');
+                        var background = '#ffffff00';
+                        if( trobj.properties.background != null )
                         {
-                            var col = material.diffuse;
-                            if( col != null )
-                            {
-//                                 // make texts ligher
-//                                 col[0] = Math.round( (1. - (1. - col[0]) / 2.)
-//                                                      * 255. );
-//                                 col[1] = Math.round( (1. - (1. - col[1]) / 2.)
-//                                                      * 255. );
-//                                 col[2] = Math.round( (1. - (1. - col[2]) / 2.)
-//                                                      * 255. );
-                                col[0] = Math.round( col[0] * 255. );
-                                col[1] = Math.round( col[1] * 255. );
-                                col[2] = Math.round( col[2] * 255. );
-                                col[3] = Math.round( col[3] * 255. );
-                                fillcol = '#'
-                                    + ('00' + col[0].toString(16)).substr(-2)
-                                    + ('00' + col[1].toString(16)).substr(-2)
-                                    + ('00' + col[2].toString(16)).substr(-2)
-                                    + ('00' + col[3].toString(16)).substr(-2);
-                            }
+                          var bgcol = trobj.properties.background;
+                          bgcol[0] = Math.round( bgcol[0] * 255. );
+                          bgcol[1] = Math.round( bgcol[1] * 255. );
+                          bgcol[2] = Math.round( bgcol[2] * 255. );
+                          bgcol[3] = Math.round( bgcol[3] * 255. );
+                          background = '#'
+                              + ('00' + bgcol[0].toString(16)).substr(-2)
+                              + ('00' + bgcol[1].toString(16)).substr(-2)
+                              + ('00' + bgcol[2].toString(16)).substr(-2)
+                              + ('00' + bgcol[3].toString(16)).substr(-2);
                         }
-                        if( fsize == null || fsize == 0. )
+
+                        var oti = 0;
+                        var bsize = [0., 0.];
+
+                        // compute exact size
+                        for( oti in trobj.objects )
                         {
+                          var tobj = trobj.objects[oti];
+                          var scale = tobj.properties.scale;
+                          var fsize = tobj.properties.font_size;
+                          var ffamily = tobj.properties.font_family;
+
+                          if( fsize == null || fsize == 0. )
                             fsize = 10;
-                        }
-                        if( ffamily == null )
-                        {
-            //                 ffamily = 'LMSansUltraCond10';
+                          if( ffamily == null )
                             ffamily = 'Arial';
+                          var text = tobj.properties.text;
+                          if( text != null )
+                          {
+                              fsize *= 2;
+//                               if( fsize < 20 )
+//                               {
+//                                   scale *= fsize / 20.;
+//                                   fsize = 20;
+//                               }
+                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+
+                              var w = 0;
+                              var h = 0;
+                              var lines = text.split('\n');
+                              const hratio = 1.5;
+                              var m;
+//                               if( lines[0] == 'MONSIEUR ...' )
+//                               {
+//                                 debug = true;
+//                                 console.log('text:', text);
+//                                 console.log('fsize:', fsize);
+//                               }
+                              for( i=0; i!=lines.length; i++ )
+                              {
+                                m = g.measureText( lines[i] );
+                                w = Math.max( w, m.actualBoundingBoxRight );
+                                h += m.actualBoundingBoxAscent;
+                                if( i != 0 )
+                                  h += m.actualBoundingBoxAscent * (hratio - 1.);
+                                if( debug )
+                                  console.log('text:', lines[i], 'm:', m);
+                              }
+                              h += m.actualBoundingBoxDescent;
+                              if( bsize[0] < w )
+                                bsize[0] = w;
+                              if( bsize[1] < h )
+                                bsize[1] = h;
+                          }
                         }
-                        if( scale == 0. )
+
+                        // bitmap.width = nextPow2( bsize[0] + 5 );
+                        // bitmap.height = nextPow2( bsize[1] + 5 );
+                        bitmap.width = bsize[0] + 10;
+                        bitmap.height = bsize[1] + 10;
+                        if( debug )
                         {
-                            scale = 1.;
+                          console.log('bsize:', bsize);
+                          console.log('bitmap:', bitmap);
                         }
-                        var text = tobj.properties.text;
-        //                 console.debug('text:', text);
-                        if( text != null )
+                        g.fillStyle = background;
+                        g.fillRect(0, 0, bsize[0] + 10, bsize[1] + 10);
+                        if( bitmap.width > 1000 || bitmap.height > 1000 )
                         {
+                          console.log('texture too large:', bsize);
+                          console.log('text:', text);
+                          g.font = 'Bold ' + trobj.objects[0].properties.font_size * 2 + 'px ' + trobj.objects[0].properties.font_family;
+                          m = g.measureText( lines[0] );
+                          console.log('m:', m);
+                          console.log('trobj:', trobj);
 
-                            // text in sprite
-
-                            var bitmap = document.createElement('canvas');
-                            var g = bitmap.getContext('2d');
-                            fsize *= 4;
-                            if( fsize < 20 )
-                            {
-                                scale *= fsize / 20.;
-                                fsize = 20;
-                            }
-                            g.font = 'Bold ' + fsize + 'px ' + ffamily;
-
-            //                 var w = g.measureText(text).width;
-                            var w = 0;
-                            var lines = text.split('\n');
-                            for( i=0; i!=lines.length; i++ )
-                            {
-                              w = Math.max( w, g.measureText( lines[i] ).width );
-                            }
-                            if( w < 16 )
-                                w = 16;
-                            var hratio = 1.6;
-                            var h = g.measureText('M').width * hratio * lines.length;
-                            bitmap.width = nextPow2( w + 5 );
-                            bitmap.height = nextPow2( h + 5 );
-            //                 console.debug('text size:', bitmap.width, bitmap.height );
-                            g.font = 'Bold ' + fsize + 'px ' + ffamily;
-                            g.fillStyle = fillcol;
-            //                 g.fillText(text, 0, fsize);
-                            fillTextMultiLine( g, text, 0, fsize, hratio );
-                            g.strokeStyle = 'black';
-            //                 g.strokeText(text, 0, fsize);
-                            strokeTextMultiLine( g, text, 0, fsize, hratio );
-
-                            // canvas contents will be used for a texture
-                            var texture = new THREE.Texture(bitmap);
-                            texture.needsUpdate = true;
-                            var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
-                            var sprite = new THREE.Sprite( spritmat );
-                            sprite.scale.set( w * 0.1, h * 0.1 );
-                //             sprite.scale.x = sprite.scale.x * scale;
-                //             sprite.scale.y = sprite.scale.y * scale;
-                //             sprite.scale.z = sprite.scale.z * scale;
-    //                         sprite.position.x = -pos[0]; // + bitmap.width / 2 * sprite.scale.x;
-                            // the svg position is under the 1st line of text
-                            var y_shift = 1.; // / lines.length;
-                            sprite.position.x = -pos[0] - sprite.scale.x / 4;
-                            sprite.position.y = pos[1] + sprite.scale.y * y_shift * 0.25;
-                            sprite.position.z = pos[2] + sprite.scale.y * y_shift * 0.5;
-
-                            // console.debug("lines:", lines.length, ", yshift:", y_shift);
-
-                            group.add( sprite );
+                          return;
                         }
+
+                        for( oti in trobj.objects )
+                        {
+                          var tobj = trobj.objects[oti];
+                          var scale = tobj.properties.scale;
+                          var fsize = tobj.properties.font_size;
+                          var ffamily = tobj.properties.font_family;
+                          var material = tobj.properties.material;
+                          var centered = true;
+                          if( tobj.properties['text-anchor'] != 'middle' )
+                            centered = false;
+                          var fillcol = 'white';
+                          var strokecol = '#606060ff';
+                          if( material != null )
+                          {
+                              var col = material.diffuse;
+                              if( col != null )
+                              {
+  //                                 // make texts ligher
+  //                                 col[0] = Math.round( (1. - (1. - col[0]) / 2.)
+  //                                                      * 255. );
+  //                                 col[1] = Math.round( (1. - (1. - col[1]) / 2.)
+  //                                                      * 255. );
+  //                                 col[2] = Math.round( (1. - (1. - col[2]) / 2.)
+  //                                                      * 255. );
+                                  var strokefac = 0.4;
+                                  if( col[0] * col[0] + col[1] * col[1]
+                                      + col[2] * col[2] < 0.5 )
+                                      strokefac = 1.5;
+                                  var scol = col.slice();
+                                  scol[0] *= strokefac;  // or *= ?
+                                  scol[1] *= strokefac;
+                                  scol[2] *= strokefac;
+                                  if( scol[0] < 0.4 )
+                                    scol[0] = 0.4;
+                                  if( scol[1] < 0.4 )
+                                    scol[1] = 0.4;
+                                  if( scol[2] < 0.4 )
+                                    scol[2] = 0.4;
+                                  if( scol[0] > 1. )
+                                    scol[0] = 1.;
+                                  if( scol[1] > 1. )
+                                    scol[1] = 1.;
+                                  if( scol[2] > 1. )
+                                    scol[2] = 1.;
+
+                                  col[0] = Math.round( col[0] * 255. );
+                                  col[1] = Math.round( col[1] * 255. );
+                                  col[2] = Math.round( col[2] * 255. );
+                                  col[3] = Math.round( col[3] * 255. );
+                                  fillcol = '#'
+                                      + ('00' + col[0].toString(16)).substr(-2)
+                                      + ('00' + col[1].toString(16)).substr(-2)
+                                      + ('00' + col[2].toString(16)).substr(-2)
+                                      + ('00' + col[3].toString(16)).substr(-2);
+                                  scol[0] = Math.round( scol[0] * 255. );
+                                  scol[1] = Math.round( scol[1] * 255. );
+                                  scol[2] = Math.round( scol[2] * 255. );
+                                  scol[3] = Math.round( scol[3] * 255. );
+                                  strokecol = '#'
+                                      + ('00' + scol[0].toString(16)).substr(-2)
+                                      + ('00' + scol[1].toString(16)).substr(-2)
+                                      + ('00' + scol[2].toString(16)).substr(-2)
+                                      + ('00' + scol[3].toString(16)).substr(-2);
+                              }
+                          }
+                          if( fsize == null || fsize == 0. )
+                          {
+                              fsize = 10;
+                          }
+                          if( ffamily == null )
+                          {
+              //                 ffamily = 'LMSansUltraCond10';
+                              ffamily = 'Arial';
+                          }
+                          if( scale == 0. )
+                          {
+                              scale = 1.;
+                          }
+                          var text = tobj.properties.text;
+          //                 console.debug('text:', text);
+                          if( text != null )
+                          {
+
+                              // text in sprite
+
+                              // var bitmap = document.createElement('canvas');
+                              // var g = bitmap.getContext('2d');
+                              fsize *= 2;
+//                               if( fsize < 20 )
+//                               {
+//                                   scale *= fsize / 20.;
+//                                   fsize = 20;
+//                               }
+                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+
+                              var w = 0;
+                              var lines = text.split('\n');
+                              for( i=0; i!=lines.length; i++ )
+                              {
+                                w = Math.max( w, g.measureText( lines[i] ).width );
+                              }
+                              var hratio = 1.5;
+                              var h = g.measureText('M').width * hratio * lines.length;
+                              if( debug )
+                                console.log('text size:', w, h, ', font:', fsize, ', col:', strokecol);
+                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                              g.fillStyle = fillcol;
+                              strokeTextMultiLine( g, text, 5, fsize + 5, hratio, centered );
+                              g.strokeStyle = strokecol;
+                              fillTextMultiLine( g, text, 5, fsize + 5, hratio, centered );
+
+                          }
+                        }
+
+                        // canvas contents will be used for a texture
+                        var texture = new THREE.Texture(bitmap);
+                        texture.needsUpdate = true;
+                        var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
+                        var sprite = new THREE.Sprite( spritmat );
+                        // sprite.scale.set( w * 0.1, h * 0.1 );
+//                         sprite.scale.set( bsize[0] * 0.1, bsize[1] * 0.1 );
+                        sprite.scale.set( bitmap.width * scale, bitmap.height * scale );
+                        // the svg position is under the 1st line of text
+                        var y_shift = 1.;
+                        sprite.position.x = -pos[0]; // - sprite.scale.x / 2;
+                        sprite.position.y = pos[1]; // + sprite.scale.y * y_shift * 0.5;
+                        sprite.position.z = pos[2]; // + sprite.scale.y * y_shift * 0.5;
+                        sprite.center.set(0.5, 0.);
+                        if( debug )
+                          console.log('text sprite pos:', sprite.position);
+
+                        // console.debug("lines:", lines.length, ", yshift:", y_shift);
+
+                        group.add( sprite );
                       }
 
                       scene.add( group );

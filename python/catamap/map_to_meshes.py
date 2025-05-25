@@ -2879,7 +2879,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # print('get_depth: point not found:', pos, pt)
         return None
 
-    def get_alt_color(self, props, colorset=None, conv=True, get_bg=True):
+    def get_alt_color(self, props, colorset=None, conv=True, get_bg=True,
+                      default_bg=True):
         if props is None:
             return None
         if colorset is None:
@@ -2891,13 +2892,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 colorset = self.colorset_inheritance.get(colorset)
         if isinstance(col, dict) and get_bg:
             bg = col.get('bg')
-            if not bg:
+            if not bg and default_bg:
                 bg = col.get('fg')
             if bg is not None:
                 col = bg
         return col
 
-    def get_alt_colors(self, props, colorset=None, conv=True):
+    def get_alt_colors(self, props, colorset=None, conv=True, default_bg=True):
         ''' Get backgroud, foreground colors (fill/border)
         '''
         colors = self.get_alt_color(props, colorset, conv, get_bg=False)
@@ -2907,9 +2908,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return colors, colors
         bg = colors.get('bg')
         fg = colors.get('fg')
-        if bg is None and fg is not None:
+        if bg is None and fg is not None and default_bg:
             bg = fg
-        elif bg is not None and fg is None:
+        elif bg is not None and fg is None and default_bg:
             fg = bg
         return bg, fg
 
@@ -3009,14 +3010,25 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                               'malfunction in 3D renderings ?')
                         debug = True
 
-        # apply texts depths
+        # apply texts depths and colors
         text_zshift = 5.
         for main_group, mesh_items in meshes.items():
             props = self.group_properties.get(main_group)
             if not props or not props.text:
                 continue
 
+            alt_colors = self.get_alt_colors(props, default_bg=False)
+
             for text_item in mesh_items['objects']:
+                if alt_colors[1] is not None:
+                    text_item.setdefault('properties', {})['background'] \
+                        = alt_colors[1]
+                if alt_colors[0] is not None:
+                    for tobj in text_item.get('objects', []):
+                        tobj.setdefault(
+                            'properties', {}).setdefault(
+                                'material', {})['diffuse'] = alt_colors[0]
+
                 position = text_item.get('properties', {}).get('position')
                 if position is not None:
                     level = text_item.get('properties', {}).get('level',
@@ -3058,7 +3070,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         hshift *= self.z_scale
         text_hshift = props.arrow_base_height_shift
         if text_hshift is None:
-            text_hshift = 4.
+            text_hshift = 4.9
         text_hshift *= self.z_scale
         text_win = self.depth_wins.get(tz_level)
         object_win_size = (8, 8)
@@ -3070,7 +3082,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if text_win is not None:
             text_view = text_win.view()
 
-        # print('ARROW DEPTH for', props)
+        debug = False
+        #if props.name == 'flèches inscriptions':
+            #debug = True
+        if debug:
+            print('ARROW DEPTH for', props, self.z_scale, hshift, text_hshift)
         if not hasattr(mesh, 'vertex'):
             print('Wrong mesh type for', props.main_group,
                   ', which is not a mesh:')
@@ -3086,7 +3102,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     text_z = 0.
                 text_z += text_hshift
                 new_z = z * old_z + text_z * (1. - old_z)
-                # print('w:', old_z, ', t: ', text_z, ', a:', z, ':', new_z)
+                if debug:
+                    print('w:', old_z, ', t: ', text_z, ', a:', z, ':', new_z)
                 v[2] = new_z
             else:
                 pass  # warn ?
@@ -3593,8 +3610,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                               []).append(tess_mesh)
                             self.group_properties[main_group + '_floor_tri'] \
                                 = props
+
             # set border color to filar meshes
-            if mesh_l:
+            if mesh_l and not props.arrow:  # arrows are colored already
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
