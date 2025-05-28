@@ -983,8 +983,10 @@
                         {
                           var tobj = trobj.objects[oti];
                           var scale = tobj.properties.scale;
+                          var tscale = 1. / scale;
                           var fsize = tobj.properties.font_size;
                           var ffamily = tobj.properties.font_family;
+                          var tpos = tobj.properties.position;
 
                           if( fsize == null || fsize == 0. )
                             fsize = 10;
@@ -993,12 +995,8 @@
                           var text = tobj.properties.text;
                           if( text != null )
                           {
-                              fsize *= 2;
-//                               if( fsize < 20 )
-//                               {
-//                                   scale *= fsize / 20.;
-//                                   fsize = 20;
-//                               }
+                              fsize *= 20 * scale;
+                              tscale /= 2;  // why ?
                               g.font = 'Bold ' + fsize + 'px ' + ffamily;
 
                               var w = 0;
@@ -1022,7 +1020,8 @@
                                 if( debug )
                                   console.log('text:', lines[i], 'm:', m);
                               }
-                              h += m.actualBoundingBoxDescent;
+                              h += m.actualBoundingBoxDescent + tpos[1] * tscale;
+                              w += tpos[0] * tscale;
                               if( bsize[0] < w )
                                 bsize[0] = w;
                               if( bsize[1] < h )
@@ -1041,7 +1040,7 @@
                         }
                         g.fillStyle = background;
                         g.fillRect(0, 0, bsize[0] + 10, bsize[1] + 10);
-                        if( bitmap.width > 1000 || bitmap.height > 1000 )
+                        if( bitmap.width > 2000 || bitmap.height > 1000 )
                         {
                           console.log('texture too large:', bsize);
                           console.log('text:', text);
@@ -1060,7 +1059,9 @@
                           var fsize = tobj.properties.font_size;
                           var ffamily = tobj.properties.font_family;
                           var material = tobj.properties.material;
+                          var tpos = tobj.properties.position;
                           var centered = true;
+                          var tscale = 1. / scale;
                           if( tobj.properties['text-anchor'] != 'middle' )
                             centered = false;
                           var fillcol = 'white';
@@ -1140,12 +1141,8 @@
 
                               // var bitmap = document.createElement('canvas');
                               // var g = bitmap.getContext('2d');
-                              fsize *= 2;
-//                               if( fsize < 20 )
-//                               {
-//                                   scale *= fsize / 20.;
-//                                   fsize = 20;
-//                               }
+                              fsize *= 20 * scale;
+                              tscale /= 2;  // ? why ?
                               g.font = 'Bold ' + fsize + 'px ' + ffamily;
 
                               var w = 0;
@@ -1160,9 +1157,9 @@
                                 console.log('text size:', w, h, ', font:', fsize, ', col:', strokecol);
                               g.font = 'Bold ' + fsize + 'px ' + ffamily;
                               g.fillStyle = fillcol;
-                              strokeTextMultiLine( g, text, 5, fsize + 5, hratio, centered );
+                              strokeTextMultiLine( g, text, tpos[0] * tscale + 5, tpos[1] * tscale + fsize + 5, hratio, centered );
                               g.strokeStyle = strokecol;
-                              fillTextMultiLine( g, text, 5, fsize + 5, hratio, centered );
+                              fillTextMultiLine( g, text, tpos[0] * tscale + 5, tpos[1] * tscale + fsize + 5, hratio, centered );
 
                           }
                         }
@@ -1172,6 +1169,9 @@
                         texture.needsUpdate = true;
                         var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
                         var sprite = new THREE.Sprite( spritmat );
+                        var scale = 0.1;
+                        if( trobj.objects.length != 0 )
+                          trobj.objects[0].properties.scale;
                         // sprite.scale.set( w * 0.1, h * 0.1 );
 //                         sprite.scale.set( bsize[0] * 0.1, bsize[1] * 0.1 );
                         sprite.scale.set( bitmap.width * scale, bitmap.height * scale );

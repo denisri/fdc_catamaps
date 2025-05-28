@@ -1485,58 +1485,26 @@ class SvgToMesh(object):
                 # skip clipPaths
                 pass
             elif child.tag.endswith('}text') or child.tag == 'text':
-                tgroup = self.main_group
-                if not tgroup.endswith('_text'):
-                    tgroup += '_text'
-                current_text \
-                    = self.mesh_dict.setdefault(
-                        tgroup, {'object_type': 'List', 'objects': []})
-                text = child.text
-                if isinstance(text, bytes):
-                    text = text.decode()
-                current_text_o = self.text_description(
-                    child, trans, style=style, text=text)
-                current_text['objects'].append(current_text_o)
-                size = self.text_size(current_text_o)
-                # size = self.boundingbox(child, trans)
-                # print('text size:', size, child, trans)
-                current_text_o['properties']['size'] = size
-                current_text_o['objects'][0]['properties']['position'] \
-                    = [-size[0]/2., size[1]/2., 0]
+                self.parse_text(child, parents, trans, style)
             elif child.tag.endswith('}tspan') or child.tag == 'tspan':
-                text = child.text
-                tgroup = self.main_group
-                if not tgroup.endswith('_text'):
-                    tgroup += '_text'
-                current_text_o \
-                    = self.mesh_dict[tgroup]['objects'][-1]
-                try:
-                    current_text_d \
-                        = current_text_o['objects'][-1]['properties']
-                except Exception:
-                    print('error in text item:', file=sys.stderr)
-                    print('current_text_o:', repr(current_text_o))
-                    # traceback.print_exc()
-                    raise
-                current_text = current_text_d['text']
-                if text is None:
-                    print('tspan without text, id:', child.get('id'))
-                    text = ''
-                elif isinstance(text, bytes):
-                    text = child.text.decode()
-                if not current_text:
-                    current_text = text
-                else:
-                    current_text += '\n' + text
-                current_text_d['text'] = current_text
-                size = self.text_size(current_text_o)
-                # size = self.boundingbox(child, trans)[1]
-                current_text_o['properties']['size'] = size
-                current_text_o['objects'][0]['properties']['position'] \
-                    = [-size[0]/2., size[1]/2., 0]
-            elif self.main_group is None \
-                    and (child.tag.endswith('}g') or child.tag == 'g'):
-                self.main_group = child.get('id')
+                self.parse_subtext(child, parents, trans, style)
+            elif child.tag.endswith('}g') or child.tag == 'g':
+                if self.main_group is None:
+                    self.main_group = child.get('id')
+                if self.is_layer(child):
+                    if child.get('text') == 'true':
+                        print('text layer')
+                        # text layer: prepare special "mesh" object
+                        tgroup = self.main_group
+                        if not tgroup.endswith('_text'):
+                            tgroup += '_text'
+                            self.main_group = tgroup
+                        self.mesh_dict[tgroup] = {'object_type': 'List',
+                                                  'objects': []}
+                elif self.main_group.endswith('_text') and len(parents) != 0 \
+                        and self.is_layer(parents[-1]):
+                    # sub-group inside a text layer: create a new list object
+                    self.make_text_group(child, trans)
             if not skip_children and len(child) != 0:
                 # set the metadata layer, if present, first, because it may
                 # contain information used by other items
@@ -1557,39 +1525,165 @@ class SvgToMesh(object):
             return self.mesh_dict
         return self.mesh_list
 
-    def text_description(self, xml_item, trans=None, style=None, text=''):
+    @staticmethod
+    def is_group(xml_item):
+        return xml_item.tag.endswith('}g') or xml_item.tag == 'g'
+
+    @staticmethod
+    def is_layer(xml_item):
+        return SvgToMesh.is_group(xml_item) \
+            and xml_item.get(
+                '{http://www.inkscape.org/namespaces/inkscape}groupmode') \
+                    == 'layer'
+
+    def parse_text(self, child, parents, trans, style):
+        if len(parents) == 0 or self.is_layer(parents[-1]):
+            # not inside a group: create a new group
+            self.make_text_group(child, trans)
+
+        tgroup = self.main_group
+        if not tgroup.endswith('_text'):
+            tgroup += '_text'
+        current_text_o = self.mesh_dict[tgroup]['objects'][-1]
+        text = child.text
+        if isinstance(text, bytes):
+            text = text.decode()
+        text_desc = self.text_description(
+            child, current_text_o, trans, style=style, text=text)
+        current_text_o['objects'].append(text_desc)
+        # determine relative position to group
+        if not child.get('x') or not child.get('y'):
+            if len(child[:]) != 0 and child[0].get('x') and child[0].get('y'):
+                # coords on tspan item
+                pos = (float(child[0].get('x')),
+                       float(child[0].get('y')))
+            else:
+                print('text without coords, id:', child.get('id'))
+                print('main_group:', self.main_group)
+                print(child)
+                print(child.items())
+                pos = (0., 0.)
+        else:
+            pos = (float(child.get('x')), float(child.get('y')))
+        if trans is not None:
+            p0 = np.array(((pos[0], pos[1], 1.),)).T
+            pos = list(np.array(trans.dot(p0)).ravel()[:2])
+        gpos = current_text_o['properties']['position']
+        rpos = [pos[0] - gpos[0], pos[1] - gpos[1]]
+        if rpos[0] > 500:
+            print('large rel pos for text:', rpos)
+            print('gpos:', gpos)
+            print('pos:', pos)
+            print('text:', [c.text for c in child[:]])
+            print('trans:', trans)
+            raise ValueError('bad')
+        text_desc['properties']['position'] = rpos
+        self.update_text_group_size(current_text_o, text_desc)
+
+    def update_text_group_size(self, current_text_o, text_desc):
+        size = self.text_size(text_desc)
+        # size = self.boundingbox(child, trans)
+        # print('text size:', size, child, trans)
+        #current_text_o['objects'][0]['properties']['position'] \
+            #= [-size[0]/2., size[1]/2., 0]
+        rpos = text_desc['properties']['position']
+        bbox = [rpos[0] + size[0], rpos[1] + size[1]]
+        old_size = current_text_o['properties'].get('size', [0., 0.])
+        size = [max(bbox[0], old_size[0]), max(bbox[1], old_size[1])]
+        current_text_o['properties']['size'] = size
+
+    def make_text_group(self, xml_item, trans):
+        tgroup = self.main_group
+        if not tgroup.endswith('_text'):
+            tgroup += '_text'
         props = {
             'object_type': 'TransformedObject',
             'properties': {},
             'objects': [],
         }
         if not xml_item.get('x') or not xml_item.get('y'):
-            if len(xml_item[:]) != 0 and xml_item[0].get('x') \
-                    and xml_item[0].get('y'):
-                # coords on tspan item
-                pos = (float(xml_item[0].get('x')),
-                       float(xml_item[0].get('y')))
-            else:
-                print('text without coords, id:', xml_item.get('id'))
+            pos = None
+            children = [(it, self.get_transform(it, trans))
+                        for it in xml_item[:]]
+            while children:
+                child, tr = children.pop(0)
+                x = child.get('x')
+                y = child.get('y')
+                if x is not None and y is not None:
+                    p0 = np.array(((float(x), float(y), 1.),)).T
+                    p1 = list(np.array(tr.dot(p0)).ravel()[:2])
+                    if pos is None:
+                        pos = (p1[0], p1[1])
+                    else:
+                        pos = (min(pos[0], p1[0]), min(pos[1], p1[1]))
+                else:
+                    children += [(it, self.get_transform(it, tr))
+                                 for it in child[:]]
+            if pos is None:
+                print('text group without coords, id:', xml_item.get('id'))
+                print('main_group:', self.main_group)
                 print(xml_item)
                 print(xml_item.items())
                 pos = (0., 0.)
         else:
             pos = (float(xml_item.get('x')), float(xml_item.get('y')))
-        if trans is not None:
-            p0 = np.array(((pos[0], pos[1], 1.),)).T
-            pos = list(np.array(trans.dot(p0)).ravel()[:2])
-        font_size = None
-        obj_props = {'text': text, 'position': [0, 0, 0.],
-                     'font_size': 10., 'scale': 0.1,
-                     'material': {'diffuse': [.5, .5, .5, 1.]}}
+            if trans is not None:
+                p0 = np.array(((pos[0], pos[1], 1.),)).T
+                pos = list(np.array(trans.dot(p0)).ravel()[:2])
         trobj_props = {'position': [pos[0], pos[1], 4.]}  # 4 is arbitrary
         props['properties'] = trobj_props
-        props['objects'].append({
+        g = self.mesh_dict.setdefault(tgroup, {'object_type': 'List',
+                                               'objects': []})
+        g['objects'].append(props)
+        return props
+
+    def parse_subtext(self, child, parents, trans, style):
+        text = child.text
+        tgroup = self.main_group
+        if not tgroup.endswith('_text'):
+            tgroup += '_text'
+        current_text_o = self.mesh_dict[tgroup]['objects'][-1]
+        try:
+            current_text_co = current_text_o['objects'][-1]
+            current_text_d = current_text_co['properties']
+        except Exception:
+            print('error in text item:', file=sys.stderr)
+            print('current_text_o:', repr(current_text_o))
+            print('main_group:', self.main_group)
+            # traceback.print_exc()
+            raise
+        try:
+            current_text = current_text_d['text']
+        except Exception as e:
+            print('error in current_text_d["text"]')
+            print(current_text_d)
+            raise
+        if text is None:
+            print('tspan without text, id:', child.get('id'))
+            text = ''
+        elif isinstance(text, bytes):
+            text = child.text.decode()
+        if not current_text:
+            current_text = text
+        else:
+            current_text += '\n' + text
+        current_text_d['text'] = current_text
+        self.update_text_group_size(current_text_o, current_text_co)
+
+    def text_description(self, xml_item, props, trans=None, style=None,
+                         text=''):
+        font_size = None
+        obj_props = {'text': text,
+                     'position': [0, 0, 0.],
+                     'font_size': 10.,
+                     'scale': 0.1,
+                     'material': {'diffuse': [.5, .5, .5, 1.]}}
+        trobj_props = props['properties']
+        tobject = {
             'object_type': 'TextObject',
             'name': 'Text',
             'properties': obj_props,
-        })
+        }
         if style is not None:
             text_anchor = style.get('text-anchor')
             if text_anchor is not None:
@@ -1654,13 +1748,13 @@ class SvgToMesh(object):
                     print('in element:', xml_item.get('id'))
                     raise
                 trobj_props['background'] = bgcol
-        return props
+        return tobject
 
     @staticmethod
     def text_size(text_item):
         if not text_item:
             return [0, 0]
-        text_obj = text_item['objects'][0]['properties']
+        text_obj = text_item['properties']
         scale = text_obj.get('scale', 1.)
         fsize = text_obj.get('font_size', 10.)
         text = text_obj.get('text')

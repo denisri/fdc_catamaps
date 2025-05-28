@@ -1083,7 +1083,7 @@ class ItemProperties(object):
         return label
 
     @staticmethod
-    def remove_label_suffix(label, get_props, use_suffix=True):
+    def remove_label_suffix(element, label, get_props, use_suffix=True):
         props = {}
         if label is None:
             if get_props:
@@ -1091,6 +1091,10 @@ class ItemProperties(object):
             return
         if use_suffix:
             for suffix, prop in DefaultItemProperties.layer_suffixes.items():
+                if element.get(prop) is not None:
+                    # if this possible suffix is manually specified,
+                    # then the suffix is not used
+                    continue
                 new_label = ItemProperties.remove_word(label, suffix)
                 if new_label != label and get_props or new_label == suffix:
                     props[prop] = DefaultItemProperties.layers_aliases.get(
@@ -1106,7 +1110,8 @@ class ItemProperties(object):
         if label is None:
             label = element.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-        return ItemProperties.remove_label_suffix(label, get_props, use_suffix)
+        return ItemProperties.remove_label_suffix(element, label, get_props,
+                                                  use_suffix)
 
     @staticmethod
     def get_id(element, get_props=False, use_suffix=True):
@@ -1114,7 +1119,8 @@ class ItemProperties(object):
         if label is None:
             label = element.get(
                 '{http://www.inkscape.org/namespaces/inkscape}id')
-        return ItemProperties.remove_label_suffix(label, get_props, use_suffix)
+        return ItemProperties.remove_label_suffix(element, label, get_props,
+                                                  use_suffix)
 
     @staticmethod
     def is_corridor(element):
@@ -1729,15 +1735,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         return res
 
-    def text_description(self, xml_item, trans=None, style=None, text=''):
-        # add level information in text objects
-        desc = super(CataSvgToMesh, self).text_description(
-            xml_item, trans=trans, style=style, text=text)
+    def make_text_group(self, xml_item, trans):
+        # add level information in text group objects
+        group = super().make_text_group(xml_item, trans)
         if self.level:
-            props = desc.get('properties', {})
+            props = group.get('properties', {})
             props['level'] = self.level
-            desc['properties'] = props
-        return desc
+            group['properties'] = props
+        return group
 
     def read_well(self, well_xml, trans, style=None):
         props = self.item_props
@@ -3840,7 +3845,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     props = text['properties']
                     # print('props:', props)
                     pos = props.get('position')
-                    size = props['size']
+                    size = props.get('size', [0., 0.])
+                    if size == [0., 0.]:
+                        print('text with no size in group', mtype, ':')
+                        print(props)
                     # print('pos:', pos, ', size:', size)
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
