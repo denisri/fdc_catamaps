@@ -233,6 +233,64 @@ class SvgToMesh(object):
             colors[1] = colors[0]
         return colors
 
+    @staticmethod
+    def unitscale(unit):
+        ''' convert unit scale to px (used in inkscape)
+        '''
+        if unit == 'px':
+            return 1.
+        if unit == 'mm':
+            return 96. / 25.4  # 96 dpi / mm/inch
+        if unit == 'cm':
+            return 96. / 2.54  # 96 dpi / cm/inch
+        if unit == 'pt':
+            return 1. / 0.75
+        if unit == 'in':
+            return 96.  # (96 dpi)
+        if unit == 'pc':
+            return 1. / 0.062500
+        raise ValueError(f'unknown unit {unit}')
+
+    def document_scale(self, xml=None, unit='px'):
+        ''' scale from document (px 96 dpi) to target unit
+        '''
+        doc_scale = getattr(self, 'doc_scale', None)
+        if doc_scale is not None:
+            return doc_scale / self.unitscale(unit)
+        if xml is None:
+            xml = self.svg
+        vb = xml.getroot().get('viewBox')
+        w = xml.getroot().get('width')
+        h = xml.getroot().get('height')
+        if w.endswith('mm'):
+            self.doc_unit = 'mm'
+            w = w[:-2]
+            h = h[:-2]
+        elif w.endswith('px'):
+            self.doc_unit = 'px'
+            w = w[:-2]
+            h = h[:-2]
+        elif w.endswith('pt'):
+            self.doc_unit = 'pt'
+            w = w[:-2]
+            h = h[:-2]
+        elif w.endswith('pc'):
+            self.doc_unit = 'pc'
+            w = w[:-2]
+            h = h[:-2]
+        else:
+            self.doc_unit = 'px'
+        unitscale = self.unitscale(self.doc_unit)
+        w = float(w) * unitscale
+        h = float(h) * unitscale
+        vbox = [float(x.strip()) for x in vb.strip().split(' ')]
+        sclx = w / (vbox[2] - vbox[0])
+        scly = h / (vbox[3] - vbox[1])
+        if scly < sclx * 0.7 or scly > sclx * 1.5:
+            print('inconsistent x/y scales:', sclx, scly)
+        self.doc_scale = (sclx + scly) / 2
+        return self.doc_scale / self.unitscale(unit)
+
     def read_rect(self, xml_path, trans, style=None):
         ''' Read a rectangle element as a mesh
         '''
@@ -1565,31 +1623,30 @@ class SvgToMesh(object):
                 pos = (0., 0.)
         else:
             pos = (float(child.get('x')), float(child.get('y')))
+        # text x,y are the middle of the text, if text-anchor is "middle"
         if trans is not None:
             p0 = np.array(((pos[0], pos[1], 1.),)).T
             pos = list(np.array(trans.dot(p0)).ravel()[:2])
         gpos = current_text_o['properties']['position']
         rpos = [pos[0] - gpos[0], pos[1] - gpos[1]]
-        if rpos[0] > 500:
-            print('large rel pos for text:', rpos)
-            print('gpos:', gpos)
-            print('pos:', pos)
-            print('text:', [c.text for c in child[:]])
-            print('trans:', trans)
-            raise ValueError('bad')
+        #if rpos[0] > 500:
+            #print('large rel pos for text:', rpos)
+            #print('gpos:', gpos)
+            #print('pos:', pos)
+            #print('text:', [c.text for c in child[:]])
+            #print('trans:', trans)
+            #raise ValueError('bad')
         text_desc['properties']['position'] = rpos
         self.update_text_group_size(current_text_o, text_desc)
 
     def update_text_group_size(self, current_text_o, text_desc):
         size = self.text_size(text_desc)
-        # size = self.boundingbox(child, trans)
-        # print('text size:', size, child, trans)
-        #current_text_o['objects'][0]['properties']['position'] \
-            #= [-size[0]/2., size[1]/2., 0]
         rpos = text_desc['properties']['position']
-        bbox = [rpos[0] + size[0], rpos[1] + size[1]]
+        hsize = [size[0] / 2, size[1] / 2]
+        bbox = [rpos[0] + hsize[0], rpos[1] + hsize[1]]
         old_size = current_text_o['properties'].get('size', [0., 0.])
-        size = [max(bbox[0], old_size[0]), max(bbox[1], old_size[1])]
+        size = [max(bbox[0], old_size[0] / 2) * 2,
+                max(bbox[1], old_size[1] / 2) * 2]
         current_text_o['properties']['size'] = size
 
     def make_text_group(self, xml_item, trans):
@@ -1676,7 +1733,7 @@ class SvgToMesh(object):
         obj_props = {'text': text,
                      'position': [0, 0, 0.],
                      'font_size': 10.,
-                     'scale': 0.1,
+                     'scale': 1.,
                      'material': {'diffuse': [.5, .5, .5, 1.]}}
         trobj_props = props['properties']
         tobject = {
@@ -1691,7 +1748,7 @@ class SvgToMesh(object):
                 if text_anchor == 'middle':
                     pass  # TODO
             font_size = style.get('font-size')
-            scale = 0.1
+            scale = 1.  # arbitrary
             if font_size is not None:
                 unit = ''
                 i = 1
@@ -1706,8 +1763,8 @@ class SvgToMesh(object):
                         - trans.dot([[0.], [0.], [1.]])
                     font_size = np.sqrt(pt[0, 0] * pt[0, 0]
                                         + pt[1, 0] * pt[1, 0])
-                if unit in ('', 'pt', 'px'):
-                    font_size *= 10. / 3.95  # arbitrary
+                uscale = self.unitscale(unit) / self.unitscale('pt')
+                font_size *= uscale
                 if font_size < 10:
                     scale *= font_size / 10.
                     font_size = 10.
@@ -1756,7 +1813,8 @@ class SvgToMesh(object):
             return [0, 0]
         text_obj = text_item['properties']
         scale = text_obj.get('scale', 1.)
-        fsize = text_obj.get('font_size', 10.)
+        fscale = 1.
+        fsize = text_obj.get('font_size', 10.) * fscale
         text = text_obj.get('text')
         if not text:
             return [0, 0]
@@ -1774,7 +1832,7 @@ class SvgToMesh(object):
             ffamily = text_obj.get('font_family')
             if ffamily is None:
                 ffamily = QtGui.QFont().family()
-            font = QtGui.QFont(ffamily, int(fsize), QtGui.QFont.Bold)
+            font = QtGui.QFont(ffamily, int(round(fsize)))  # , QtGui.QFont.Bold)
             fm = QtGui.QFontMetrics(font)
             width = 0
             height = 0
@@ -1784,17 +1842,17 @@ class SvgToMesh(object):
                 if height != 0:
                     height += r.height() * (line_height - 1.)
                 height += r.height()
-            width *= scale
-            height *= scale
+            width *= scale / fscale
+            height *= scale / fscale
 
         except ImportError:
             # assume fixed size font, with height/width ratio of 3.3.
             # also assume a final scale factor of 2.12 (old: 0.0827)
             # this is arbitrary but I don't know how to do better
-            scale *= 2.12 * fsize  # 0.0827
+            fscale *= 2.12 * fsize  # 0.0827
             hw_ratio = 2.5
-            height = len(text) * scale
-            width = max([len(line) for line in text]) * scale / hw_ratio
+            height = len(text) * fscale
+            width = max([len(line) for line in text]) * fscale / hw_ratio
 
         return [width, height]
 

@@ -957,10 +957,18 @@
                         var debug = false;
                         var trobj = tobjs[oi];
                         var pos = trobj.properties.position;
-                        var bsize = trobj.properties.size;
+                        // var bsize = trobj.properties.size;
+                        var bsize = [0., 0.];
                         var bitmap = document.createElement('canvas');
                         var g = bitmap.getContext('2d');
                         var background = '#ffffff00';
+                        var scale = null;
+                        var tscale = null;
+                        var xmin = 0;
+                        var xmax = 0;
+                        var ymin = 0;
+                        var ymax = 0;
+
                         if( trobj.properties.background != null )
                         {
                           var bgcol = trobj.properties.background;
@@ -976,14 +984,17 @@
                         }
 
                         var oti = 0;
-                        var bsize = [0., 0.];
 
                         // compute exact size
                         for( oti in trobj.objects )
                         {
                           var tobj = trobj.objects[oti];
-                          var scale = tobj.properties.scale;
-                          var tscale = 1. / scale;
+                          var ltscale = tobj.properties.scale;
+                          if( scale == null )
+                          {
+                            scale = tobj.properties.scale;
+                            tscale = 4.;
+                          }
                           var fsize = tobj.properties.font_size;
                           var ffamily = tobj.properties.font_family;
                           var tpos = tobj.properties.position;
@@ -995,16 +1006,16 @@
                           var text = tobj.properties.text;
                           if( text != null )
                           {
-                              fsize *= 20 * scale;
-                              tscale /= 2;  // why ?
-                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                              fsize *= tscale * ltscale / scale;
+                              g.font = 'Bold ' + fsize + 'pt ' + ffamily;
 
                               var w = 0;
                               var h = 0;
                               var lines = text.split('\n');
                               const hratio = 1.5;
                               var m;
-//                               if( lines[0] == 'MONSIEUR ...' )
+                              var tpos2 = [tpos[0] * tscale / scale, tpos[1] * tscale / scale];
+//                               if( lines[0] == 'CHEMIN CONDUI' )
 //                               {
 //                                 debug = true;
 //                                 console.log('text:', text);
@@ -1017,17 +1028,22 @@
                                 h += m.actualBoundingBoxAscent;
                                 if( i != 0 )
                                   h += m.actualBoundingBoxAscent * (hratio - 1.);
+                                if( xmin > tpos2[0] - w/2 )
+                                  xmin =tpos2[0] - w/2;
+                                if( xmax < tpos2[0] + w/2 )
+                                  xmax = tpos2[0] + w/2;
                                 if( debug )
                                   console.log('text:', lines[i], 'm:', m);
                               }
-                              h += m.actualBoundingBoxDescent + tpos[1] * tscale;
-                              w += tpos[0] * tscale;
-                              if( bsize[0] < w )
-                                bsize[0] = w;
-                              if( bsize[1] < h )
-                                bsize[1] = h;
+                              h += m.actualBoundingBoxDescent;
+                              if( ymin > tpos2[1] - h/2 )
+                                ymin = tpos2[1] - h/2;
+                              if( ymax < tpos2[1] + h/2 )
+                                ymax = tpos2[1] + h/2;
                           }
                         }
+                        bsize[0] = xmax - xmin;
+                        bsize[1] = ymax - ymin;
 
                         // bitmap.width = nextPow2( bsize[0] + 5 );
                         // bitmap.height = nextPow2( bsize[1] + 5 );
@@ -1044,7 +1060,7 @@
                         {
                           console.log('texture too large:', bsize);
                           console.log('text:', text);
-                          g.font = 'Bold ' + trobj.objects[0].properties.font_size * 2 + 'px ' + trobj.objects[0].properties.font_family;
+                          g.font = 'Bold ' + trobj.objects[0].properties.font_size * 2 + 'pt ' + trobj.objects[0].properties.font_family;
                           m = g.measureText( lines[0] );
                           console.log('m:', m);
                           console.log('trobj:', trobj);
@@ -1055,13 +1071,13 @@
                         for( oti in trobj.objects )
                         {
                           var tobj = trobj.objects[oti];
-                          var scale = tobj.properties.scale;
+                          var ltscale = tobj.properties.scale;
                           var fsize = tobj.properties.font_size;
                           var ffamily = tobj.properties.font_family;
                           var material = tobj.properties.material;
                           var tpos = tobj.properties.position;
+                          var tpos2 = [tpos[0] * tscale / scale, tpos[1] * tscale / scale];
                           var centered = true;
-                          var tscale = 1. / scale;
                           if( tobj.properties['text-anchor'] != 'middle' )
                             centered = false;
                           var fillcol = 'white';
@@ -1080,10 +1096,10 @@
   //                                                      * 255. );
                                   var strokefac = 0.4;
                                   if( col[0] * col[0] + col[1] * col[1]
-                                      + col[2] * col[2] < 0.5 )
+                                      + col[2] * col[2] < 0.25 )
                                       strokefac = 1.5;
                                   var scol = col.slice();
-                                  scol[0] *= strokefac;  // or *= ?
+                                  scol[0] *= strokefac;
                                   scol[1] *= strokefac;
                                   scol[2] *= strokefac;
                                   if( scol[0] < 0.4 )
@@ -1141,8 +1157,8 @@
 
                               // var bitmap = document.createElement('canvas');
                               // var g = bitmap.getContext('2d');
-                              fsize *= 20 * scale;
-                              tscale /= 2;  // ? why ?
+                              fsize *= tscale * ltscale / scale;
+                              // tscale /= 2;  // ? why ?
                               g.font = 'Bold ' + fsize + 'px ' + ffamily;
 
                               var w = 0;
@@ -1154,12 +1170,12 @@
                               var hratio = 1.5;
                               var h = g.measureText('M').width * hratio * lines.length;
                               if( debug )
-                                console.log('text size:', w, h, ', font:', fsize, ', col:', strokecol);
+                                console.log('text:', text, ', size:', w, h, ', font:', fsize, ', col:', fillcol, '/', strokecol);
                               g.font = 'Bold ' + fsize + 'px ' + ffamily;
                               g.fillStyle = fillcol;
-                              strokeTextMultiLine( g, text, tpos[0] * tscale + 5, tpos[1] * tscale + fsize + 5, hratio, centered );
+                              strokeTextMultiLine( g, text, tpos2[0] + 5 - w / 2 -xmin, tpos2[1] + fsize + 5, hratio, centered );
                               g.strokeStyle = strokecol;
-                              fillTextMultiLine( g, text, tpos[0] * tscale + 5, tpos[1] * tscale + fsize + 5, hratio, centered );
+                              fillTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + fsize + 5, hratio, centered );
 
                           }
                         }
@@ -1169,12 +1185,8 @@
                         texture.needsUpdate = true;
                         var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
                         var sprite = new THREE.Sprite( spritmat );
-                        var scale = 0.1;
-                        if( trobj.objects.length != 0 )
-                          trobj.objects[0].properties.scale;
-                        // sprite.scale.set( w * 0.1, h * 0.1 );
-//                         sprite.scale.set( bsize[0] * 0.1, bsize[1] * 0.1 );
-                        sprite.scale.set( bitmap.width * scale, bitmap.height * scale );
+                        // var scale = 0.1;
+                        sprite.scale.set( bitmap.width * scale / tscale, bitmap.height * scale / tscale );
                         // the svg position is under the 1st line of text
                         var y_shift = 1.;
                         sprite.position.x = -pos[0]; // - sprite.scale.x / 2;
