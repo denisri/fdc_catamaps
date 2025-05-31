@@ -289,6 +289,70 @@
         <span class="k">return</span> <span class="n">colors</span></div>
 
 
+<div class="viewcode-block" id="SvgToMesh.unitscale">
+<a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.unitscale">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unitscale</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; convert unit scale to px (used in inkscape)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;px&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;mm&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">96.</span> <span class="o">/</span> <span class="mf">25.4</span>  <span class="c1"># 96 dpi / mm/inch</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;cm&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">96.</span> <span class="o">/</span> <span class="mf">2.54</span>  <span class="c1"># 96 dpi / cm/inch</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;pt&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">0.75</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">96.</span>  <span class="c1"># (96 dpi)</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;pc&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">0.062500</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unknown unit </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SvgToMesh.document_scale">
+<a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.document_scale">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">document_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;px&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; scale from document (px 96 dpi) to target unit</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">doc_scale</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;doc_scale&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">doc_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">doc_scale</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitscale</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xml</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">svg</span>
+        <span class="n">vb</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewBox&#39;</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;mm&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span> <span class="o">=</span> <span class="s1">&#39;mm&#39;</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">w</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;px&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span> <span class="o">=</span> <span class="s1">&#39;px&#39;</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">w</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;pt&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span> <span class="o">=</span> <span class="s1">&#39;pt&#39;</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">w</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;pc&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span> <span class="o">=</span> <span class="s1">&#39;pc&#39;</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span> <span class="o">=</span> <span class="s1">&#39;px&#39;</span>
+        <span class="n">unitscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitscale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc_unit</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">unitscale</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="n">unitscale</span>
+        <span class="n">vbox</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">vb</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+        <span class="n">sclx</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="n">vbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">vbox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">scly</span> <span class="o">=</span> <span class="n">h</span> <span class="o">/</span> <span class="p">(</span><span class="n">vbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">vbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">scly</span> <span class="o">&lt;</span> <span class="n">sclx</span> <span class="o">*</span> <span class="mf">0.7</span> <span class="ow">or</span> <span class="n">scly</span> <span class="o">&gt;</span> <span class="n">sclx</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;inconsistent x/y scales:&#39;</span><span class="p">,</span> <span class="n">sclx</span><span class="p">,</span> <span class="n">scly</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doc_scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">sclx</span> <span class="o">+</span> <span class="n">scly</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_scale</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitscale</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="SvgToMesh.read_rect">
 <a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.read_rect">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">read_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1651,31 +1715,30 @@
                 <span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)))</span>
+        <span class="c1"># text x,y are the middle of the text, if text-anchor is &quot;middle&quot;</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">1.</span><span class="p">),))</span><span class="o">.</span><span class="n">T</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">gpos</span> <span class="o">=</span> <span class="n">current_text_o</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
         <span class="n">rpos</span> <span class="o">=</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">gpos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gpos</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-        <span class="k">if</span> <span class="n">rpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;large rel pos for text:&#39;</span><span class="p">,</span> <span class="n">rpos</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gpos:&#39;</span><span class="p">,</span> <span class="n">gpos</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pos:&#39;</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;text:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">child</span><span class="p">[:]])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;trans:&#39;</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;bad&#39;</span><span class="p">)</span>
+        <span class="c1">#if rpos[0] &gt; 500:</span>
+            <span class="c1">#print(&#39;large rel pos for text:&#39;, rpos)</span>
+            <span class="c1">#print(&#39;gpos:&#39;, gpos)</span>
+            <span class="c1">#print(&#39;pos:&#39;, pos)</span>
+            <span class="c1">#print(&#39;text:&#39;, [c.text for c in child[:]])</span>
+            <span class="c1">#print(&#39;trans:&#39;, trans)</span>
+            <span class="c1">#raise ValueError(&#39;bad&#39;)</span>
         <span class="n">text_desc</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rpos</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_text_group_size</span><span class="p">(</span><span class="n">current_text_o</span><span class="p">,</span> <span class="n">text_desc</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update_text_group_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_text_o</span><span class="p">,</span> <span class="n">text_desc</span><span class="p">):</span>
         <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_size</span><span class="p">(</span><span class="n">text_desc</span><span class="p">)</span>
-        <span class="c1"># size = self.boundingbox(child, trans)</span>
-        <span class="c1"># print(&#39;text size:&#39;, size, child, trans)</span>
-        <span class="c1">#current_text_o[&#39;objects&#39;][0][&#39;properties&#39;][&#39;position&#39;] \</span>
-            <span class="c1">#= [-size[0]/2., size[1]/2., 0]</span>
         <span class="n">rpos</span> <span class="o">=</span> <span class="n">text_desc</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
-        <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">rpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rpos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">hsize</span> <span class="o">=</span> <span class="p">[</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">rpos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">hsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rpos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">hsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">old_size</span> <span class="o">=</span> <span class="n">current_text_o</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">old_size</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="nb">max</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">old_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>
         <span class="n">current_text_o</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">make_text_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_item</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
@@ -1762,7 +1825,7 @@
         <span class="n">obj_props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
                      <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
                      <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mf">10.</span><span class="p">,</span>
-                     <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                     <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">1.</span><span class="p">,</span>
                      <span class="s1">&#39;material&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;diffuse&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}}</span>
         <span class="n">trobj_props</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
         <span class="n">tobject</span> <span class="o">=</span> <span class="p">{</span>
@@ -1777,7 +1840,7 @@
                 <span class="k">if</span> <span class="n">text_anchor</span> <span class="o">==</span> <span class="s1">&#39;middle&#39;</span><span class="p">:</span>
                     <span class="k">pass</span>  <span class="c1"># TODO</span>
             <span class="n">font_size</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font-size&#39;</span><span class="p">)</span>
-            <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.1</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.</span>  <span class="c1"># arbitrary</span>
             <span class="k">if</span> <span class="n">font_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1792,8 +1855,8 @@
                         <span class="o">-</span> <span class="n">trans</span><span class="o">.</span><span class="n">dot</span><span class="p">([[</span><span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]])</span>
                     <span class="n">font_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
                                         <span class="o">+</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;pt&#39;</span><span class="p">,</span> <span class="s1">&#39;px&#39;</span><span class="p">):</span>
-                    <span class="n">font_size</span> <span class="o">*=</span> <span class="mf">10.</span> <span class="o">/</span> <span class="mf">3.95</span>  <span class="c1"># arbitrary</span>
+                <span class="n">uscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitscale</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitscale</span><span class="p">(</span><span class="s1">&#39;pt&#39;</span><span class="p">)</span>
+                <span class="n">font_size</span> <span class="o">*=</span> <span class="n">uscale</span>
                 <span class="k">if</span> <span class="n">font_size</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
                     <span class="n">scale</span> <span class="o">*=</span> <span class="n">font_size</span> <span class="o">/</span> <span class="mf">10.</span>
                     <span class="n">font_size</span> <span class="o">=</span> <span class="mf">10.</span>
@@ -1842,7 +1905,8 @@
             <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">text_obj</span> <span class="o">=</span> <span class="n">text_item</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
         <span class="n">scale</span> <span class="o">=</span> <span class="n">text_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
-        <span class="n">fsize</span> <span class="o">=</span> <span class="n">text_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
+        <span class="n">fscale</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="n">fsize</span> <span class="o">=</span> <span class="n">text_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font_size&#39;</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span> <span class="o">*</span> <span class="n">fscale</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">text_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
@@ -1860,7 +1924,7 @@
             <span class="n">ffamily</span> <span class="o">=</span> <span class="n">text_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font_family&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ffamily</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">ffamily</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="p">()</span><span class="o">.</span><span class="n">family</span><span class="p">()</span>
-            <span class="n">font</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="p">(</span><span class="n">ffamily</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">fsize</span><span class="p">),</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="o">.</span><span class="n">Bold</span><span class="p">)</span>
+            <span class="n">font</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFont</span><span class="p">(</span><span class="n">ffamily</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">fsize</span><span class="p">)))</span>  <span class="c1"># , QtGui.QFont.Bold)</span>
             <span class="n">fm</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFontMetrics</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
             <span class="n">width</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">height</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1870,17 +1934,17 @@
                 <span class="k">if</span> <span class="n">height</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">height</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">line_height</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
                 <span class="n">height</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
-            <span class="n">width</span> <span class="o">*=</span> <span class="n">scale</span>
-            <span class="n">height</span> <span class="o">*=</span> <span class="n">scale</span>
+            <span class="n">width</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">fscale</span>
+            <span class="n">height</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">fscale</span>
 
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="c1"># assume fixed size font, with height/width ratio of 3.3.</span>
             <span class="c1"># also assume a final scale factor of 2.12 (old: 0.0827)</span>
             <span class="c1"># this is arbitrary but I don&#39;t know how to do better</span>
-            <span class="n">scale</span> <span class="o">*=</span> <span class="mf">2.12</span> <span class="o">*</span> <span class="n">fsize</span>  <span class="c1"># 0.0827</span>
+            <span class="n">fscale</span> <span class="o">*=</span> <span class="mf">2.12</span> <span class="o">*</span> <span class="n">fsize</span>  <span class="c1"># 0.0827</span>
             <span class="n">hw_ratio</span> <span class="o">=</span> <span class="mf">2.5</span>
-            <span class="n">height</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
-            <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">])</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">hw_ratio</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">*</span> <span class="n">fscale</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="p">])</span> <span class="o">*</span> <span class="n">fscale</span> <span class="o">/</span> <span class="n">hw_ratio</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
 

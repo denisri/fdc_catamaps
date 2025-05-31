@@ -67,6 +67,12 @@
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.document_scale">
+<span class="sig-name descname"><span class="pre">document_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'px'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.document_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.document_scale" title="Link to this definition">¶</a></dt>
+<dd><p>scale from document (px 96 dpi) to target unit</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.filter_element">
 <span class="sig-name descname"><span class="pre">filter_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.filter_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.filter_element" title="Link to this definition">¶</a></dt>
 <dd><p>Assign a processing function / method to the given element, a
@@ -181,6 +187,12 @@ under the key “gltf_scene”.</p>
 <dd><p>in_trans: current transform of xml subtree (out of the subtree)
 trans: transform to be applied
 otrans: transform in the output subtree. default=in_trans</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.unitscale">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unitscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.unitscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.unitscale" title="Link to this definition">¶</a></dt>
+<dd><p>convert unit scale to px (used in inkscape)</p>
 </dd></dl>
 
 </dd></dl>
@@ -299,6 +311,7 @@ children in a readable dictionary.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh"><code class="docutils literal notranslate"><span class="pre">SvgToMesh</span></code></a><ul>
+<li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.document_scale"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.document_scale()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.filter_element"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.filter_element()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.get_mesh_color"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.get_mesh_color()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.get_transform"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.get_transform()</span></code></a></li>
@@ -312,6 +325,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_path"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_path()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_style"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_style()</span></code></a></li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.transform_subtree"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.transform_subtree()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh.unitscale"><code class="docutils literal notranslate"><span class="pre">SvgToMesh.unitscale()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#catamap.svg_to_mesh.aims"><code class="docutils literal notranslate"><span class="pre">aims</span></code></a><ul>
