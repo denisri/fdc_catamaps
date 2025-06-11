@@ -446,12 +446,12 @@
 
     // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
     function fillTextMultiLine(ctx, text, x, y, hratio, centered) {
-      // var lineHeight = ctx.measureText("M").width * hratio;
-      var m = ctx.measureText('M')
-      var lineHeight = m.actualBoundingBoxAscent * hratio;
       var lines = text.split("\n");
+      var m = ctx.measureText(lines[0]);
+      var lineHeight = m.actualBoundingBoxAscent * hratio;
       var xd = 0;
       var lw = new Array(lines.length);
+      y += m.actualBoundingBoxAscent;
 
       if( centered )
       {
@@ -468,19 +468,18 @@
       for (var i = 0; i < lines.length; ++i) {
         if( centered )
           xdl = xd - lw[i]
-        ctx.fillText(lines[i], x + xdl, y - m.actualBoundingBoxDescent + m.ideographicBaseline);
+        ctx.fillText(lines[i], x + xdl, y);
         y += lineHeight;
       }
     }
 
     function strokeTextMultiLine(ctx, text, x, y, hratio, centered) {
-      // var lineHeight = ctx.measureText("M").width * hratio;
-      var m = ctx.measureText("M")
+      var lines = text.split("\n");
+      var m = ctx.measureText(lines[0]);
       var lineHeight = m.actualBoundingBoxAscent * hratio;
-      var lines = text.split("\n");
-      var lines = text.split("\n");
       var xd = 0;
       var lw = new Array(lines.length);
+      y += m.actualBoundingBoxAscent;
 
       if( centered )
       {
@@ -497,7 +496,7 @@
       for (var i = 0; i < lines.length; ++i) {
         if( centered )
           xdl = xd - lw[i]
-        ctx.strokeText(lines[i], x + xdl, y - m.actualBoundingBoxDescent + m.ideographicBaseline);
+        ctx.strokeText(lines[i], x + xdl, y);
         y += lineHeight;
       }
     }
@@ -1015,7 +1014,7 @@
                               const hratio = 1.5;
                               var m;
                               var tpos2 = [tpos[0] * tscale / scale, tpos[1] * tscale / scale];
-//                               if( lines[0] == 'CHEMIN CONDUI' )
+//                               if( lines[0] == 'AVENUE KLEBER' )
 //                               {
 //                                 debug = true;
 //                                 console.log('text:', text);
@@ -1024,16 +1023,18 @@
                               for( i=0; i!=lines.length; i++ )
                               {
                                 m = g.measureText( lines[i] );
-                                w = Math.max( w, m.actualBoundingBoxRight );
+                                //w = Math.max( w, m.actualBoundingBoxRight );
+                                w = m.actualBoundingBoxRight
+                                    - m.actualBoundingBoxLeft;
                                 h += m.actualBoundingBoxAscent;
                                 if( i != 0 )
                                   h += m.actualBoundingBoxAscent * (hratio - 1.);
                                 if( xmin > tpos2[0] - w/2 )
-                                  xmin =tpos2[0] - w/2;
+                                  xmin = tpos2[0] - w/2;
                                 if( xmax < tpos2[0] + w/2 )
                                   xmax = tpos2[0] + w/2;
                                 if( debug )
-                                  console.log('text:', lines[i], 'm:', m);
+                                  console.log('text:', lines[i], ', m:', m);
                               }
                               h += m.actualBoundingBoxDescent;
                               if( ymin > tpos2[1] - h/2 )
@@ -1159,23 +1160,24 @@
                               // var g = bitmap.getContext('2d');
                               fsize *= tscale * ltscale / scale;
                               // tscale /= 2;  // ? why ?
-                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                              g.font = 'Bold ' + fsize + 'pt ' + ffamily;
 
                               var w = 0;
                               var lines = text.split('\n');
+                              var m = null;
                               for( i=0; i!=lines.length; i++ )
                               {
-                                w = Math.max( w, g.measureText( lines[i] ).width );
+                                m = g.measureText( lines[i] );
+                                w = Math.max( w, m.actualBoundingBoxRight
+                                                 - m.actualBoundingBoxLeft );
                               }
                               var hratio = 1.5;
-                              var h = g.measureText('M').width * hratio * lines.length;
                               if( debug )
-                                console.log('text:', text, ', size:', w, h, ', font:', fsize, ', col:', fillcol, '/', strokecol);
-                              g.font = 'Bold ' + fsize + 'px ' + ffamily;
+                                console.log('text2:', text, ', w:', w, ', font:', fsize, ', col:', fillcol, '/', strokecol);
                               g.fillStyle = fillcol;
-                              strokeTextMultiLine( g, text, tpos2[0] + 5 - w / 2 -xmin, tpos2[1] + fsize + 5, hratio, centered );
+                              strokeTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + 5, hratio, centered );
                               g.strokeStyle = strokecol;
-                              fillTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + fsize + 5, hratio, centered );
+                              fillTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + 5, hratio, centered );
 
                           }
                         }
