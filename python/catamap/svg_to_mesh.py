@@ -1602,7 +1602,12 @@ class SvgToMesh(object):
         tgroup = self.main_group
         if not tgroup.endswith('_text'):
             tgroup += '_text'
-        current_text_o = self.mesh_dict[tgroup]['objects'][-1]
+        current_text = self.mesh_dict.get(tgroup)
+        if current_text is None:
+            self.mesh_dict[tgroup] = {'object_type': 'List', 'objects': []}
+            current_text = self.mesh_dict.get(tgroup)
+            self.make_text_group(child, trans)
+        current_text_o = current_text['objects'][-1]
         text = child.text
         if isinstance(text, bytes):
             text = text.decode()
