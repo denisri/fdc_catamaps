@@ -792,7 +792,8 @@ class ItemProperties(object):
                   'alt_colors', 'label_alt_colors', 'category', 'layer',
                   'well_read_mode', 'grid_interval', 'marker',
                   'arrow_base_height_shift', 'visibility', 'non_visibility',
-                  'relative_to', 'inverse', 'use_height_map', 'contrast_floor')
+                  'relative_to', 'inverse', 'use_height_map', 'contrast_floor',
+                  'attached_text_layers')
 
     prop_types = None  # will be initialized when used in get_typed_prop()
 
@@ -832,6 +833,7 @@ class ItemProperties(object):
         self.inverse = None
         self.use_height_map = None
         self.contrast_floor = True
+        self.attached_text_layers = None
 
     def __str__(self):
         d = ['{']
@@ -875,6 +877,7 @@ class ItemProperties(object):
                 'layer': ItemProperties.is_true,
                 'grid_interval': ItemProperties.float_value,
                 'inverse': ItemProperties.is_true,
+                'attached_text_layers': ItemProperties.list_str_value,
             }
         type_f = ItemProperties.prop_types.get(prop, str)
         if type_f is ItemProperties.is_true and value == prop:
@@ -891,6 +894,21 @@ class ItemProperties(object):
         if value in (None, 'None'):
             return 0.
         return float(value)
+
+    def list_value(value):
+        if value in (None, 'None'):
+            return None
+        val = json.loads(value)
+        return val
+
+    def list_str_value(value):
+        print('list_str_value', value)
+        val = ItemProperties.list_value(value)
+        print('val:', val)
+        for v in val:
+            if not isinstance(v, str):
+                raise TypeError(f'value in list is not a string: {value}')
+        return val
 
     def fill_properties(self, element, parents=[], set_defaults=True,
                         style=None):
@@ -916,11 +934,15 @@ class ItemProperties(object):
             # properties tags
             for prop in ('level', 'upper_level', 'private', 'inaccessible',
                          'category', 'well_read_mode', 'grid_interval',
-                         'marker', 'use_height_map'):
+                         'marker', 'use_height_map', 'attached_text_layers'):
                 value = element.get(prop)
+                if prop == 'attached_text_layers' and value is not None:
+                    print('attached_text_layers for', eid, ':', value)
                 if value is not None:
                     setattr(self, prop,
                             ItemProperties.get_typed_prop(prop, value))
+                    if prop == 'attached_text_layers':
+                        print('attached_text_layers:', getattr(self, prop))
 
             # alternative to "private: true", using "visibility: private"
             visibility = element.get('visibility')
@@ -3791,6 +3813,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if props and props.arrow and mesh_l:
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
+                in_layers = props.attached_text_layers
                 for mesh in mesh_l:
                     if not hasattr(mesh, 'vertex'):
                         print('*** WARNING: ***')
@@ -3799,13 +3822,22 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         print(props)
                         print('faulty mesh:', mesh)
                         continue
-                    text_o = self.find_text_for_arrow(meshes, mesh)
+                    text_o = self.find_text_for_arrow(meshes, mesh, in_layers)
                     # print('arrow/text:', mesh, text_o)
                     if text_o:
                         props = text_o['properties']
                         pos = props['position']
                         vert = mesh.vertex()
                         size = props['size']
+                        anchor = text_o['objects'][0]['properties'].get(
+                            'text-anchor')
+                        if anchor != 'middle':
+                            pos = [pos[0] + size[0] / 2, pos[1]]
+                        text = text_o['objects'][0]['properties']['text']
+                        nlines = len(text.split('\n'))
+                        if nlines >= 2:
+                            dy = size[1] / nlines * (nlines - 1)
+                            pos = [pos[0], pos[1] + dy]
                         # print('text pos:', pos)
                         # vert2 = aims.vector_POINT3DF(vert)
                         decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
@@ -3818,11 +3850,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             v += decal * (1. - v[2])
                         if with_squares:
                             # debug: display rectangle around text location
-                            size = props['size']
                             x0 = pos[0] - size[0] / 2
                             x1 = pos[0] + size[0] / 2
-                            y0 = pos[1] - size[1] / 2
-                            y1 = pos[1] + size[1] / 2
+                            y0 = pos[1] - size[1]  # / 2
+                            y1 = pos[1]  # + size[1] / 2
                             vert = mesh.vertex()
                             z = vert[0][2]
                             n = len(vert)
@@ -3832,29 +3863,52 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
                                      (n+3, n)]
 
-    def find_text_for_arrow(self, meshes, mesh):
+    def find_text_for_arrow(self, meshes, mesh, in_layers=None):
         dmin = -1
         text_min = None
+        inside_text = False
         point = mesh.vertex()[0][:2]
         # print('find_text_for_arrow', mesh, point)
         for mtype, mesh_items in meshes.items():
             if mtype.endswith('_text'):
+                if in_layers is not None:
+                    mprops = self.group_properties.get(mtype)
+                    if mprops.name not in in_layers:
+                        #print('find_text_for_arrow skipping layer',
+                              #mprops.name)
+                        continue
                 # print(mtype, ' text:', mesh_items)
                 for text in mesh_items['objects']:
                     # print('text:', text)
                     props = text['properties']
                     # print('props:', props)
                     pos = props.get('position')
+                    anchor = None
+                    tprops = {}
+                    if len(text['objects']) != 0:
+                        tobj = text['objects'][0]
+                        tprops = tobj['properties']
+                    anchor = tprops.get('text-anchor')
                     size = props.get('size', [0., 0.])
                     if size == [0., 0.]:
                         print('text with no size in group', mtype, ':')
                         print(props)
+                    if anchor != 'middle':
+                        pos = [pos[0] + size[0] / 2, pos[1]]
+                    text_str = tprops.get('text')
+                    dy = 0
+                    if text_str is not None:
+                        nlines = len(text_str.split('\n'))
+                        if nlines >= 2:
+                            dy = size[1] / nlines * (nlines - 1)
+                            pos = [pos[0], pos[1] + dy]
+                            # print('text:', text_str, ', dy:', dy)
                     # print('pos:', pos, ', size:', size)
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
                     x1 = pos[0] + size[0] / 2
-                    y0 = pos[1] - size[1] / 2
-                    y1 = pos[1] + size[1] / 2
+                    y0 = pos[1] - size[1]  #  / 2
+                    y1 = pos[1]  # + size[1] / 2
                     if point[0] < x0:
                         d0 = x0 - point[0]
                     elif point[0] > x1:
@@ -3868,6 +3922,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     else:
                         d1 = 0
                     d = d0 * d0 + d1 * d1
+                    if d == 0:
+                        # inside rect
+                        d0 = point[0] - pos[0]
+                        d1 = point[1] - pos[1]
+                        d = d0 * d0 + d1 * d1
+                        if not inside_text:
+                            inside_text = True
+                            dmin = -1
+                    elif inside_text:
+                        continue
                     if dmin < 0 or d < dmin:
                         dmin = d
                         text_min = text

@@ -967,6 +967,8 @@
                         var xmax = 0;
                         var ymin = 0;
                         var ymax = 0;
+                        var anchor = null;
+                        var decaly = 0;
 
                         if( trobj.properties.background != null )
                         {
@@ -997,6 +999,9 @@
                           var fsize = tobj.properties.font_size;
                           var ffamily = tobj.properties.font_family;
                           var tpos = tobj.properties.position;
+                          var tanchor = tobj.properties['text-anchor'];
+                          if( tanchor != null && anchor == null )
+                            anchor = tanchor;
 
                           if( fsize == null || fsize == 0. )
                             fsize = 10;
@@ -1041,6 +1046,9 @@
                                 ymin = tpos2[1] - h/2;
                               if( ymax < tpos2[1] + h/2 )
                                 ymax = tpos2[1] + h/2;
+
+                              if( oti == 0 && lines.length >= 2 )
+                                decaly = lines.length;
                           }
                         }
                         bsize[0] = xmax - xmin;
@@ -1188,12 +1196,22 @@
                         var spritmat = new THREE.SpriteMaterial( { map: texture, color: 0xffffff } );
                         var sprite = new THREE.Sprite( spritmat );
                         // var scale = 0.1;
-                        sprite.scale.set( bitmap.width * scale / tscale, bitmap.height * scale / tscale );
+                        var sw = bitmap.width * scale / tscale;
+                        var sh = bitmap.height * scale / tscale;
+                        sprite.scale.set( sw, sh );
                         // the svg position is under the 1st line of text
                         var y_shift = 1.;
-                        sprite.position.x = -pos[0]; // - sprite.scale.x / 2;
-                        sprite.position.y = pos[1]; // + sprite.scale.y * y_shift * 0.5;
-                        sprite.position.z = pos[2]; // + sprite.scale.y * y_shift * 0.5;
+                        sprite.position.x = -pos[0];
+                        if( anchor != 'middle' )
+                          sprite.position.x -= sw / 2;
+                        sprite.position.y = pos[1];
+                        if( decaly != 0 )
+                        {
+                          var dy = sh / decaly * (decaly - 1);
+                          sprite.position.y += dy;
+                        }
+                        sprite.position.z = pos[2];
+//                         console.log('anchor', anchor, pos, sprite.position, ':', text);
                         sprite.center.set(0.5, 0.);
                         if( debug )
                           console.log('text sprite pos:', sprite.position);

@@ -1629,6 +1629,12 @@ class SvgToMesh(object):
         else:
             pos = (float(child.get('x')), float(child.get('y')))
         # text x,y are the middle of the text, if text-anchor is "middle"
+        text_anchor = text_desc['properties'].get('text-anchor')
+        #if text_anchor != 'middle':
+            ## doesn' work since the text hasn't been read, thus w is 0.
+            #w, h = self.text_size(text_desc)
+            #print('anchor left:', pos, w, h, ':', text, ':', text_desc)
+            #pos = (pos[0] + w / 2, pos[1])
         if trans is not None:
             p0 = np.array(((pos[0], pos[1], 1.),)).T
             pos = list(np.array(trans.dot(p0)).ravel()[:2])
