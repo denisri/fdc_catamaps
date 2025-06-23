@@ -1559,8 +1559,9 @@ class SvgToMesh(object):
                             self.main_group = tgroup
                         self.mesh_dict[tgroup] = {'object_type': 'List',
                                                   'objects': []}
-                elif self.main_group.endswith('_text') and len(parents) != 0 \
-                        and self.is_layer(parents[-1]):
+                elif len(parents) != 0 and self.is_layer(parents[-1]) \
+                        and (self.main_group.endswith('_text')
+                             or parents[-1].get('text') == 'true'):
                     # sub-group inside a text layer: create a new list object
                     self.make_text_group(child, trans)
             if not skip_children and len(child) != 0:
@@ -1702,6 +1703,9 @@ class SvgToMesh(object):
         props['properties'] = trobj_props
         g = self.mesh_dict.setdefault(tgroup, {'object_type': 'List',
                                                'objects': []})
+        if len(g['objects']) != 0 and len(g['objects'][-1]['objects']) == 0:
+            print('empty text group in layer', tgroup)
+            del g['objects'][-1]
         g['objects'].append(props)
         return props
 

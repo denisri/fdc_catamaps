@@ -141,10 +141,11 @@
                 display: block;
             }
         </style>
+        <link rel="stylesheet" type="text/css" href="catamap.css" />
         <link rel="manifest" href="catamap.webmanifest" />
-   </head>
-    <body>
+    </head>
 
+    <body>
 
       <div class="top_row">
         <h1 id="title_0">GRAND RÉSEAU SUD</h1>
@@ -1011,7 +1012,7 @@
                           if( text != null )
                           {
                               fsize *= tscale * ltscale / scale;
-                              g.font = 'Bold ' + fsize + 'pt ' + ffamily;
+                              g.font = fsize + 'pt ' + ffamily;
 
                               var w = 0;
                               var h = 0;
@@ -1069,7 +1070,7 @@
                         {
                           console.log('texture too large:', bsize);
                           console.log('text:', text);
-                          g.font = 'Bold ' + trobj.objects[0].properties.font_size * 2 + 'pt ' + trobj.objects[0].properties.font_family;
+                          g.font = trobj.objects[0].properties.font_size * 2 + 'pt ' + trobj.objects[0].properties.font_family;
                           m = g.measureText( lines[0] );
                           console.log('m:', m);
                           console.log('trobj:', trobj);
@@ -1168,7 +1169,7 @@
                               // var g = bitmap.getContext('2d');
                               fsize *= tscale * ltscale / scale;
                               // tscale /= 2;  // ? why ?
-                              g.font = 'Bold ' + fsize + 'pt ' + ffamily;
+                              g.font = fsize + 'pt ' + ffamily;
 
                               var w = 0;
                               var lines = text.split('\n');

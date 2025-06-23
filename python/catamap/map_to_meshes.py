@@ -129,6 +129,11 @@ Properties list
 **arrow_base_height_shift:** float (**3D maps**)
     z shift of the base of an arrow element in the upper layer depth. The arrow
     head shift is specified using height_shift.
+**attached_text_layers:** list of strings (**3D maps**)
+    In an arrow layer, lells to look for attached texts only in the given
+    layers. By default, texts are looked for in all layers, so if the map is
+    dense and many texts are near, there may be confusions. This property
+    allows to remove (or reduce) ambiguities.
 **block:** bool (**3D maps**)
     block elements have a ceiling and walls. Meshes are extruded and tesselated
     to be filled.
@@ -902,9 +907,7 @@ class ItemProperties(object):
         return val
 
     def list_str_value(value):
-        print('list_str_value', value)
         val = ItemProperties.list_value(value)
-        print('val:', val)
         for v in val:
             if not isinstance(v, str):
                 raise TypeError(f'value in list is not a string: {value}')
@@ -3505,7 +3508,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=False)
+        self.attach_arrows_to_text(meshes, with_squares=True)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3806,7 +3809,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         return up, walls
 
-    def attach_arrows_to_text(self, meshes, with_squares=False):
+    def attach_arrows_to_text(self, meshes, with_squares=True):
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
