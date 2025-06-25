@@ -1075,7 +1075,17 @@
                           console.log('m:', m);
                           console.log('trobj:', trobj);
 
-                          return;
+                          if( bitmap.width > 2000 )
+                          {
+                            tscale *= 2000 / bitmap.width;
+                            bitmap.width = 2000;
+                          }
+                          if( bitmap.height > 1000 )
+                          {
+                            tscale *= 1000 / bitmap.width;
+                            bitmap.height = 1000;
+                          }
+
                         }
 
                         for( oti in trobj.objects )
