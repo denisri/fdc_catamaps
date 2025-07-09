@@ -1523,6 +1523,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.stair_symbol_mesh = None
         self.fontis_mesh = None
         self.lily_mesh = None
+        self.rose_mesh = None
         self.large_sign_mesh = None
         self.sounds_marker_model = None
         self.photos_marker_model = None
@@ -1693,6 +1694,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return (self.read_large_sign, clean_return, True)
             elif label == 'ossuaire':
                 return (self.read_bones, clean_return, True)
+            elif label == 'rose':
+                return (self.read_compass_rose, clean_return, True)
 
         return (None, clean_return, False)
 
@@ -1745,6 +1748,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.stair_symbol_mesh = self.make_stair_symbol_model()
         if self.lily_mesh is None:
             self.lily_mesh = self.make_lily_model(xml)
+        if self.rose_mesh is None:
+            self.rose_mesh = self.make_rose_model(xml)
         if self.large_sign_mesh is None:
             self.large_sign_mesh = self.make_large_sign_model(xml)
         if self.sounds_marker_model is None:
@@ -1899,6 +1904,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         aims.SurfaceManip.meshMerge(mesh, lily_mesh)
         if 'material' not in mesh.header():
             mesh.header().update(lily_mesh.header())
+            if 'material' in mesh.header():
+                mat = mesh.header()['material']
+            else:
+                mat = {}
+            mat['face_culling'] = 0
+            mesh.header()['material'] = mat
+
+    def read_compass_rose(self, rose_xml, trans, style=None):
+        bbox = self.boundingbox(rose_xml[0], trans)
+        mesh = self.mesh_dict.setdefault(self.main_group,
+                                         aims.AimsTimeSurface(3))
+        center = [(bbox[0][0] + bbox[1][0]) / 2,
+                  (bbox[0][1] + bbox[1][1]) / 2,
+                  0.]
+        tr = aims.AffineTransformation3d()
+        tr.setTranslation(center)
+        rose_mesh = aims.AimsTimeSurface(self.rose_mesh)
+        aims.SurfaceManip.meshTransform(rose_mesh, tr)
+        aims.SurfaceManip.meshMerge(mesh, rose_mesh)
+        if 'material' not in mesh.header():
+            mesh.header().update(rose_mesh.header())
             if 'material' in mesh.header():
                 mat = mesh.header()['material']
             else:
@@ -3810,6 +3836,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return up, walls
 
     def attach_arrows_to_text(self, meshes, with_squares=True):
+        print('*** attach_arrows_to_text ***')
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
@@ -3829,18 +3856,21 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     # print('arrow/text:', mesh, text_o)
                     if text_o:
                         props = text_o['properties']
+                        is_text = (props.get('type') != 'mesh')  # text
+                        if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
                         pos = props['position']
                         vert = mesh.vertex()
                         size = props['size']
-                        anchor = text_o['objects'][0]['properties'].get(
-                            'text-anchor')
-                        if anchor != 'middle':
-                            pos = [pos[0] + size[0] / 2, pos[1]]
-                        text = text_o['objects'][0]['properties']['text']
-                        nlines = len(text.split('\n'))
-                        if nlines >= 2:
-                            dy = size[1] / nlines * (nlines - 1)
-                            pos = [pos[0], pos[1] + dy]
+                        if is_text:
+                            anchor = text_o['objects'][0]['properties'].get(
+                                'text-anchor')
+                            if anchor != 'middle':
+                                pos = [pos[0] + size[0] / 2, pos[1]]
+                            text = text_o['objects'][0]['properties']['text']
+                            nlines = len(text.split('\n'))
+                            if nlines >= 2:
+                                dy = size[1] / nlines * (nlines - 1)
+                                pos = [pos[0], pos[1] + dy]
                         # print('text pos:', pos)
                         # vert2 = aims.vector_POINT3DF(vert)
                         decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
@@ -3861,25 +3891,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             z = vert[0][2]
                             n = len(vert)
                             vert += [(x0, y0, z), (x1, y0, z), (x1, y1, z),
-                                     (x0, y1, z)]
+                                    (x0, y1, z)]
                             poly = mesh.polygon()
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
-                                     (n+3, n)]
+                                    (n+3, n)]
 
     def find_text_for_arrow(self, meshes, mesh, in_layers=None):
         dmin = -1
         text_min = None
         inside_text = False
         point = mesh.vertex()[0][:2]
-        # print('find_text_for_arrow', mesh, point)
+        debug = False
+        #if point[0] >= 158 and point[0] < 159 and point[1] >= 170 and point[1] < 171:
+            #debug = True
+        if debug:
+            print('find_text_for_arrow', mesh, point)
         for mtype, mesh_items in meshes.items():
+            if in_layers is not None:
+                mprops = self.group_properties.get(mtype)
+                if mprops.name not in in_layers:
+                    #print('find_text_for_arrow skipping layer',
+                            #mprops.name)
+                    continue
+            elif not mtype.endswith('_text'):
+                continue
+
             if mtype.endswith('_text'):
-                if in_layers is not None:
-                    mprops = self.group_properties.get(mtype)
-                    if mprops.name not in in_layers:
-                        #print('find_text_for_arrow skipping layer',
-                              #mprops.name)
-                        continue
                 # print(mtype, ' text:', mesh_items)
                 for text in mesh_items['objects']:
                     # print('text:', text)
@@ -3910,7 +3947,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
                     x1 = pos[0] + size[0] / 2
-                    y0 = pos[1] - size[1]  #  / 2
+                    y0 = pos[1] - size[1]  # / 2
                     y1 = pos[1]  # + size[1] / 2
                     if point[0] < x0:
                         d0 = x0 - point[0]
@@ -3941,6 +3978,43 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if d == 0:
                         # found a good match, skip other tests
                         break
+            elif not inside_text:
+                # not a text layer
+                mlist = mesh_items
+                if not isinstance(mlist, list):
+                    mlist = [mlist]
+                if debug: print('look in non-text:', mtype, ', meshes:', len(mlist))
+                # mim = 0
+                dmin0 = -1
+                bb = [(0, 0), (0, 0)]
+                found = False
+                for m in mlist:
+                    if debug: print('try mesh', m.vertex().size(), m.vertex()[0].np)
+                    d = np.sum((m.vertex().np[:, :2] - point) ** 2, axis=1)
+                    mi = np.argmin(d)
+                    if debug: print('dmin:', d[mi])
+                    if dmin0 < 0 or dmin0 > d[mi]:
+                        dmin0 = d[mi]
+                        if debug: print('min')
+                        if dmin < 0 or dmin0 < dmin:
+                            found = True
+                            # mim = mi
+                            bb = [(np.min(m.vertex().np[:, 0]),
+                                   np.min(m.vertex().np[:, 1])),
+                                  (np.max(m.vertex().np[:, 0]),
+                                   np.max(m.vertex().np[:, 1]))]
+                            if debug: print('found:', bb)
+                if found:
+                    dmin = dmin0
+                    text_min = {
+                        'properties': {
+                            'type': 'mesh',
+                            'size': [bb[1][0] - bb[0][0], bb[1][1] - bb[0][1]],
+                            'position': [(bb[1][0] + bb[0][0]) / 2,
+                                         (bb[1][1] + bb[0][1]) / 2],
+                        }
+                    }
+
         return text_min
 
     def build_ground_grid(self):
@@ -4160,6 +4234,42 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         q.fromAxis([1., 0., 0.], -np.pi / 2)
         tr = aims.AffineTransformation3d(q)
         aims.SurfaceManip.meshTransform(lily_w, tr)
+        vert = np.asarray(lily_w.vertex())
+        bbmin = aims.Point3df(np.min(vert, axis=0))
+        vert += [0., 0., 1.5 - bbmin[2]]
+        lily_w.vertex().assign(vert)
+        return lily_w
+
+    def make_rose_model(self, xml):
+        cm = CataMapTo2DMap()
+        protos = cm.find_protos(xml)
+        if not protos:
+            return
+        lproto = protos['label'].get('rose')
+        if lproto is None:
+            print('No proto for rose')
+            return
+        self.main_group = 'rose'
+        lily_l = aims.AimsTimeSurface_2()
+        for child in lproto['element']:
+            aims.SurfaceManip.meshMerge(
+                lily_l, self.read_path(child,
+                                       self.proto_scale * lproto['trans']))
+        lily_up_l, lily_w = self.extrude(lily_l, 1.)
+        lily_bk = self.tesselate(lily_l)
+        lily_up = self.tesselate(lily_up_l)
+        aims.SurfaceManip.invertSurfacePolygons(lily_w)
+        lily_w.updateNormals()
+        aims.SurfaceManip.invertSurfacePolygons(lily_bk)
+        lily_bk.updateNormals()
+        aims.SurfaceManip.meshMerge(lily_w, lily_bk)
+        aims.SurfaceManip.meshMerge(lily_w, lily_up)
+        vert = np.asarray(lily_w.vertex())
+        bbmin = aims.Point3df(np.min(vert, axis=0))
+        bbmax = aims.Point3df(np.max(vert, axis=0))
+        center = (bbmin + bbmax) / 2
+        vert -= center
+        lily_w.vertex().assign(vert)
         vert = np.asarray(lily_w.vertex())
         bbmin = aims.Point3df(np.min(vert, axis=0))
         vert += [0., 0., 1.5 - bbmin[2]]
