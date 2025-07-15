@@ -3534,7 +3534,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=True)
+        self.attach_arrows_to_text(meshes, with_squares=False)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3836,7 +3836,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return up, walls
 
     def attach_arrows_to_text(self, meshes, with_squares=True):
-        print('*** attach_arrows_to_text ***')
+        # print('*** attach_arrows_to_text ***')
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
