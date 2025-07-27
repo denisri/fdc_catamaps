@@ -3902,7 +3902,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         inside_text = False
         point = mesh.vertex()[0][:2]
         debug = False
-        #if point[0] >= 158 and point[0] < 159 and point[1] >= 170 and point[1] < 171:
+        #if point[0] >= 1449 and point[0] < 1450 and point[1] >= 1175 and point[1] < 1176:
             #debug = True
         if debug:
             print('find_text_for_arrow', mesh, point)
@@ -3917,11 +3917,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 continue
 
             if mtype.endswith('_text'):
-                # print(mtype, ' text:', mesh_items)
+                if debug:
+                    print(mtype, ' text:', len(mesh_items['objects']))
                 for text in mesh_items['objects']:
-                    # print('text:', text)
+                    if debug:
+                        print('text:', text)
                     props = text['properties']
-                    # print('props:', props)
+                    #if debug:
+                        #print('props:', props)
                     pos = props.get('position')
                     anchor = None
                     tprops = {}
@@ -3943,7 +3946,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             dy = size[1] / nlines * (nlines - 1)
                             pos = [pos[0], pos[1] + dy]
                             # print('text:', text_str, ', dy:', dy)
-                    # print('pos:', pos, ', size:', size)
+                    if debug:
+                        print('pos:', pos, ', size:', size)
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
                     x1 = pos[0] + size[0] / 2
@@ -3964,6 +3968,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     d = d0 * d0 + d1 * d1
                     if d == 0:
                         # inside rect
+                        if debug:
+                            print('inside')
                         d0 = point[0] - pos[0]
                         d1 = point[1] - pos[1]
                         d = d0 * d0 + d1 * d1
@@ -3975,21 +3981,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if dmin < 0 or d < dmin:
                         dmin = d
                         text_min = text
+                        if debug:
+                            print('min!:', dmin)
                     if d == 0:
                         # found a good match, skip other tests
+                        if debug:
+                            print('definitely found.')
                         break
             elif not inside_text:
                 # not a text layer
                 mlist = mesh_items
                 if not isinstance(mlist, list):
                     mlist = [mlist]
-                if debug: print('look in non-text:', mtype, ', meshes:', len(mlist))
+                if debug:
+                    print('look in non-text:', mtype, ', meshes:', len(mlist))
                 # mim = 0
                 dmin0 = -1
                 bb = [(0, 0), (0, 0)]
                 found = False
                 for m in mlist:
-                    if debug: print('try mesh', m.vertex().size(), m.vertex()[0].np)
+                    if debug:
+                        print('try mesh', m.vertex().size(), m.vertex()[0].np)
                     d = np.sum((m.vertex().np[:, :2] - point) ** 2, axis=1)
                     mi = np.argmin(d)
                     if debug: print('dmin:', d[mi])
@@ -4014,6 +4026,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                          (bb[1][1] + bb[0][1]) / 2],
                         }
                     }
+
+        if debug:
+            print('found text:', text_min)
 
         return text_min
 
