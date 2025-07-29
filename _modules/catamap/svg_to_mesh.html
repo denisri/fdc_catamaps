@@ -554,6 +554,10 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_circle</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;ellipse&#39;</span> <span class="ow">or</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;}ellipse&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_circle</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xml_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}type&#39;</span><span class="p">)</span> \
+                    <span class="o">==</span> <span class="s1">&#39;arc&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_circle</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
 
         <span class="c1"># read path</span>
 
