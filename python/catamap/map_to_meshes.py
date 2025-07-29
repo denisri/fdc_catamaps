@@ -5641,6 +5641,13 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         child[0].text = u'\xe9dition du %s' \
                             % self.formatted_date(d)
 
+    def set_MapId(self, xml):
+        for layer in xml.getroot():
+            for child in layer:
+                if child.get('MapId') is not None:
+                        # set customised plan number
+                    child[0].text = self.MapId \
+                    
     def show_all(self, xml):
         for layer in xml.getroot():
             layer.set('style', 'display:inline')
@@ -6291,22 +6298,23 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'resize_poster': self.resize_poster,
             'shadow_text': self.shadow_text,
             'map_layers_opacity': self.map_layers_opacity,
+            'MapId': self.set_MapId,
             'printable_map': ['remove_non_printable1', 'show_all',
                               'shift_inf_level', 'replace_symbols', 'date',
                               'zooms', 'remove_non_printable2', 'remove_igc',
                               'layer_opacity=["XIII masses", "0.31"]',
-                              'map_layers_opacity'],
+                              'map_layers_opacity','MapId'],
             'poster_map': ['remove_non_printable1_main', 'show_all',
                            'shift_inf_level', 'replace_symbols', 'date',
                            'zooms', 'remove_non_printable2', 'remove_igc',
                            'layer_opacity=["XIII masses", "0.31"]',
-                           'map_layers_opacity'],
+                           'map_layers_opacity','MapId'],
             'printable_map_public': [
                 'remove_non_printable1_pub', 'show_all',
                 'shift_inf_level', 'replace_symbols', 'date',
                 'zooms', 'remove_non_printable2', 'remove_igc',
                 'layer_opacity=["XIII masses", "0.31"]',
-                'map_layers_opacity'],
+                'map_layers_opacity','MapId'],
             'igc': ['remove_private', 'remove_non_printable1_pub',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
@@ -6315,7 +6323,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     'show_all', 'date',
                     # 'recolor="%s"' % igc_colorset,
                     # 'layer_opacity=["planches IGC", "0.44"]',
-                    'map_layers_opacity'],
+                    'map_layers_opacity','MapId'],
             'igc_private': [
                 'remove_wip', 'remove_non_printable_igc_private',
                 'remove_non_printable2',
@@ -6325,7 +6333,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 'show_all', 'date',
                 # 'recolor="%s"' % igc_colorset,
                 # 'layer_opacity=["planches IGC", "0.44"]',
-                'map_layers_opacity'],
+                'map_layers_opacity','MapId'],
             'aqueduc': ['remove_non_printable1', 'show_all',
                         'shift_inf_level', 'replace_symbols', 'date',
                         'remove_wip',
@@ -6333,12 +6341,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         'remove_non_printable2', 'remove_igc',
                         'remove_non_aqueduc',
                         'layer_opacity=["XIII masses", "0.31"]',
-                        'map_layers_opacity'],
+                        'map_layers_opacity','MapId'],
         }
 
         return all_filters
 
-    def build_2d_map(self, xml, keep_private=True, wip=False,
+    def build_2d_map(self, xml, MapId, keep_private=True, wip=False,
                      filters=[], map_name=None):
 
         # igc_colorset = 'igc'
@@ -6368,7 +6376,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         self.keep_private = True
         self.keep_transformed_properties = set(('level', 'map_transform'))
         self.map_name = map_name
-
+        self.MapId = MapId
+        
         self.remove_selected_layers(map_2d)
 
         results = []
@@ -6574,7 +6583,7 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
 
 
 def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
-                 dpi, shadows=True, do_pdf=False, do_jpg=True, georef=None):
+                 dpi, MapId, shadows=True, do_pdf=False, do_jpg=True, georef=None):
     svg2d = CataMapTo2DMap()
 
     meta = svg2d.get_metadata(xml_et)
@@ -6591,7 +6600,7 @@ def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
     clip_rect_name = clip_rect
     clip_rect = svg2d.find_clip_rect(xml_et, clip_rect)
     svg2d.clip_rect = clip_rect
-    map2d = svg2d.build_2d_map(xml_et, filters=filters, map_name=map_name)
+    map2d = svg2d.build_2d_map(xml_et, MapId, filters=filters, map_name=map_name)
     if clip_rect is not None:
         clip_rect = clip_rect.get('id')
     xscale = 1.
@@ -6702,6 +6711,7 @@ def main():
     do_split = False
     do_join = False
     do_recolor = False
+    MapId = 'xxx'
     out_dirname = 'meshes_obj'
     maps_dpi = {
         'default': '180',
@@ -6825,6 +6835,9 @@ The program allows to produce:
         '--texture', action='store_true', default=None,
         help='make textured meshes in 3D mode, if some are specified in the '
         'SVG file. By default it is disabled for now.')
+    parser.add_argument(
+        '--MapId',
+        help='insert hide number to identy the map')
 
     options = parser.parse_args()
 
@@ -6870,8 +6883,9 @@ The program allows to produce:
             # otherwise we just update
             maps_dpi.update(maps_dpi2)
         # print('resolutions:', maps_dpi)
-
     clip_rect = options.clip
+    if options.MapId:
+        MapId = options.MapId
 
     # print(options)
 
@@ -6950,7 +6964,8 @@ The program allows to produce:
                 shadows=map_def['shadows'],
                 do_pdf=map_def['do_pdf'],
                 do_jpg=map_def.get('do_jpg', True),
-                georef=georef)
+                georef=georef,
+                MapId=MapId)
 
     if do_split:
         svg2d = CataMapTo2DMap()
