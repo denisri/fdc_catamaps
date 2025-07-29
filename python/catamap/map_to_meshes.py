@@ -958,6 +958,10 @@ class ItemProperties(object):
                     visibility = [visibility]
                 if 'private' in visibility:
                     self.private = True
+                    visibility.remove('private')
+                    if len(visibility) == 0:
+                        visibility = None
+                    print('PRIVATE in visibility. Left:', visibility)
                 self.visibility = visibility
 
             non_visibility = element.get('non_visibility')
