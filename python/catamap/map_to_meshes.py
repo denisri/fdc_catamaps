@@ -4219,6 +4219,24 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 'etiage_wall_tri': mesh,
                 'etiage_water_tri': water}
 
+    def extrude_fill_part(self, paths, trans):
+        lily_l = aims.AimsTimeSurface_2()
+        for child in paths:
+            aims.SurfaceManip.meshMerge(
+                lily_l, self.read_path(child, trans))
+        lily_up_l, lily_w = self.extrude(lily_l, 1.)
+        lily_bk = self.tesselate(lily_l)
+        lily_up = self.tesselate(lily_up_l)
+        aims.SurfaceManip.invertSurfacePolygons(lily_w)
+        lily_w.updateNormals()
+        aims.SurfaceManip.invertSurfacePolygons(lily_bk)
+        lily_bk.updateNormals()
+        aims.SurfaceManip.meshMerge(lily_w, lily_bk)
+        aims.SurfaceManip.meshMerge(lily_w, lily_up)
+        aims.SurfaceManip.meshMerge(lily_l, lily_up_l)
+
+        return (lily_w, lily_l)
+
     def make_lily_model(self, xml):
         cm = CataMapTo2DMap()
         protos = cm.find_protos(xml)
@@ -4269,31 +4287,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             print('No proto for rose')
             return
         self.main_group = 'rose'
-        lily_l = aims.AimsTimeSurface_2()
-        for child in lproto['element']:
-            aims.SurfaceManip.meshMerge(
-                lily_l, self.read_path(child,
-                                       self.proto_scale * lproto['trans']))
-        lily_up_l, lily_w = self.extrude(lily_l, 1.)
-        lily_bk = self.tesselate(lily_l)
-        lily_up = self.tesselate(lily_up_l)
-        aims.SurfaceManip.invertSurfacePolygons(lily_w)
-        lily_w.updateNormals()
-        aims.SurfaceManip.invertSurfacePolygons(lily_bk)
-        lily_bk.updateNormals()
-        aims.SurfaceManip.meshMerge(lily_w, lily_bk)
-        aims.SurfaceManip.meshMerge(lily_w, lily_up)
-        vert = np.asarray(lily_w.vertex())
+        trans = self.proto_scale * lproto['trans']
+        quadrant, quadrant_c = self.extrude_fill_part(
+            lproto['element'][:2], trans)
+
+        vert = quadrant_c.vertex().np
         bbmin = aims.Point3df(np.min(vert, axis=0))
         bbmax = aims.Point3df(np.max(vert, axis=0))
         center = (bbmin + bbmax) / 2
         vert -= center
-        lily_w.vertex().assign(vert)
-        vert = np.asarray(lily_w.vertex())
+        quadrant.vertex().np[:] -= center
+
+        vert = quadrant.vertex().np
         bbmin = aims.Point3df(np.min(vert, axis=0))
-        vert += [0., 0., 1.5 - bbmin[2]]
-        lily_w.vertex().assign(vert)
-        return lily_w
+        quadrant.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
+        quadrant.header()['material'] = {'diffuse': [1., 0.8, 0.3, 1.]}
+        quadrant_c.header()['material'] = {'diffuse': [1., 1., 0.8, 1.]}
+
+        rose, rose_c = self.extrude_fill_part(
+            lproto['element'][6:], trans)
+        rose.vertex().np[:] -= center
+        rose.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
+
+        aims.SurfaceManip.meshMerge(quadrant, rose)
+        aims.write(quadrant, '/tmp/quadrant.mesh')
+
+        return quadrant
 
     def make_large_sign_model(self, xml):
         cm = CataMapTo2DMap()
@@ -5664,16 +5683,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         for layer in xml.getroot():
             for child in layer:
                 if child.get('MapId') is not None:
-                        # set customised plan number
-                    child[0].text = self.MapId \
-                    
+                    # set customised plan number
+                    child[0].text = self.MapId
+
     def show_all(self, xml):
         for layer in xml.getroot():
             layer.set('style', 'display:inline')
 
     def shadow_text(self, xml):
         xml2 = copy.deepcopy(xml)
-        todel = []
 
         shift = [-0.075, 0.075]
         meta = [layer for layer in xml.getroot()
