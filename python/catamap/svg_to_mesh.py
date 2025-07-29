@@ -481,6 +481,10 @@ class SvgToMesh(object):
             return self.read_circle(xml_path, trans, style)
         if xml_path.tag == 'ellipse' or xml_path.tag.endswith('}ellipse'):
             return self.read_circle(xml_path, trans, style)
+        if xml_path.get(
+                '{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}type') \
+                    == 'arc':
+            return self.read_circle(xml_path, trans, style)
 
         # read path
 
