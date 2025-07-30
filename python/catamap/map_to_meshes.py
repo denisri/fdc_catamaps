@@ -1542,6 +1542,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.map_name = 'map_3d'
         self.lambert93_z_scaling = False
         self.priority_layers.append('lambert93')
+        # keep track of each individual symbol position, size and type
+        # since meshes may be concatenated)
+        self.symbols = {}
 
         if headless:
             try:
@@ -1853,6 +1856,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             wells_spec.append((center, radius, z, height))
 
     def read_bones(self, bones_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(bones_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -1873,7 +1879,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'bones'})
+
     def read_fontis(self, fontis_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(fontis_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -1894,7 +1906,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'fontis'})
+
     def read_lily(self, lily_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(lily_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -1915,7 +1933,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'lily'})
+
     def read_compass_rose(self, rose_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(rose_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -1936,7 +1960,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'compass_rose'})
+
     def read_large_sign(self, lily_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(lily_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -1962,10 +1992,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'large_sign'})
+
     def read_arch(self, arch_xml, trans, style=None):
         ## don't apply transform, we will do it later on the mesh
         props = self.group_properties[self.main_group]
         props.symbol = True
+
         bbox = None
         for child in arch_xml:
             bboxc = self.boundingbox(child, trans)
@@ -1985,9 +2019,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         arch_spec = self.mesh_dict.setdefault(self.main_group, [])
         arch_spec.append((center, (radius, trans), 0., 3.))
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'arch'})
+
     def read_water_scale(self, ws_xml, trans, style=None):
         props = self.group_properties[self.main_group]
         props.symbol = True
+
         bbox = self.boundingbox(ws_xml[0], trans)
         center = [(bbox[0][0] + bbox[1][0]) / 2,
                   (bbox[0][1] + bbox[1][1]) / 2,
@@ -2003,7 +2041,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.group_properties[mesh_id] = props
             aims.SurfaceManip.meshMerge(mesh, ws_mesh)
 
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'water_scale'})
+
     def read_stair_symbol(self, st_xml, trans, style=None):
+        props = self.group_properties[self.main_group]
+        props.symbol = True
+
         bbox = self.boundingbox(st_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
@@ -2023,6 +2067,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 mat = {}
             mat['face_culling'] = 0
             mesh.header()['material'] = mat
+
+        self.symbols.setdefault(self.main_group, []).append(
+            {'center': center, 'bbox': bbox, 'type': 'stair'})
 
     def make_psh_sq_well(self, center, radius, z, height, props, faces=8):
         # square well
@@ -2213,12 +2260,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                         props)
 
         return self.make_ps_well(center, radius, z, height, well_type, props)
-
-    def make_arche(self, center, radius_and_trans, z, height, well_type=None,
-                   props=None):
-        # translate method name
-        return self.make_arch(center, radius_and_trans, z, height,
-                              well_type=well_type, props=props)
 
     def make_arch(self, center, radius_and_trans, z, height, well_type=None,
                   props=None):
@@ -3610,7 +3651,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 for mesh in mesh_l:
-                    if not hasattr(mesh, 'vertex'):
+                    if not hasattr(mesh, 'vertex') or props.symbol:
                         # not a mesh
                         continue
                     height = props.height * self.z_scale
@@ -3895,10 +3936,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             z = vert[0][2]
                             n = len(vert)
                             vert += [(x0, y0, z), (x1, y0, z), (x1, y1, z),
-                                    (x0, y1, z)]
+                                     (x0, y1, z)]
                             poly = mesh.polygon()
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
-                                    (n+3, n)]
+                                     (n+3, n)]
 
     def find_text_for_arrow(self, meshes, mesh, in_layers=None):
         dmin = -1
@@ -3906,8 +3947,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         inside_text = False
         point = mesh.vertex()[0][:2]
         debug = False
-        #if point[0] >= 1449 and point[0] < 1450 and point[1] >= 1175 and point[1] < 1176:
-            #debug = True
+        if point[0] >= 17 and point[0] < 18 and point[1] >= -478 and point[1] < -477:
+            debug = True
         if debug:
             print('find_text_for_arrow', mesh, point)
         for mtype, mesh_items in meshes.items():
@@ -3992,34 +4033,68 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         if debug:
                             print('definitely found.')
                         break
+
             elif not inside_text:
+
                 # not a text layer
-                mlist = mesh_items
-                if not isinstance(mlist, list):
-                    mlist = [mlist]
-                if debug:
-                    print('look in non-text:', mtype, ', meshes:', len(mlist))
-                # mim = 0
-                dmin0 = -1
-                bb = [(0, 0), (0, 0)]
-                found = False
-                for m in mlist:
+                props = self.group_properties[mtype]
+                sym_desc = None
+                if props.symbol:
+                    # symbols are described in a list of dicts
+                    sym_desc = self.symbols.get(mtype)
+                    if sym_desc is not None:
+                        if debug:
+                            print('look symbols:', mtype, ', meshes:', len(sym_desc))
+                    # mim = 0
+                    dmin0 = -1
+                    found = False
+                    for sd in sym_desc:
+                        if debug:
+                            print('try symbol', sd['center'], sd['type'])
+                        bbox = sd['bbox']
+                        v = np.array(bbox + [(bbox[0][0], bbox[1][1]),
+                                             (bbox[1][0], bbox[0][1])])
+                        d = np.sum((v - point) ** 2, axis=1)
+                        mi = np.argmin(d)
+                        if debug: print('dmin:', d[mi])
+                        if dmin0 < 0 or dmin0 > d[mi]:
+                            dmin0 = d[mi]
+                            if debug: print('min')
+                            if dmin < 0 or dmin0 < dmin:
+                                found = True
+                                # mim = mi
+                                bb = bbox
+                                if debug: print('found:', bb)
+
+                if sym_desc is None:
+                    # meshes
+                    mlist = mesh_items
+                    if not isinstance(mlist, list):
+                        mlist = [mlist]
                     if debug:
-                        print('try mesh', m.vertex().size(), m.vertex()[0].np)
-                    d = np.sum((m.vertex().np[:, :2] - point) ** 2, axis=1)
-                    mi = np.argmin(d)
-                    if debug: print('dmin:', d[mi])
-                    if dmin0 < 0 or dmin0 > d[mi]:
-                        dmin0 = d[mi]
-                        if debug: print('min')
-                        if dmin < 0 or dmin0 < dmin:
-                            found = True
-                            # mim = mi
-                            bb = [(np.min(m.vertex().np[:, 0]),
-                                   np.min(m.vertex().np[:, 1])),
-                                  (np.max(m.vertex().np[:, 0]),
-                                   np.max(m.vertex().np[:, 1]))]
-                            if debug: print('found:', bb)
+                        print('look in non-text:', mtype, ', meshes:', len(mlist))
+                    # mim = 0
+                    dmin0 = -1
+                    bb = [(0, 0), (0, 0)]
+                    found = False
+                    for m in mlist:
+                        if debug:
+                            print('try mesh', m.vertex().size(), m.vertex()[0].np)
+                        d = np.sum((m.vertex().np[:, :2] - point) ** 2, axis=1)
+                        mi = np.argmin(d)
+                        if debug: print('dmin:', d[mi])
+                        if dmin0 < 0 or dmin0 > d[mi]:
+                            dmin0 = d[mi]
+                            if debug: print('min')
+                            if dmin < 0 or dmin0 < dmin:
+                                found = True
+                                # mim = mi
+                                bb = [(np.min(m.vertex().np[:, 0]),
+                                    np.min(m.vertex().np[:, 1])),
+                                    (np.max(m.vertex().np[:, 0]),
+                                    np.max(m.vertex().np[:, 1]))]
+                                if debug: print('found:', bb)
+
                 if found:
                     dmin = dmin0
                     text_min = {
@@ -4301,8 +4376,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         vert = quadrant.vertex().np
         bbmin = aims.Point3df(np.min(vert, axis=0))
         quadrant.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
-        quadrant.header()['material'] = {'diffuse': [1., 0.8, 0.3, 1.]}
-        quadrant_c.header()['material'] = {'diffuse': [1., 1., 0.8, 1.]}
 
         rose, rose_c = self.extrude_fill_part(
             lproto['element'][6:], trans)
@@ -4310,6 +4383,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         rose.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
 
         aims.SurfaceManip.meshMerge(quadrant, rose)
+
+        mat = quadrant.header().get('material', {})
+        mat['diffuse'] = [1., 0.8, 0.3, 1.]
+        quadrant.header()['material'] = mat
+        mat = quadrant_c.header().get('material', {})
+        mat['diffuse'] = [1., 1., 0.8, 1.]
+        quadrant_c.header()['material'] = mat
+
         aims.write(quadrant, '/tmp/quadrant.mesh')
 
         return quadrant
