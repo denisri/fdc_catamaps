@@ -1,0 +1,32 @@
+{
+    "name": "CataMap",
+    "short_name": "CataMap",
+    "description": "Catacombs 3D map",
+    "icons": [
+        {
+            "src": "catamap_icon.png",
+            "sizes": "200x200",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/maps/grs/index.html",
+    "display": "fullscreen",
+    "theme_color": "#B12A34",
+    "background_color": "#B12A34",
+    "screenshots": [
+        {
+            "src": "screenshots/fdc_13_wide.webp",
+            "sizes": "1926x877",
+            "type": "image/webp",
+            "form_factor": "wide",
+            "label": "FDC CataMap 3D desktop"
+        },
+        {
+            "src": "screenshots/fdc_13_narrow.webp",
+            "sizes": "1010x1281",
+            "type": "image/webp",
+            "form_factor": "narrow",
+            "label": "FDC CataMap 3D mobile"
+        }
+    ]
+}
