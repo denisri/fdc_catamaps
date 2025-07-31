@@ -161,6 +161,10 @@
             <br id="categories_sep" />
             <input type="checkbox" id="map_mode" class="mesh_checkbox">
               <label>Mode 2D</label></input><br/>
+            <input type="checkbox" id="private_mode" class="mesh_checkbox">
+              <label>Private</label></input><br/>
+            <div id="private_code_block">code: <input type="text" id="private_code" size="8"></input></div>
+            <br/>
             <button id="help" class="mesh_button">Aide</button>
           </div>
         </fieldset>
@@ -376,6 +380,19 @@
             unload_meshes( category );
     }
 
+    function redraw_objects()
+    {
+        var i = 0;
+
+        for( i=0; i!=categories.length; i++ )
+        {
+            const display = document.getElementById( categories[i] ).checked;
+            unload_meshes( i );
+            if( display )
+                load_meshes( i );
+        }
+    }
+
     function map_mode_clicked(event)
     {
         if( event != null )
@@ -388,6 +405,63 @@
         controls.mode_2d = display;
         if( display )
             set_map_2d_mode();
+    }
+
+    function private_mode_clicked(event)
+    {
+        if( event != null )
+            event.stopPropagation();
+
+        allow_private = this.checked;
+        if( allow_private == undefined )
+            allow_private = event.checked;
+        console.log('private_mode clicked.', allow_private);
+
+        if( allow_private )
+        {
+          document.getElementById( 'private_code_block' ).style.display = 'inline';
+          var code = document.getElementById( 'private_code' ).value;
+          console.log('code:', code);
+          allow_private = check_private_code( code );
+        }
+        else
+        {
+          document.getElementById( 'private_code_block' ).style.display = 'none';
+        }
+
+        reset_object_lists( allow_private );
+        redraw_objects();
+    }
+
+    function private_code_clicked(event)
+    {
+        if( event != null )
+            event.stopPropagation();
+        console.log('private_code clicked.');
+        document.getElementById( 'private_code' ).focus();
+    }
+
+    function private_code_changed(event)
+    {
+        if( event != null )
+            event.stopPropagation();
+        const old_allow = allow_private;
+        if( document.getElementById( 'private_mode' ).checked )
+        {
+          allow_private = check_private_code( this.value );
+        }
+        else
+          allow_private = false;
+        if( allow_private != old_allow )
+        {
+          reset_object_lists( allow_private );
+          redraw_objects();
+        }
+    }
+
+    function check_private_code( code )
+    {
+      return ( sha1(code) == private_code );
     }
 
     function set_font_sizes()
@@ -443,7 +517,9 @@
 
     document.getElementById( 'all' ).addEventListener( 'click', all_clicked );
     document.getElementById( 'map_mode' ).addEventListener( 'click', map_mode_clicked );
-
+    document.getElementById( 'private_mode' ).addEventListener( 'click', private_mode_clicked );
+    document.getElementById( 'private_code' ).addEventListener( 'click', private_code_clicked );
+    document.getElementById( 'private_code' ).addEventListener( 'change', private_code_changed );
 
     // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
     function fillTextMultiLine(ctx, text, x, y, hratio, centered) {
@@ -696,13 +772,10 @@
     }
     if( allow_private )
     {
-      filenames = filenames.concat( map_objects.meshes_private );
-      texts = texts.concat( map_objects.texts_private );
-      if( map_objects.sounds_private )
-        sounds = sounds.concat( map_objects.sounds_private );
-      if( map_objects.photos_private )
-        photos = photos.concat( map_objects.photos_private );
+      reset_object_lists( allow_private );
     }
+    else
+      document.getElementById( 'private_code_block' ).style.display = 'none';
 
     var mb = document.getElementById( 'mesh_buttons' );
     var md2 = document.getElementById( 'categories_sep' );
@@ -756,6 +829,29 @@
         5: tech
         6: legend
     */
+
+    function reset_object_lists( allow_private )
+    {
+        filenames = map_objects.meshes;
+        texts = map_objects.texts;
+        sounds = map_objects.sounds;
+        if ( !sounds )
+            sounds = [];
+        photos = map_objects.photos;
+        if ( !photos )
+            photos = [];
+
+        if( allow_private )
+        {
+            filenames = filenames.concat( map_objects.meshes_private );
+            texts = texts.concat( map_objects.texts_private );
+            if( map_objects.sounds_private )
+                sounds = sounds.concat( map_objects.sounds_private );
+            if( map_objects.photos_private )
+                photos = photos.concat( map_objects.photos_private );
+        }
+    }
+
 
     function load_meshes( category )
     {

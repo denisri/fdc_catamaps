@@ -22,6 +22,8 @@ const appShellFiles = [
   my_path + '/catamap_icon.png',
   my_path + '/catamap_webmanifest.json',
   my_path + '/screenshots/',
+  my_path + '/screenshots/fdc_13_wide.webp',
+  my_path + '/screenshots/fdc_13_narrow.webp',
   my_path + '/photos/',
 //   my_path + '/sounds/',
   par_path + 'three/',
