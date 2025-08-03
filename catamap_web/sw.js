@@ -100,41 +100,41 @@ function fetch_callback(e)
   e.respondWith((async () => {
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
     // console.log('cache:', cacheName);
-    if( e.request.url.substring(e.request.url.length - 16)
-        == 'map_objects.json')
-    {
-      // console.log('get map_objects.json');
-      // try without cache first, in order to reload after a version change
-      // console.log('Fetching map_objects.json');
-      try
-      {
-        const r = await caches.match(e.request);
-        if (r) {
-          const cache = await caches.open(cacheName);
-          cache.delete(e.request);
-        }
-        const response = await fetch( e.request,
-                                      {signal: AbortSignal.timeout(3000)} );
-        const c = response.clone();
-        const map_objects = await response.json();
-        // console.log('map_objects:', map_objects);
-        version = map_objects.version;
-        // console.log('map_objects version:', version);
-        cacheName = mapname + '-' + version;
-        const cache = await caches.open(cacheName);
-        console.log(`[Service Worker] Caching new version ${cacheName}: ${e.request.url}`);
-        cache.put(e.request, c.clone());
-        return c;
-      }
-      catch( error )
-      {
-        console.log('Fetch failed, probable timeout:', error );
-        if( r )
-        {
-          cache.put(e.request, r);
-        }
-      }
-    }
+//     if( e.request.url.substring(e.request.url.length - 16)
+//         == 'map_objects.json')
+//     {
+//       // console.log('get map_objects.json');
+//       // try without cache first, in order to reload after a version change
+//       // console.log('Fetching map_objects.json');
+//       try
+//       {
+//         const r = await caches.match(e.request);
+//         if (r) {
+//           const cache = await caches.open(cacheName);
+//           cache.delete(e.request);
+//         }
+//         const response = await fetch( e.request,
+//                                       {signal: AbortSignal.timeout(3000)} );
+//         const c = response.clone();
+//         const map_objects = await response.json();
+//         // console.log('map_objects:', map_objects);
+//         version = map_objects.version;
+//         // console.log('map_objects version:', version);
+//         cacheName = mapname + '-' + version;
+//         const cache = await caches.open(cacheName);
+//         console.log(`[Service Worker] Caching new version ${cacheName}: ${e.request.url}`);
+//         cache.put(e.request, c.clone());
+//         return c;
+//       }
+//       catch( error )
+//       {
+//         console.log('Fetch failed, probable timeout:', error );
+//         if( r )
+//         {
+//           cache.put(e.request, r);
+//         }
+//       }
+//     }
 
     const r = await caches.match(e.request);
     if (r) {

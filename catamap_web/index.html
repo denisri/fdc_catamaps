@@ -160,10 +160,10 @@
             <button id="all" class="mesh_button">Tous</button><br/>
             <br id="categories_sep" />
             <input type="checkbox" id="map_mode" class="mesh_checkbox">
-              <label>Mode 2D</label></input><br/>
+              <label for="map_mode">Mode 2D</label></input><br/>
             <input type="checkbox" id="private_mode" class="mesh_checkbox">
-              <label>Private</label></input><br/>
-            <div id="private_code_block">code: <input type="text" id="private_code" size="8"></input></div>
+              <label for="private_mode">Private</label></input><br/>
+            <div id="private_code_block"><label for="private_code">Code: </label><input type="text" id="private_code" size="8"></input></div>
             <br/>
             <button id="help" class="mesh_button">Aide</button>
           </div>
@@ -726,16 +726,22 @@
         'semi', 'belt', 'wbelt'] );
 
     // load all objects list (meshes, texts, sounds)
-    var map_objects;
-    var obj_res = $.ajax({
-      url: 'map_objects.json',
-      async: false,
-      dataType: 'json',
-      success: function( json )
-      {
-        map_objects = json;
-      }
-    })
+    // ajax seems not to use the fetch callback in the SW. We need to use
+    // another method.
+
+//     var map_objects;
+//     var obj_res = $.ajax({
+//       url: 'map_objects.json',
+//       async: false,
+//       dataType: 'json',
+//       success: function( json )
+//       {
+//         map_objects = json;
+//       }
+//     })
+
+    var map_objects = await fetch('map_objects.json').then((response) => response.json());
+
     // console.log( 'map_objects:', map_objects );
     var allow_private = false;
     var filenames = map_objects.meshes;
@@ -788,6 +794,7 @@
       item.id = categories[i];
       mb.insertBefore(item, md2);
       item = document.createElement( 'label' );
+      item.setAttribute('for', categories[i]);
       var text = document.createTextNode( categories[i] );
       item.appendChild( text );
       mb.insertBefore( item, md2 );
