@@ -4802,7 +4802,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     Process XML tree to build modified 2D maps
     '''
 
-    proto_scale = np.array([[0.5, 0,   0],
+    proto_scale = np.matrix([[0.5, 0,   0],
                             [0,   0.5, 0],
                             [0,   0,   1]])
 
@@ -4842,8 +4842,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         ids = {}
-        #rep_child = ['PSh', 'sans', 'PS sans', 'PSh sans', 'PS', 'P ossements',
-                      #u'échelle', u'\xc3\xa9chelle', 'colim', 'PE', ]
         rep_child = []
         repl_map = {'id': ids, 'label': labels}
         for child in symbols:

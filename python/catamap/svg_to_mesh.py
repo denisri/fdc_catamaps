@@ -376,6 +376,9 @@ class SvgToMesh(object):
         if hasattr(aims, 'SurfaceGenerator'):
             mesh = aims.SurfaceGenerator.circle_wireframe(
                 (x, y, 1.), r, npt, (0, 0, 1), (1, 0, 0), angle_s, angle_e)
+            pts = trans * np.matrix(mesh.vertex().np.T)
+            pts[2, :] = 0  # reset Z to 0
+            mesh.vertex().assign(np.asarray(pts.T))
         else:
             # no aims lib, generate a square instead (it's normally just for
             # the bounding box in 2D)
@@ -386,10 +389,6 @@ class SvgToMesh(object):
             mesh = aims.AimsTimeSurface_2()
             mesh.vertex().assign(np.asarray(pts.T))
             mesh.polygon().assign([(0, 1), (1, 2), (2, 3), (3, 0)])
-
-        pts = trans * np.matrix(mesh.vertex().np.T)
-        pts[2, :] = 0  # reset Z to 0
-        mesh.vertex().assign(np.asarray(pts.T))
 
         trans3d = getattr(trans, 'transform_3d', None)
         if trans3d is not None:
@@ -580,16 +579,18 @@ class SvgToMesh(object):
                 i += 1
 
         mesh = aims.AimsTimeSurface(2)
-        # print('vert:', vert)
-        # print('poly:', poly)
-        # print('path trans:', trans)
+        # if getattr(self, 'debug', False):
+        #     print('vert:', vert)
+        #     print('poly:', poly)
+        #     print('path trans:', trans)
+        #     print('trans:', trans)
         if not np.all(trans == np.eye(3)):
-            # print('trans:', trans)
             vert = np.asarray(vert).T
             vert[2, :] = 1.
             vert = (trans * vert).T
             vert[:, 2] = 0.
-            # print('to: vert:', vert)
+            # if getattr(self, 'debug', False):
+            #     print('to: vert:', vert)
         mesh.vertex().assign(np.asarray(vert))
         mesh.polygon().assign(poly)
         trans3d = getattr(trans, 'transform_3d', None)
