@@ -175,6 +175,26 @@
         <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
       </div>
 
+      <div style="position: absolute; right: 1%; bottom: 70px">
+
+        <div id="explicit_controls" style="display: none">
+          <input type="range" id="elevation" min="-100" max="100" value="-20" orient="vertical" list="elevation_values">
+          </input>
+          <label for="elevation">Elevation</label>
+          <datalist id="elevation_values">
+            <option value="-100" />
+            <option value="-50" />
+            <option value="-20" />
+            <option value="0" />
+            <option value="20" />
+            <option value="100" />
+            <option value="50" />
+          </datalist>
+        </div>
+
+      </div>
+      <div id="controls_show" class="media_button" style="border-radius: 50%; font-size: 40px; position: absolute; right: 1%; bottom: 10px; width= 50px; height: 50px;">+</div>
+
       <script>
       // Registering Service Worker
       if ('serviceWorker' in navigator)
@@ -1922,10 +1942,30 @@
             }
 
 
+            function toggle_show_controls()
+            {
+              console.log('toggle_show_controls');
+              if( document.getElementById( 'explicit_controls' ).style.display == 'none' )
+              {
+                console.log('show');
+                document.getElementById( 'explicit_controls' ).style.display = 'block';
+                document.getElementById( 'controls_show' ).innerHTML = '-';
+              }
+              else
+              {
+                console.log('hide');
+                document.getElementById( 'explicit_controls' ).style.display = 'none';
+                document.getElementById( 'controls_show' ).innerHTML = '+';
+              }
+            }
+
+
             document.getElementById( 'close_media' ).addEventListener( 'click', close_media_clicked, {capture: true} );
             document.getElementById( 'enlarge_media' ).addEventListener( 'click', enlarge_media_clicked,  {capture: true});
             document.getElementById( 'media_prev' ).addEventListener( 'click', prev_media_clicked, {capture: true} );
             document.getElementById( 'media_next' ).addEventListener( 'click', next_media_clicked, {capture: true} );
+
+            document.getElementById( 'controls_show' ).addEventListener( 'click', toggle_show_controls, {capture: true} );
 
         </script>
 
