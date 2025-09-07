@@ -5486,26 +5486,44 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def do_remove_layers(self, xml):
         to_remove = []
         labels = []
-        for layer in xml.getroot():
+        layers = list(self.get_layers(xml, recursive=False))
+        #print('do_remove_layers:', self.removed_labels)
+        #print('layers:', len(layers))
+        while layers:
+            player = layers.pop(0)
+            layer = player[1]
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
+            #print('label:', label)
             if label in self.removed_labels \
                     or layer.get('hidden') in ('true', '1', 1, 'True'):
-                to_remove.append(layer)
+                to_remove.append(player)
                 labels.append(label)
+            else:
+                layers += [(layer, x) for x in layer if self.is_layer(x)]
+                #print('added layers:', len([x for x in layer if self.is_layer(x)]), '->', len(layers))
         print('removing layers:', labels)
         for layer in to_remove:
-            xml.getroot().remove(layer)
+            layer[0].remove(layer[1])
 
     def remove_selected_layers(self, xml):
-        for layer in xml.getroot():
+        def add_children(layers, layer):
+            layers += [x for x in layer if self.is_layer(x)]
+            al = [x for x in layer if self.is_layer(x)]
+            if al: print('added layers:', len(al), '->', len(layers))
+
+        layers = list(self.get_layers(xml, recursive=False, parent=False))
+        print('remove_selected_layers for:', self.map_name, 'in:', len(layers))
+        while layers:
+            layer = layers.pop(0)
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
             if label is None:
                 continue
 
+            print('label:', label)
             non_visibility = layer.get('non_visibility')
             if non_visibility:
                 if non_visibility.strip().startswith('['):
@@ -5514,10 +5532,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     non_visibility = [non_visibility]
                 if self.map_name in non_visibility:
                     self.removed_labels.add(label)
+                    print('remove:', label)
                     continue
 
             visibility = layer.get('visibility')
             if visibility is None:
+                add_children(layers, layer)
                 continue
             elif visibility.strip().startswith('['):
                 visibility = json.loads(visibility)
@@ -5527,10 +5547,16 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     # variant (used in private, igc_private maps etc). It is
                     # filtered by remove_private(), and it is better to specify
                     # the tag private: true.
+                    print(label, 'is private')
+                    add_children(layers, layer)
                     continue
                 visibility = [visibility]
             if self.map_name not in visibility:
                 self.removed_labels.add(label)
+                print('remove:', label)
+            else:
+                add_children(layers, layer)
+        print('removed_labels:', self.removed_labels)
 
     def remove_wip(self, xml):
         self.removed_labels.update(
@@ -6039,28 +6065,28 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
             'igcportail': {
                 'name': 'igcportail',
-                'filters': ['igc_private'],
+                'filters': ['igc_private', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_txt': {
                 'name': 'igcportail_txt',
-                'filters': ['igc_private', 'shadow_text'],
+                'filters': ['igc_private', 'remove_igc', 'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_legend': {
                 'name': 'igcportail_legend',
-                'filters': ['igc_private', 'shadow_text'],
+                'filters': ['igc_private', 'remove_igc', 'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_tech': {
                 'name': 'igcportail_tech',
-                'filters': ['igc_private'],
+                'filters': ['igc_private', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,

@@ -68,10 +68,10 @@ if fake_aims:
           'more algorithmic processing and require the "real" aims module to '
           'be present.')
 
-    class aims(object):
+    class aims:
         ''' Fake aims-lite module '''
 
-        class vector(object):
+        class vector:
             ''' Fixed size vector '''
 
             def __init__(self, dtype, shape):
@@ -104,7 +104,7 @@ if fake_aims:
             def np(self):
                 return self._vec
 
-        class _AimsTimeSurface(object):
+        class _AimsTimeSurface:
             ''' Mesh structure '''
 
             def __init__(self, dim=3):
@@ -141,7 +141,7 @@ if fake_aims:
             return aims._AimsTimeSurface(dim)
 
 
-class SvgToMesh(object):
+class SvgToMesh:
     ''' Read SVG, transforms things into meshes
     '''
 
@@ -250,6 +250,21 @@ class SvgToMesh(object):
         if unit == 'pc':
             return 1. / 0.062500
         raise ValueError(f'unknown unit {unit}')
+
+    @staticmethod
+    def get_layers(xml, recursive=True, parent=True):
+        todo = [(xml.getroot(), item) for item in xml.getroot()
+                if SvgToMesh.is_layer(item)]
+        while todo:
+            elem = todo.pop(0)
+            item = elem[1]
+            if recursive:
+                todo += [(item, child) for child in item
+                         if SvgToMesh.is_layer(child)]
+            if parent:
+                yield elem
+            else:
+                yield item
 
     def document_scale(self, xml=None, unit='px'):
         ''' scale from document (px 96 dpi) to target unit
