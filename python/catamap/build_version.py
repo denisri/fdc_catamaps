@@ -1,1 +1,1 @@
-build_version = 2672
+build_version = 2674

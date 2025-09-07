@@ -23,7 +23,7 @@
                 align-content: right;
                 align-items: right;
                 position: absolute;
-                font-size: 18px;
+                font-size: 24px;
             }
             .button_bar {
                 width: 100%;
@@ -32,7 +32,7 @@
                 top: 0%;
                 right: 1%;
                 background: #60606080;
-                font-size: 18px;
+                font-size: 24px;
                 display: block;
             }
             fieldset {
@@ -120,7 +120,7 @@
                 color: #d0d0d0;
                 width: 30px;
                 z-index: 10;
-                font-size: 18px;
+                font-size: 24px;
             }
             .media_button:hover {
                 background-color: #a0a0a0d0;
@@ -132,13 +132,48 @@
                 color: #d0d0d0;
                 width: 40%;
                 z-index: 10;
-                font-size: 18px;
+                font-size: 24px;
+            }
+            .media_player {
+                background: #80808080;
+                border: 1px;
+                border-color: #80808080;
+                color: #d0d0d0;
+                z-index: 10;
+                font-size: 40px;
             }
             #debug_win {
                 position: absolute;
                 top: 20%;
                 left: 20%;
                 display: block;
+            }
+            @media(resolution >= 200dpi)
+            {
+              .button_bar {
+                font-size: 48px;
+              }
+              .right_col {
+                font-size: 48px;
+              }
+              .media_button {
+                font-size: 48px;
+              }
+              .media_button2 {
+                font-size: 48px;
+              }
+              .media_player {
+                font-size: 80px;
+              }
+              input {
+                font-size: 48px;
+              }
+              label {
+                font-size: 48px;
+              }
+              audio {
+                font-size: 48px;
+              }
             }
         </style>
         <link rel="stylesheet" type="text/css" href="catamap.css" />
@@ -175,13 +210,14 @@
         <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
       </div>
 
-      <div style="position: absolute; right: 1%; bottom: 70px">
+      <div style="position: absolute; right: 1%; bottom: 70px; width: 50%; z-index: 20">
 
-        <div id="explicit_controls" style="display: none">
-          <input type="range" id="elevation" min="-100" max="100" value="-20" orient="vertical" list="elevation_values">
+        <div id="explicit_controls" style="display: none; z-index: 20">
+<!--           <input type="range" id="elevation" min="-100" max="100" value="-20" orient="vertical" list="elevation_values"> -->
+          <input type="range" class="media_button" id="elevation" min="-100" max="100" value="-20" orient="vertical" style="z-index: 20; width: 70%">
           </input>
           <label for="elevation">Elevation</label>
-          <datalist id="elevation_values">
+<!--          <datalist id="elevation_values">
             <option value="-100" />
             <option value="-50" />
             <option value="-20" />
@@ -189,11 +225,11 @@
             <option value="20" />
             <option value="100" />
             <option value="50" />
-          </datalist>
+          </datalist>-->
         </div>
 
       </div>
-      <div id="controls_show" class="media_button" style="border-radius: 50%; font-size: 40px; position: absolute; right: 1%; bottom: 10px; width= 50px; height: 50px;">+</div>
+      <div id="controls_show" class="media_player" style="border-radius: 50%; position: absolute; right: 1%; bottom: 10px; width= 50px; height: 50px;">+</div>
 
       <script>
       // Registering Service Worker
@@ -439,10 +475,17 @@
 
         if( allow_private )
         {
-          document.getElementById( 'private_code_block' ).style.display = 'inline';
           var code = document.getElementById( 'private_code' ).value;
           console.log('code:', code);
           allow_private = check_private_code( code );
+          if( !allow_private )
+          {
+            document.getElementById( 'private_code_block' ).style.display = 'inline';
+          }
+          else
+          {
+            document.getElementById( 'private_code_block' ).style.display = 'none';
+          }
         }
         else
         {
@@ -476,6 +519,10 @@
         {
           reset_object_lists( allow_private );
           redraw_objects();
+        }
+        if( allow_private )
+        {
+            document.getElementById( 'private_code_block' ).style.display = 'none';
         }
     }
 
@@ -1656,30 +1703,25 @@
     function north_up()
     {
       console.log('set north up');
-      console.log('current quaternion:', camera.quaternion);
-      var quat = new THREE.Quaternion();
-      var dir = new THREE.Vector3( 0, 0, 1 );
-      // angle of current axis around x
-      var cur_dir = new THREE.Vector2( camera.quaternion.x,
-                                       camera.quaternion.y );
-      cur_dir.normalize();
-      var angle = Math.acos( cur_dir.x );
-      console.log('angle:', angle);
-      quat.setFromAxisAngle( dir, Math.PI - angle );
 
-//       quat.setFromAxisAngle( dir, Math.PI / 2);
-//       var angle = camera.quaternion.angleTo(quat);
-//       console.log('angle:', angle);
-//       quat.setFromAxisAngle( dir, Math.PI / 2 - angle );
-
-      quat.multiply( camera.quaternion );
-      camera.quaternion.set( quat.x, quat.y, quat.z, quat.w );
-
-//       var dir = new THREE.Vector3( camera.quaternion.x, camera.quaternion.y, camera.quaternion.z );
-//       dir.normalize();
-//       console.log('axis:', dir);
-//       camera.quaternion.setFromAxisAngle( dir, Math.PI);
-      render();
+      var cam_dir = new THREE.Vector3( 0., 0., 1. );
+      cam_dir.applyQuaternion( camera.quaternion );
+      if( cam_dir.z >= 0.99 || cam_dir.z <= -0.99 )
+      {
+        var dir = new THREE.Vector3( 0, 0, 1 );
+        camera.quaternion.setFromAxisAngle( dir, Math.PI);
+        render();
+      }
+      else
+      {
+        cam_dir.z = 0.;
+        cam_dir.normalize();
+        var angle = -Math.asin( cam_dir.x );
+        if( cam_dir.y < 0 )
+          angle = Math.PI - angle;
+        controls.rotateLeft( angle );
+        controls.update();
+      }
     }
 
     function set_map_2d_mode()
@@ -1689,6 +1731,42 @@
       camera.quaternion.setFromAxisAngle( dir, Math.PI);
       render();
     }
+
+
+    function elevation_changed( event )
+    {
+      event.stopPropagation();
+      // console.log('elevation:', event.target.value);
+      var cam_dir = new THREE.Vector3( 0., 0., 1. );
+      cam_dir.applyQuaternion( camera.quaternion );
+      cam_dir.normalize();
+      var angle = Math.asin( cam_dir.z );
+      var diff_angle = event.target.value * Math.PI / 200. - angle;
+
+      controls.rotateUp( diff_angle );
+      controls.update();
+      return true;
+    }
+
+
+    function camera_changed( event )
+    {
+      // console.log('cam changed:', event);
+      var cam_dir = new THREE.Vector3( 0., 0., 1. );
+      cam_dir.applyQuaternion( camera.quaternion );
+      cam_dir.normalize();
+      var angle = Math.round( Math.asin( cam_dir.z ) * 200 / Math.PI );
+      var elem = document.getElementById( 'elevation' );
+      if( elem.value != angle )
+          elem.value = angle;
+    }
+
+
+    camera_changed(0.);
+
+    document.getElementById( 'elevation' ).addEventListener(
+        'input',  elevation_changed, {capture: true} );
+    controls.addEventListener( 'change', camera_changed );
 
         </script>
 

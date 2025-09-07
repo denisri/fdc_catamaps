@@ -193,8 +193,9 @@ function OrbitControls( object, camera, domElement ) {
             quat.setFromAxisAngle( axis, -angle );
             quaternion.multiply( quat );
 	}
+	this.rotateLeft = rotateLeft;
 
-	function rotateUp ( angle )
+	function rotateUp( angle )
         {
 
             // camera x axis
@@ -206,6 +207,7 @@ function OrbitControls( object, camera, domElement ) {
 //           console.debug('rotateUp2 quat:', quat);
 
 	}
+	this.rotateUp = rotateUp;
 
 	var panLeft = function () {
 
@@ -289,9 +291,9 @@ function OrbitControls( object, camera, domElement ) {
             var z = scope.camera.position.z;
 	    var pm = scope.travel_speed_projection;
 	    // console.log('z:', z, ', dist factor:', ( Math.abs( scope.camera.position.x * pm[0] + scope.camera.position.x * pm[1] + scope.camera.position.z * pm[2] + pm[3] ) + pm[4] ) );
-	    return distance * speed_factor *
+	    return distance * scope.speed_factor *
 		    ( Math.abs( scope.camera.position.x * pm[0]
-				+ scope.camera.position.x * pm[1]
+				+ scope.camera.position.y * pm[1]
 				+ scope.camera.position.z * pm[2]
 				+ pm[3] )
 		      + pm[4] );
@@ -801,13 +803,13 @@ function OrbitControls( object, camera, domElement ) {
 
 		if ( scope.enabled === false ) return;
 
-                event.preventDefault();
+                // event.preventDefault();
 
-		speed_factor = 1.;
+		scope.speed_factor = 1.;
 		if( event.altKey == true )
-		    speed_factor = 0.1;
+		    scope.speed_factor = 0.1;
 		else if( event.shiftKey == true )
-		    speed_factor = 5.;
+		    scope.speed_factor = 5.;
 
 		switch ( event.button ) {
 
@@ -883,7 +885,7 @@ function OrbitControls( object, camera, domElement ) {
 		console.log("Double click");
 		if ( scope.enabled === false ) return;
 
-                event.preventDefault();
+                // event.preventDefault();
 
 		if ( scope.enableRotate === false ) return;
 
@@ -906,7 +908,7 @@ function OrbitControls( object, camera, domElement ) {
 
 		if ( scope.enabled === false ) return;
 
-		event.preventDefault();
+		// event.preventDefault();
 
 		switch ( state ) {
 
@@ -973,7 +975,7 @@ function OrbitControls( object, camera, domElement ) {
 
 		if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
 
-		event.preventDefault();
+		// event.preventDefault();
 		event.stopPropagation();
 
 		handleMouseWheel( event );
@@ -1003,7 +1005,7 @@ function OrbitControls( object, camera, domElement ) {
 		switch ( event.touches.length ) {
 
 			case 1:	// one-fingered touch: rotate
-
+				scope.speed_factor = 0.3;
 				if ( scope.enableZoom === false ) return;
 
 				if( scope.mode_2d == true )
