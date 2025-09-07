@@ -109,12 +109,12 @@
 
 <div class="viewcode-block" id="aims">
 <a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims">[docs]</a>
-    <span class="k">class</span><span class="w"> </span><span class="nc">aims</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">aims</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39; Fake aims-lite module &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="aims.vector">
 <a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.aims.vector">[docs]</a>
-        <span class="k">class</span><span class="w"> </span><span class="nc">vector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">vector</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Fixed size vector &#39;&#39;&#39;</span>
 
             <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
@@ -148,7 +148,7 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec</span></div>
 
 
-        <span class="k">class</span><span class="w"> </span><span class="nc">_AimsTimeSurface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">_AimsTimeSurface</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&#39;&#39;&#39; Mesh structure &#39;&#39;&#39;</span>
 
             <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
@@ -194,7 +194,7 @@
 
 <div class="viewcode-block" id="SvgToMesh">
 <a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SvgToMesh</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SvgToMesh</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39; Read SVG, transforms things into meshes</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
@@ -309,6 +309,21 @@
             <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">0.062500</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;unknown unit </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">todo</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">(),</span> <span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">SvgToMesh</span><span class="o">.</span><span class="n">is_layer</span><span class="p">(</span><span class="n">item</span><span class="p">)]</span>
+        <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+                <span class="n">todo</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="n">child</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">item</span>
+                         <span class="k">if</span> <span class="n">SvgToMesh</span><span class="o">.</span><span class="n">is_layer</span><span class="p">(</span><span class="n">child</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">parent</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">elem</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">item</span>
 
 <div class="viewcode-block" id="SvgToMesh.document_scale">
 <a class="viewcode-back" href="../../index.html#catamap.svg_to_mesh.SvgToMesh.document_scale">[docs]</a>
