@@ -1545,6 +1545,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # keep track of each individual symbol position, size and type
         # since meshes may be concatenated)
         self.symbols = {}
+        self.build_depth = True
 
         if headless:
             try:
@@ -2032,10 +2033,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                   4.]
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
-        for mesh_id, ws_model in self.water_scale_model.items():
+        first = True
+        for mesh_id_m, ws_model in self.water_scale_model.items():
+            if first:
+                mesh_id = self.main_group
+                first = False
+            else:
+                mesh_id = self.main_group + '_' + mesh_id_m
             ws_mesh = aims.AimsTimeSurface(ws_model)
             aims.SurfaceManip.meshTransform(ws_mesh, tr)
             mesh = self.mesh_dict.setdefault(mesh_id, type(ws_mesh)())
+
             if len(mesh.header()) == 0:
                 mesh.header().update(ws_model.header())
                 self.group_properties[mesh_id] = props
@@ -2911,6 +2919,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.depth_meshes = {}
         self.depth_wins = {}
 
+        if not self.build_depth:
+            return
+
         todo = list(self.depth_meshes_def.items())
         while todo:
             level, mesh_def = todo.pop(0)
@@ -2947,6 +2958,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def get_depth(self, pos, view, object_win_size=(8., 8.), verbose=False):
         if view is None:
+            if not self.build_depth:
+                return 0.
             # surface map
             return self.ground_altitude(pos)
         pt = aims.Point3df()
@@ -3211,7 +3224,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def build_wells_with_depths(self, meshes):
 
-        views = {level: win.view() for level, win in self.depth_wins.items()}
+        if self.build_depth:
+            views = {level: win.view()
+                     for level, win in self.depth_wins.items()}
+        else:
+            views = {}
 
         for main_group in list(meshes.keys()):
             specs = meshes[main_group]
@@ -3579,7 +3596,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=False)
+        self.attach_arrows_to_text(meshes, with_squares=True)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3607,27 +3624,29 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.group_properties['grille surface'] = props
 
         # apply depths to corridors
-        self.apply_depths(meshes)
+        if self.build_depth:
+            self.apply_depths(meshes)
 
         # build wells with inf/sup depths
         self.build_wells_with_depths(meshes)
 
         # apply real depths to arrows
-        for main_group in list(meshes.keys()):
-            props = self.group_properties.get(main_group)
-            if not props or not props.arrow:
-                continue
-            mesh_l = meshes.get(main_group)
-            if not mesh_l:
-                continue
-            if not isinstance(mesh_l, list):
-                mesh_l = [mesh_l]
-            for mesh in mesh_l:
-                self.apply_arrow_depth(mesh, props)
-                if 'material' not in mesh.header():
-                    mesh.header()['material'] \
-                        = {'diffuse': [1., 0.5, 0., 1.]}
-                mesh.header()['material']['line_width'] = 2.
+        if self.build_depth:
+            for main_group in list(meshes.keys()):
+                props = self.group_properties.get(main_group)
+                if not props or not props.arrow:
+                    continue
+                mesh_l = meshes.get(main_group)
+                if not mesh_l:
+                    continue
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    self.apply_arrow_depth(mesh, props)
+                    if 'material' not in mesh.header():
+                        mesh.header()['material'] \
+                            = {'diffuse': [1., 0.5, 0., 1.]}
+                    mesh.header()['material']['line_width'] = 2.
 
         # travel speed factor
         self.setup_travel_speed()
@@ -3842,8 +3861,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         # print('MAP extrude:', height_map)
 
-        win = self.depth_wins.get(height_map)
-        view = win.view()
+        if self.build_depth:
+            win = self.depth_wins.get(height_map)
+            view = win.view()
+        else:
+            view = None
 
         up = aims.AimsTimeSurface(mesh)
         object_win_size = (2., 2.)
@@ -3881,7 +3903,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return up, walls
 
     def attach_arrows_to_text(self, meshes, with_squares=True):
-        # print('*** attach_arrows_to_text ***')
+        print('*** attach_arrows_to_text ***')
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
@@ -3946,26 +3968,29 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         text_min = None
         inside_text = False
         point = mesh.vertex()[0][:2]
-        debug = False
-        if point[0] >= 17 and point[0] < 18 and point[1] >= -478 and point[1] < -477:
-            debug = True
+        debug = 0
+        #if point[0] >= 924 and point[0] < 925 and point[1] >= 322 and point[1] < 323:
+            #debug = 2
         if debug:
-            print('find_text_for_arrow', mesh, point)
+            print('find_text_for_arrow', mesh, point, 'in layers:', in_layers)
         for mtype, mesh_items in meshes.items():
             if in_layers is not None:
                 mprops = self.group_properties.get(mtype)
                 if mprops.name not in in_layers:
-                    #print('find_text_for_arrow skipping layer',
-                            #mprops.name)
+                    if debug:
+                        print('find_text_for_arrow skipping layer',
+                              mprops.name)
                     continue
             elif not mtype.endswith('_text'):
+                if debug >= 2: print('skip non-text type:', mtype)
                 continue
 
+            if debug >= 2: print('look in type:', mtype)
             if mtype.endswith('_text'):
-                if debug:
+                if debug >= 3:
                     print(mtype, ' text:', len(mesh_items['objects']))
                 for text in mesh_items['objects']:
-                    if debug:
+                    if debug >= 3:
                         print('text:', text)
                     props = text['properties']
                     #if debug:
@@ -3991,7 +4016,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             dy = size[1] / nlines * (nlines - 1)
                             pos = [pos[0], pos[1] + dy]
                             # print('text:', text_str, ', dy:', dy)
-                    if debug:
+                    if debug >= 3:
                         print('pos:', pos, ', size:', size)
                     # distances to each segment
                     x0 = pos[0] - size[0] / 2
@@ -4013,8 +4038,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     d = d0 * d0 + d1 * d1
                     if d == 0:
                         # inside rect
-                        if debug:
-                            print('inside')
+                        if debug >= 1:
+                            print('inside', text, ', pos:', pos, 'size:', size)
                         d0 = point[0] - pos[0]
                         d1 = point[1] - pos[1]
                         d = d0 * d0 + d1 * d1
@@ -4026,7 +4051,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if dmin < 0 or d < dmin:
                         dmin = d
                         text_min = text
-                        if debug:
+                        if debug >= 2:
                             print('min!:', dmin)
                     if d == 0:
                         # found a good match, skip other tests
@@ -4039,61 +4064,64 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 # not a text layer
                 props = self.group_properties[mtype]
                 sym_desc = None
+                if debug >= 2:
+                    print('look symbols:', mtype, ', symbol:', props.symbol)
                 if props.symbol:
                     # symbols are described in a list of dicts
                     sym_desc = self.symbols.get(mtype)
                     if sym_desc is not None:
-                        if debug:
+                        if debug >= 2:
                             print('look symbols:', mtype, ', meshes:', len(sym_desc))
-                    # mim = 0
-                    dmin0 = -1
-                    found = False
-                    for sd in sym_desc:
-                        if debug:
-                            print('try symbol', sd['center'], sd['type'])
-                        bbox = sd['bbox']
-                        v = np.array(bbox + [(bbox[0][0], bbox[1][1]),
-                                             (bbox[1][0], bbox[0][1])])
-                        d = np.sum((v - point) ** 2, axis=1)
-                        mi = np.argmin(d)
-                        if debug: print('dmin:', d[mi])
-                        if dmin0 < 0 or dmin0 > d[mi]:
-                            dmin0 = d[mi]
-                            if debug: print('min')
-                            if dmin < 0 or dmin0 < dmin:
-                                found = True
-                                # mim = mi
-                                bb = bbox
-                                if debug: print('found:', bb)
+                        # mim = 0
+                        dmin0 = -1
+                        found = False
+                        for sd in sym_desc:
+                            if debug >= 2:
+                                print('try symbol', sd['center'], sd['type'])
+                            bbox = sd['bbox']
+                            v = np.array(bbox + [(bbox[0][0], bbox[1][1]),
+                                                 (bbox[1][0], bbox[0][1])])
+                            d = np.sum((v - point) ** 2, axis=1)
+                            mi = np.argmin(d)
+                            if debug >= 3: print('dmin:', d[mi])
+                            if dmin0 < 0 or dmin0 > d[mi]:
+                                dmin0 = d[mi]
+                                if debug >= 2: print('min')
+                                if dmin < 0 or dmin0 < dmin:
+                                    found = True
+                                    # mim = mi
+                                    bb = bbox
+                                    if debug >= 1: print('found:', bb)
 
-                if sym_desc is None:
+                if sym_desc is None and not props.symbol:
                     # meshes
                     mlist = mesh_items
                     if not isinstance(mlist, list):
                         mlist = [mlist]
-                    if debug:
+                    if debug >= 2:
                         print('look in non-text:', mtype, ', meshes:', len(mlist))
                     # mim = 0
                     dmin0 = -1
                     bb = [(0, 0), (0, 0)]
                     found = False
                     for m in mlist:
-                        if debug:
+                        if debug >= 3:
                             print('try mesh', m.vertex().size(), m.vertex()[0].np)
                         d = np.sum((m.vertex().np[:, :2] - point) ** 2, axis=1)
                         mi = np.argmin(d)
-                        if debug: print('dmin:', d[mi])
+                        if debug >= 3: print('dmin:', d[mi])
                         if dmin0 < 0 or dmin0 > d[mi]:
                             dmin0 = d[mi]
-                            if debug: print('min')
+                            if debug >= 2: print('min')
                             if dmin < 0 or dmin0 < dmin:
                                 found = True
                                 # mim = mi
                                 bb = [(np.min(m.vertex().np[:, 0]),
-                                    np.min(m.vertex().np[:, 1])),
-                                    (np.max(m.vertex().np[:, 0]),
-                                    np.max(m.vertex().np[:, 1]))]
-                                if debug: print('found:', bb)
+                                       np.min(m.vertex().np[:, 1])),
+                                      (np.max(m.vertex().np[:, 0]),
+                                       np.max(m.vertex().np[:, 1]))]
+                                if debug >= 1:
+                                    print('found:', bb, ', dmin:', dmin)
 
                 if found:
                     dmin = dmin0
@@ -4170,6 +4198,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return
         self.main_group = 'ossuaire_model'
         skmesh_l = aims.AimsTimeSurface_2()
+        skmesh_l.header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
         for child in skproto['element']:
             aims.SurfaceManip.meshMerge(
                 skmesh_l, self.read_path(child,
@@ -4390,8 +4419,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         mat = quadrant_c.header().get('material', {})
         mat['diffuse'] = [1., 1., 0.8, 1.]
         quadrant_c.header()['material'] = mat
-
-        aims.write(quadrant, '/tmp/quadrant.mesh')
 
         return quadrant
 
@@ -6979,7 +7006,10 @@ The program allows to produce:
         'SVG file. By default it is disabled for now.')
     parser.add_argument(
         '--MapId',
-        help='insert hide number to identy the map')
+        help='insert hidden number to identy the map')
+    parser.add_argument(
+        '--nodepth', action='store_true',
+        help='do not build 3D depth maps and don\'t apply them')
 
     options = parser.parse_args()
 
@@ -7028,6 +7058,7 @@ The program allows to produce:
     clip_rect = options.clip
     if options.MapId:
         MapId = options.MapId
+    build_depth = not options.nodepth
 
     # print(options)
 
@@ -7041,6 +7072,7 @@ The program allows to produce:
     if do_3d:
         svg_mesh = CataSvgToMesh()
         svg_mesh.enable_texturing = texturing
+        svg_mesh.build_depth = build_depth
     else:
         svg_mesh = CataMapTo2DMap()
     # svg_mesh.debug = True
