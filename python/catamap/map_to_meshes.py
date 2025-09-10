@@ -961,7 +961,6 @@ class ItemProperties(object):
                     visibility.remove('private')
                     if len(visibility) == 0:
                         visibility = None
-                    print('PRIVATE in visibility. Left:', visibility)
                 self.visibility = visibility
 
             non_visibility = element.get('non_visibility')
@@ -1014,7 +1013,7 @@ class ItemProperties(object):
                 self.contrast_floor = contrast_floor
 
             if element.tag == 'text' or element.tag.endswith('text'):
-                self.text =  True
+                self.text = True
 
             # label suffixes are an old, ambiguous, system. We must disable it
             # in some cases
@@ -1022,8 +1021,9 @@ class ItemProperties(object):
             if self.depth_map:
                 use_suffix = False
 
-            label, props = self.get_label(element, get_props=True,
-                                          use_suffix=use_suffix)
+            label, props2 = self.get_label(element, get_props=True,
+                                           use_suffix=use_suffix)
+            props = props2
             if label and props:
                 # properties as layer name suffixes
                 for prop, value in props.items():
@@ -3596,7 +3596,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=True)
+        self.attach_arrows_to_text(meshes, with_squares=False)
 
         # get ground altitude map
         #self.load_ground_altitude(
@@ -3609,13 +3609,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.load_ground_altitude_bdalti(bdalti_map)
 
         # make depth maps
-        for level, mesh_def in self.depth_meshes_def.items():
-            mesh, props = mesh_def
-            if mesh is not None:
-                if props.relative_to == self.ground_level:
-                    print('add ground alt on:', level)
-                    self.add_ground_alt(mesh)
-                self.delaunay(mesh)
+        if self.build_depth:
+            for level, mesh_def in self.depth_meshes_def.items():
+                mesh, props = mesh_def
+                if mesh is not None:
+                    if props.relative_to == self.ground_level:
+                        print('add ground alt on:', level)
+                        self.add_ground_alt(mesh)
+                    self.delaunay(mesh)
 
         meshes['grille surface'] = self.build_ground_grid()
         props = ItemProperties()
@@ -3786,9 +3787,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     props = mpos[0][4]
                     hshift = pos[2]
                     level = pos[3]
-                    win = self.depth_wins[level]
-                    z = self.get_depth(pos[:2] + [0.], win.view(),
-                                       object_win_size)
+                    if self.build_depth:
+                        view = self.depth_wins[level].view()
+                    else:
+                        view = None
+                    z = self.get_depth(pos[:2] + [0.], view, object_win_size)
                     if z is None:
                         print('failed to get depth for:', mtype, pos, level)
                         z = 0.
@@ -3801,9 +3804,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     hshift = pos[2]
                     # radius = mpos[0][4]
                     level = pos[3]
-                    win = self.depth_wins[level]
-                    z = self.get_depth(pos[:2] + [0.], win.view(),
-                                       object_win_size)
+                    if self.build_depth:
+                        view = self.depth_wins[level].view()
+                    else:
+                        view = None
+                    z = self.get_depth(pos[:2] + [0.], view, object_win_size)
                     if z is None:
                         print('failed to get depth for:', mtype, pos, level)
                         z = 0.
@@ -3969,8 +3974,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         inside_text = False
         point = mesh.vertex()[0][:2]
         debug = 0
-        #if point[0] >= 924 and point[0] < 925 and point[1] >= 322 and point[1] < 323:
-            #debug = 2
+        #if point[0] >= 747 and point[0] < 748 and point[1] >= 470 and point[1] < 471:
+            #debug = 3
         if debug:
             print('find_text_for_arrow', mesh, point, 'in layers:', in_layers)
         for mtype, mesh_items in meshes.items():
@@ -3987,7 +3992,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
             if debug >= 2: print('look in type:', mtype)
             if mtype.endswith('_text'):
-                if debug >= 3:
+                if debug >= 2:
                     print(mtype, ' text:', len(mesh_items['objects']))
                 for text in mesh_items['objects']:
                     if debug >= 3:
