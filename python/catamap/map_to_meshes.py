@@ -4198,11 +4198,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return
         self.main_group = 'ossuaire_model'
         skmesh_l = aims.AimsTimeSurface_2()
-        skmesh_l.header()['material'] = {'diffuse': [0.9, 0.9, 0.9, 1.]}
         for child in skproto['element']:
             aims.SurfaceManip.meshMerge(
                 skmesh_l, self.read_path(child,
                                          self.proto_scale * skproto['trans']))
+        skmesh_l.header()['material'] = {'diffuse': [0.94, 0.94, 0.9, 1.],
+                                         'border_color': [0.4, 0.4, 0.3, 1.]}
         skmesh_up_l, skmesh_w = self.extrude(skmesh_l, 0.7)
         skmesh_bk = self.tesselate(skmesh_l)
         skmesh_up = self.tesselate(skmesh_up_l)
