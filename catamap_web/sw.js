@@ -15,18 +15,14 @@ const appShellFiles = [
   my_path + '/help.html',
   my_path + '/index.html',
   my_path + '/map_objects.json',
-//   my_path + '/compass/',
   my_path + '/jquery.js',
-//   my_path + '/meshes_obj/',
   my_path + '/OrbitControls2.js',
   my_path + '/catamap_icon.png',
   my_path + '/catamap_webmanifest.json',
-//   my_path + '/screenshots/',
   my_path + '/screenshots/fdc_13_wide.webp',
   my_path + '/screenshots/fdc_13_narrow.webp',
-//   my_path + '/photos/',
-//   my_path + '/sounds/',
-//   par_path + 'three/',
+  my_path + '/css/fonts/LMSansUltraCond10-Regular.ttf',
+  my_path + '/css/fonts/VoieVerteFDC.ttf',
 ];
 
 
@@ -82,14 +78,14 @@ function install_callback(e)
 
       const cache = await caches.open(cacheName);
       console.log('[Service Worker] Caching all: app shell and content');
-      await cache.addAll(contentToCache);
+//       await cache.addAll(contentToCache);
 
       // to debug missing files
-//       const stack = [];
-//       contentToCache.forEach(file => stack.push(
-//           cache.add(file).catch(_=>console.error(`can't load ${file} to cache`))
-//       ));
-//       return Promise.all(stack);
+      const stack = [];
+      contentToCache.forEach(file => stack.push(
+          cache.add(file).catch(_=>console.error(`can't load ${file} to cache`))
+      ));
+      return Promise.all(stack);
 
     })());
 }

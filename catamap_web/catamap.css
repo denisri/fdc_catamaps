@@ -1,11 +1,11 @@
 @font-face {
   font-family: "LMSansUltraCond10";
-  srs: url("../../css/fonts/LMSansUltraCond10-Regular.ttf") format("truetype");
+  srs: url("css/fonts/LMSansUltraCond10-Regular.ttf") format("truetype");
 }
 
 @font-face {
   font-family: "VoieVerteFDC";
-  src: url("../../css/fonts/VoieVerteFDC.ttf") format("truetype");
+  src: url("css/fonts/VoieVerteFDC.ttf") format("truetype");
 /*  font-weight: normal;
   font-style: normal;*/
 }
