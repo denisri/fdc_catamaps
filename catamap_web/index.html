@@ -1870,6 +1870,7 @@
             <button id="media_prev" class="media_button" style="display: inline; position: absolute; top: 45%; left: 2%; z-index: 20; border-radius: 50%">&lt;</button>
             <button id="media_text" class="media_button2" style="display: inline; position: absolute; bottom: 2%; left: 30%; width: 40%; text-align: center; border-radius: 20%">BB</button>
             <button id="media_next" class="media_button" style="display: inline; position: absolute; top: 45%; right: 2%; z-index: 20; border-radius: 50%">&gt;</button>
+            <button id="media_date" class="media_button2" style="display:inline; position: absolute; bottom: 2%; left: 2%; width: 26%; text-align: center; border-radius: 10%"></button>
         </fieldset>
 
         <script>
@@ -1893,6 +1894,20 @@
               media.large = false;
               media.photos = photo_files;
               display_photo( 0 );
+            }
+
+            function fetchLastModified(url, callback)
+            {
+              fetch(url, {method: "HEAD"})
+                .then(r => {
+                  callback(new Date(r.headers.get('Last-Modified')))});
+            }
+
+            function display_photo_date(date)
+            {
+              console.log('photo date:', date);
+              document.getElementById( 'media_date' ).innerHTML = date.toLocaleDateString();
+              document.getElementById( 'media_date' ).style.display = 'inline';
             }
 
             function display_photo( num )
@@ -1962,6 +1977,9 @@
               parent.appendChild( photo );
 
               document.getElementById( 'media_text' ).innerHTML = (num + 1) + ' / ' + photo_files.length;
+
+              document.getElementById( 'media_date' ).style.display = 'none';
+              fetchLastModified( photo_files[num][0], display_photo_date );
             }
 
             function prev_media_clicked()
