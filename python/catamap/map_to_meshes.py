@@ -4008,9 +4008,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         tprops = tobj['properties']
                     anchor = tprops.get('text-anchor')
                     size = props.get('size', [0., 0.])
-                    if size == [0., 0.]:
-                        print('text with no size in group', mtype, ':')
-                        print(props)
+                    # if size == [0., 0.]:
+                        # print('text with no size in group', mtype, ':')
+                        # print(props)
                     if anchor != 'middle':
                         pos = [pos[0] + size[0] / 2, pos[1]]
                     text_str = tprops.get('text')
@@ -5918,12 +5918,16 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     colorset_inheritance = json.loads(colorset_inheritance)
                     self.colorset_inheritance = colorset_inheritance
 
+        # print('RECOLOR:', colorset)
+        # print('colorset_inheritance:', colorset_inheritance)
+        # print('colors:', colors)
+
         for layer in xml.getroot():
             props = ItemProperties()
             props.fill_properties(layer)
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
-            print('recolor', label)
+            # print('recolor', label)
 
             todo = [(x, [props]) for x in layer]
             while todo:
@@ -5972,6 +5976,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     for k, style_item in corridor_colors.items():
                         if k not in ('fg', 'bg'):
                             style[k] = style_item
+                debug = False
 
         # recolor legend items
         if legend_layer:
