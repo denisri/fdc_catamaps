@@ -222,13 +222,13 @@
         <audio controls id="audio_player" style="display: none; margin-left: auto; margin-right: auto; bottom: 2%; z-index: 20;"/>
       </div>
 
-      <div style="position: absolute; right: 1%; bottom: 70px; width: 50%; z-index: 20">
+      <div style="position: absolute; right: 1%; bottom: 70px; width: 80%; z-index: 20">
 
         <div id="explicit_controls" style="display: none; z-index: 20">
 <!--           <input type="range" id="elevation" min="-100" max="100" value="-20" orient="vertical" list="elevation_values"> -->
           <input type="range" class="media_button" id="elevation" min="-100" max="100" value="-20" orient="vertical" style="z-index: 20; width: 70%">
           </input>
-          <label for="elevation">Elevation</label>
+          <label for="elevation">Inclinaison</label>
 <!--          <datalist id="elevation_values">
             <option value="-100" />
             <option value="-50" />
@@ -1004,6 +1004,7 @@
                             if ( child instanceof THREE.LineSegments )
                             {
                                 child.material.lights = false;
+                                child.material.linewidth = 2.;
                             }
                         })
 
@@ -1202,11 +1203,12 @@
                               const hratio = 1.5;
                               var m;
                               var tpos2 = [tpos[0] * tscale / scale, tpos[1] * tscale / scale];
-//                               if( lines[0] == 'AVENUE KLEBER' )
+//                               if( lines[0] == 'station' && lines[1] == "denfert-rochereau")
 //                               {
 //                                 debug = true;
 //                                 console.log('text:', text);
 //                                 console.log('fsize:', fsize);
+//                                 console.log('ffamily:', ffamily);
 //                               }
                               for( i=0; i!=lines.length; i++ )
                               {
@@ -1374,7 +1376,7 @@
                               }
                               var hratio = 1.5;
                               if( debug )
-                                console.log('text2:', text, ', w:', w, ', font:', fsize, ', col:', fillcol, '/', strokecol);
+                                console.log('text2:', text, ', w:', w, ', font:', fsize, ', col:', fillcol, '/', strokecol, ', family:', ffamily);
                               g.fillStyle = fillcol;
                               strokeTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + 5, hratio, centered );
                               g.strokeStyle = strokecol;
