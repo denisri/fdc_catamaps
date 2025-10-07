@@ -1,6 +1,6 @@
 @font-face {
   font-family: "LMSansUltraCond10";
-  srs: url("css/fonts/LMSansUltraCond10-Regular.ttf") format("truetype");
+  src: url("css/fonts/LMSansUltraCond10-Regular.ttf") format("truetype");
 }
 
 @font-face {
