@@ -1571,7 +1571,7 @@ class SvgToMesh:
                     self.main_group = child.get('id')
                 if self.is_layer(child):
                     if child.get('text') == 'true':
-                        print('text layer')
+                        # print('text layer')
                         # text layer: prepare special "mesh" object
                         tgroup = self.main_group
                         if not tgroup.endswith('_text'):
@@ -1720,6 +1720,11 @@ class SvgToMesh:
                 p0 = np.array(((pos[0], pos[1], 1.),)).T
                 pos = list(np.array(trans.dot(p0)).ravel()[:2])
         trobj_props = {'position': [pos[0], pos[1], 4.]}  # 4 is arbitrary
+        if trans is not None:
+            # trans2 = np.matrix(trans, copy=True)
+            # trans2[:2, 2] -= np.array([pos[:2]]).T
+            if not np.all(trans != np.eye(3)):
+                trobj_props['transform'] = trans.tolist()
         props['properties'] = trobj_props
         g = self.mesh_dict.setdefault(tgroup, {'object_type': 'List',
                                                'objects': []})

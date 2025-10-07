@@ -939,8 +939,8 @@ class ItemProperties(object):
                          'category', 'well_read_mode', 'grid_interval',
                          'marker', 'use_height_map', 'attached_text_layers'):
                 value = element.get(prop)
-                if prop == 'attached_text_layers' and value is not None:
-                    print('attached_text_layers for', eid, ':', value)
+                # if prop == 'attached_text_layers' and value is not None:
+                    # print('attached_text_layers for', eid, ':', value)
                 if value is not None:
                     setattr(self, prop,
                             ItemProperties.get_typed_prop(prop, value))
@@ -3929,7 +3929,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if text_o:
                         props = text_o['properties']
                         is_text = (props.get('type') != 'mesh')  # text
-                        if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
+                        # if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
                         pos = props['position']
                         vert = mesh.vertex()
                         size = props['size']
@@ -3995,12 +3995,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if debug >= 2:
                     print(mtype, ' text:', len(mesh_items['objects']))
                 for text in mesh_items['objects']:
+                    #if text.get('objects', [{}])[0].get('properties', {}).get('text', '') == 'AVENUE DU NORD' and not getattr(self, '_mydebug', False):
+                        #debug = 3
+                        #self._mydebug = True
+                    #else:
+                        #debug = 0
+                        #if getattr(self, '_mydebug', False):
+                            #raise RuntimeError('stop here')
                     if debug >= 3:
                         print('text:', text)
                     props = text['properties']
                     #if debug:
                         #print('props:', props)
                     pos = props.get('position')
+                    trans = props.get('transform')
+                    if trans is not None:
+                        trans = np.matrix(trans)
+                        trans[:2, 2] = 0  # local without tranlation
                     anchor = None
                     tprops = {}
                     if len(text['objects']) != 0:
@@ -4024,20 +4035,34 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if debug >= 3:
                         print('pos:', pos, ', size:', size)
                     # distances to each segment
-                    x0 = pos[0] - size[0] / 2
-                    x1 = pos[0] + size[0] / 2
-                    y0 = pos[1] - size[1]  # / 2
-                    y1 = pos[1]  # + size[1] / 2
-                    if point[0] < x0:
-                        d0 = x0 - point[0]
-                    elif point[0] > x1:
-                        d0 = point[0] - x1
+                    #x0 = pos[0] - size[0] / 2
+                    #x1 = pos[0] + size[0] / 2
+                    #y0 = pos[1] - size[1]  # / 2
+                    #y1 = pos[1]  # + size[1] / 2
+                    x0 = - size[0] / 2
+                    x1 = size[0] / 2
+                    y0 = - size[1]  # / 2
+                    y1 = 0  # + size[1] / 2
+                    locpoint = np.array(point + [1.])
+                    locpoint[:2] -= pos[:2]
+                    if trans is not None:
+                        # transform point in local coords of text
+                        itrans = np.linalg.inv(trans)
+                        locpoint = np.array(itrans.dot(locpoint))[0]
+                    # print('trans:', trans)
+                    # print('itrans:', itrans)
+                    # print('locpoint:', locpoint)
+                    # print('pos:', pos, 'point:', point)
+                    if locpoint[0] < x0:
+                        d0 = x0 - locpoint[0]
+                    elif locpoint[0] > x1:
+                        d0 = locpoint[0] - x1
                     else:
                         d0 = 0
-                    if point[1] < y0:
-                        d1 = y0 - point[1]
-                    elif point[1] > y1:
-                        d1 = point[1] - y1
+                    if locpoint[1] < y0:
+                        d1 = y0 - locpoint[1]
+                    elif locpoint[1] > y1:
+                        d1 = locpoint[1] - y1
                     else:
                         d1 = 0
                     d = d0 * d0 + d1 * d1
@@ -4045,8 +4070,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # inside rect
                         if debug >= 1:
                             print('inside', text, ', pos:', pos, 'size:', size)
-                        d0 = point[0] - pos[0]
-                        d1 = point[1] - pos[1]
+                        #d0 = point[0] - pos[0]
+                        #d1 = point[1] - pos[1]
+                        d0 = locpoint[0]
+                        d1 = locpoint[1]
                         d = d0 * d0 + d1 * d1
                         if not inside_text:
                             inside_text = True
@@ -4481,10 +4508,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_sounds_marker_model(self):
         scale = self.symbol_scale
         mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5 * scale),
-                                               0.5 * scale, 80)
+                                               0.4 * scale, 80)
         cone = aims.SurfaceGenerator.cone((0, 0, 2.5 * scale),
                                           (1.3 * scale, 0., 2.7 * scale),
-                                          0.5 * scale, 12,
+                                          0.4 * scale, 12,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [.8, 0.6, 0., 1.]}
@@ -4493,9 +4520,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     def make_photos_marker_model(self):
         scale = self.symbol_scale
         mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5 * scale),
-                                               0.5 * scale, 80)
-        cone = aims.SurfaceGenerator.cone((0, 0, scale),
-                                          (0, 0, 2.5 * scale), 0.15 * scale, 6,
+                                               0.4 * scale, 80)
+        cone = aims.SurfaceGenerator.cone((0., 0., 0.),
+                                          (0, 0, 2.5 * scale), 0.13 * scale, 6,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
         mesh.header()['material'] = {'diffuse': [1., 0., 0., 1.]}
@@ -6091,40 +6118,42 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
             'igc': {
                 'name': 'igc',
-                'filters': ['igc'],
+                'filters': col_filter + ['igc'],
                 'shadows': True,
                 'do_pdf': False,
             },
             'igc_private': {
                 'name': 'igc_private',
-                'filters': ['igc_private'],
+                'filters': col_filter + ['igc_private'],
                 'shadows': True,
                 'do_pdf': False,
             },
             'igcportail': {
                 'name': 'igcportail',
-                'filters': ['igc_private', 'remove_igc'],
+                'filters': col_filter + ['igc_private', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_txt': {
                 'name': 'igcportail_txt',
-                'filters': ['igc_private', 'remove_igc', 'shadow_text'],
+                'filters': col_filter + ['igc_private', 'remove_igc',
+                                         'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_legend': {
                 'name': 'igcportail_legend',
-                'filters': ['igc_private', 'remove_igc', 'shadow_text'],
+                'filters': col_filter + ['igc_private', 'remove_igc',
+                                         'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_tech': {
                 'name': 'igcportail_tech',
-                'filters': ['igc_private', 'remove_igc'],
+                'filters': col_filter + ['igc_private', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
