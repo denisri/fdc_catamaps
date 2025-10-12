@@ -1866,7 +1866,7 @@ class SvgToMesh:
             from soma.qt_gui.qt_backend import QtGui, QtCore
 
             if QtCore.QCoreApplication.instance() is None:
-                qapp = QtGui.QtGuiApplication([])
+                qapp = QtGui.QGuiApplication([])
 
             line_height = 1.1
             ffamily = text_obj.get('font_family')
