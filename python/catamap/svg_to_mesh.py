@@ -1886,8 +1886,6 @@ class SvgToMesh:
                 qapp = QtGui.QGuiApplication([])
 
             line_height = text_obj.get('line_height', 1.)
-            if line_height != 1.:
-                print('line_height:', line_height, text)
             ffamily = text_obj.get('font_family')
             if ffamily is None:
                 ffamily = QtGui.QFont().family()
