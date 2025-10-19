@@ -174,6 +174,7 @@ class SvgToMesh:
         }
         self.enable_texturing = False
         self.priority_layers = ['metadata', 'defs']
+        self.font_substitutions = {'LMSansUltraCond10': 'Univers LT Std'}
 
     @staticmethod
     def get_style(xml_elem):
@@ -1649,37 +1650,46 @@ class SvgToMesh:
                 pos = (0., 0.)
         else:
             pos = (float(child.get('x')), float(child.get('y')))
-        # text x,y are the middle of the text, if text-anchor is "middle"
-        text_anchor = text_desc['properties'].get('text-anchor')
-        #if text_anchor != 'middle':
-            ## doesn' work since the text hasn't been read, thus w is 0.
-            #w, h = self.text_size(text_desc)
-            #print('anchor left:', pos, w, h, ':', text, ':', text_desc)
-            #pos = (pos[0] + w / 2, pos[1])
+        # trans = self.get_transform(child, trans)
         if trans is not None:
             p0 = np.array(((pos[0], pos[1], 1.),)).T
             pos = list(np.array(trans.dot(p0)).ravel()[:2])
         gpos = current_text_o['properties']['position']
         rpos = [pos[0] - gpos[0], pos[1] - gpos[1]]
-        #if rpos[0] > 500:
-            #print('large rel pos for text:', rpos)
-            #print('gpos:', gpos)
-            #print('pos:', pos)
-            #print('text:', [c.text for c in child[:]])
-            #print('trans:', trans)
-            #raise ValueError('bad')
         text_desc['properties']['position'] = rpos
+        text_desc['properties']['local_pos_transformed'] = False
         self.update_text_group_size(current_text_o, text_desc)
 
     def update_text_group_size(self, current_text_o, text_desc):
-        size = self.text_size(text_desc)
+        size, anchor = self.text_size(text_desc)
         rpos = text_desc['properties']['position']
-        hsize = [size[0] / 2, size[1] / 2]
-        bbox = [rpos[0] + hsize[0], rpos[1] + hsize[1]]
+        # go to local box referential (with rotation)
+        if not text_desc['properties'].get('local_pos_transformed', True):
+            trans = current_text_o['properties'].get('transform')
+            if trans is not None:
+                trans = np.matrix(trans)
+                trans[:2, 2] = 0  # local without tranlation
+                itrans = np.linalg.inv(trans)
+                locpoint = np.array(rpos + [1.])
+                rpos = np.array(itrans.dot(locpoint))[0][:2]
+                # update rpos in text_desc
+                text_desc['properties']['position'] = rpos.tolist()
+            # now it is transformed.
+            del text_desc['properties']['local_pos_transformed']
+
+        bbox = [rpos[0] - anchor[0], rpos[1] - anchor[1],
+                rpos[0] + size[0] - anchor[0], rpos[1] + size[1] - anchor[1]]
         old_size = current_text_o['properties'].get('size', [0., 0.])
-        size = [max(bbox[0], old_size[0] / 2) * 2,
-                max(bbox[1], old_size[1] / 2) * 2]
+        bbshift = current_text_o['properties'].get('bbox_shift', [0., 0.])
+        old_bbox = [bbshift[0], bbshift[1],
+                    bbshift[0] + old_size[0], bbshift[1] + old_size[1]]
+        bbox = [min(old_bbox[0], bbox[0]), min(old_bbox[1], bbox[1]),
+                max(old_bbox[2], bbox[2]), max(old_bbox[3], bbox[3])]
+        size = [bbox[2] - bbox[0], bbox[3] - bbox[1]]
         current_text_o['properties']['size'] = size
+        bbshift[0] = bbox[0]
+        bbshift[1] = bbox[1]
+        current_text_o['properties']['bbox_shift'] = bbshift
 
     def make_text_group(self, xml_item, trans):
         tgroup = self.main_group
@@ -1785,8 +1795,6 @@ class SvgToMesh:
             text_anchor = style.get('text-anchor')
             if text_anchor is not None:
                 obj_props['text-anchor'] = text_anchor
-                if text_anchor == 'middle':
-                    pass  # TODO
             font_size = style.get('font-size')
             scale = 1.  # arbitrary
             if font_size is not None:
@@ -1814,8 +1822,17 @@ class SvgToMesh:
                 obj_props['font_size'] = font_size
                 obj_props['scale'] = scale
             font_family = style.get('font-family')
+            font_family = self.font_substitutions.get(font_family, font_family)
             if font_family is not None:
                 obj_props['font_family'] = font_family
+            line_height = style.get('line-height')
+            if line_height is not None:
+                if line_height.endswith('%'):
+                    line_height = float(line_height[:-1]) / 100
+                else:
+                    line_height = float(line_height)
+                if line_height != 0:
+                    obj_props['line_height'] = line_height
             fill = style.get('fill')
             if fill is not None and fill != 'none':
                 try:
@@ -1850,14 +1867,14 @@ class SvgToMesh:
     @staticmethod
     def text_size(text_item):
         if not text_item:
-            return [0, 0]
+            return [[0., 0.], [0., 0.]]
         text_obj = text_item['properties']
         scale = text_obj.get('scale', 1.)
         fscale = 1.
         fsize = text_obj.get('font_size', 10.) * fscale
         text = text_obj.get('text')
         if not text:
-            return [0, 0]
+            return [[0., 0.], [0., 0.]]
         if isinstance(text, bytes):
             text = text.decode()
         text = text.split('\n')
@@ -1868,7 +1885,9 @@ class SvgToMesh:
             if QtCore.QCoreApplication.instance() is None:
                 qapp = QtGui.QGuiApplication([])
 
-            line_height = 1.1
+            line_height = text_obj.get('line_height', 1.)
+            if line_height != 1.:
+                print('line_height:', line_height, text)
             ffamily = text_obj.get('font_family')
             if ffamily is None:
                 ffamily = QtGui.QFont().family()
@@ -1876,14 +1895,24 @@ class SvgToMesh:
             fm = QtGui.QFontMetrics(font)
             width = 0
             height = 0
+            anchor = None
             for line in text:
+                if line == '':
+                    line = 'I'
                 r = fm.boundingRect(line)
                 width = max(width, r.width())
                 if height != 0:
-                    height += r.height() * (line_height - 1.)
-                height += r.height()
+                    height += fm.leading() * line_height
+                height += r.height() * line_height
+                if anchor is None:
+                    anchor = [0., fm.ascent()]
             width *= scale / fscale
             height *= scale / fscale
+            tanchor = text_obj.get('text-anchor')
+            if tanchor == 'middle':
+                anchor[0] = width / 2.  # centered
+            anchor[1] *= scale / fscale
+            # print('text size:', width, height, anchor, scale, fscale, fsize, text)
 
         except ImportError:
             # assume fixed size font, with height/width ratio of 3.3.
@@ -1893,8 +1922,9 @@ class SvgToMesh:
             hw_ratio = 2.5
             height = len(text) * fscale
             width = max([len(line) for line in text]) * fscale / hw_ratio
+            anchor = [width / 2., fscale * 0.9]
 
-        return [width, height]
+        return ([width, height], anchor)
 
     @staticmethod
     def extrude(mesh, distance):

@@ -10,3 +10,10 @@
   font-style: normal;*/
 }
 
+@font-face {
+  font-family: "Univers LT Std";
+  src: url("css/fonts/Univers_LT_Std_49_Light_Ultra_Condensed.otf") format("opentype");
+/*  font-weight: normal;
+  font-style: normal;*/
+}
+

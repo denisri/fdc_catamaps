@@ -601,13 +601,16 @@
     document.getElementById( 'private_code' ).addEventListener( 'change', private_code_changed );
 
     // from https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks/21574562#21574562
-    function fillTextMultiLine(ctx, text, x, y, hratio, centered) {
+    function strokeTextMultiLine(ctx, text, x, y, hratio, centered, fill, stroke) {
       var lines = text.split("\n");
       var m = ctx.measureText(lines[0]);
-      var lineHeight = m.actualBoundingBoxAscent * hratio;
+//       var lineHeight = m.actualBoundingBoxAscent * hratio;
+//       if( lineHeight == 0 )
+//         lineHeight = m.fontBoundingBoxAscent * hratio;
+      var lineHeight = ( m.fontBoundingBoxAscent + m.fontBoundingBoxDescent ) * hratio;
       var xd = 0;
       var lw = new Array(lines.length);
-      y += m.actualBoundingBoxAscent;
+      // y += m.actualBoundingBoxAscent;
 
       if( centered )
       {
@@ -623,36 +626,11 @@
       var xdl = 0;
       for (var i = 0; i < lines.length; ++i) {
         if( centered )
-          xdl = xd - lw[i]
-        ctx.fillText(lines[i], x + xdl, y);
-        y += lineHeight;
-      }
-    }
-
-    function strokeTextMultiLine(ctx, text, x, y, hratio, centered) {
-      var lines = text.split("\n");
-      var m = ctx.measureText(lines[0]);
-      var lineHeight = m.actualBoundingBoxAscent * hratio;
-      var xd = 0;
-      var lw = new Array(lines.length);
-      y += m.actualBoundingBoxAscent;
-
-      if( centered )
-      {
-        for (var i = 0; i < lines.length; ++i) {
-          m = ctx.measureText(lines[i]);
-          lw[i] = m.actualBoundingBoxRight / 2;
-          if( m.actualBoundingBoxRight > xd )
-            xd = m.actualBoundingBoxRight;
-        }
-        xd /= 2;
-      }
-
-      var xdl = 0;
-      for (var i = 0; i < lines.length; ++i) {
-        if( centered )
-          xdl = xd - lw[i]
-        ctx.strokeText(lines[i], x + xdl, y);
+          xdl = - lw[i]
+        if( stroke )
+          ctx.strokeText(lines[i], x + xdl, y);
+        if( fill )
+          ctx.fillText(lines[i], x + xdl, y);
         y += lineHeight;
       }
     }
@@ -1200,9 +1178,11 @@
                               var w = 0;
                               var h = 0;
                               var lines = text.split('\n');
-                              const hratio = 1.5;
+                              const hratio = 1.;
+                              var lineHeight = 0;
                               var m;
                               var tpos2 = [tpos[0] * tscale / scale, tpos[1] * tscale / scale];
+                              var xm0 = 0, xm1 = 0, ym0 = 0, ym1 = 0;
 //                               if( lines[0] == 'station' && lines[1] == "denfert-rochereau")
 //                               {
 //                                 debug = true;
@@ -1213,24 +1193,35 @@
                               for( i=0; i!=lines.length; i++ )
                               {
                                 m = g.measureText( lines[i] );
-                                //w = Math.max( w, m.actualBoundingBoxRight );
                                 w = m.actualBoundingBoxRight
                                     - m.actualBoundingBoxLeft;
-                                h += m.actualBoundingBoxAscent;
-                                if( i != 0 )
-                                  h += m.actualBoundingBoxAscent * (hratio - 1.);
-                                if( xmin > tpos2[0] - w/2 )
-                                  xmin = tpos2[0] - w/2;
-                                if( xmax < tpos2[0] + w/2 )
-                                  xmax = tpos2[0] + w/2;
+                                if( lineHeight == 0 )
+                                  lineHeight = (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent ) * hratio;
+                                h += lineHeight;
+                                if( i == 0 )
+                                  ym0 = tpos2[1] - m.fontBoundingBoxAscent;
+                                if( tanchor == 'middle' )
+                                {
+                                  xm0 = tpos2[0] - w / 2;
+                                  xm1 = tpos2[0] + w / 2;
+                                }
+                                else
+                                {
+                                  xm0 = tpos2[0];
+                                  xm1 = tpos2[0] + w;
+                                }
+                                if( xmin > xm0 )
+                                  xmin = xm0;
+                                if( xmax < xm1 )
+                                  xmax = xm1;
                                 if( debug )
                                   console.log('text:', lines[i], ', m:', m);
                               }
-                              h += m.actualBoundingBoxDescent;
-                              if( ymin > tpos2[1] - h/2 )
-                                ymin = tpos2[1] - h/2;
-                              if( ymax < tpos2[1] + h/2 )
-                                ymax = tpos2[1] + h/2;
+                              ym1 = tpos2[1] + m.actualBoundingBoxDescent + ( lines.length - 1 ) * lineHeight;
+                              if( ymin > ym0 )
+                                ymin = ym0;
+                              if( ymax < ym1 )
+                                ymax = ym1;
 
                               if( oti == 0 && lines.length >= 2 )
                                 decaly = lines.length;
@@ -1374,13 +1365,12 @@
                                 w = Math.max( w, m.actualBoundingBoxRight
                                                  - m.actualBoundingBoxLeft );
                               }
-                              var hratio = 1.5;
+                              var hratio = 1.;
                               if( debug )
                                 console.log('text2:', text, ', w:', w, ', font:', fsize, ', col:', fillcol, '/', strokecol, ', family:', ffamily);
                               g.fillStyle = fillcol;
-                              strokeTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + 5, hratio, centered );
                               g.strokeStyle = strokecol;
-                              fillTextMultiLine( g, text, tpos2[0] + 5 - w / 2 - xmin, tpos2[1] + 5, hratio, centered );
+                              strokeTextMultiLine( g, text, tpos2[0] + 5 - xmin, tpos2[1] + 5 - ymin, hratio, centered, true, true );
 
                           }
                         }
@@ -1396,9 +1386,7 @@
                         sprite.scale.set( sw, sh );
                         // the svg position is under the 1st line of text
                         var y_shift = 1.;
-                        sprite.position.x = -pos[0];
-                        if( anchor != 'middle' )
-                          sprite.position.x -= sw / 2;
+                        sprite.position.x = -pos[0] - sw / 2 - xmin / tscale * scale;
                         sprite.position.y = pos[1];
                         if( decaly != 0 )
                         {

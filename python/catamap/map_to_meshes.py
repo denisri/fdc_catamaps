@@ -2271,6 +2271,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def make_arch(self, center, radius_and_trans, z, height, well_type=None,
                   props=None):
+        # print('make_arch', center, radius_and_trans, z, hight, well_type, props)
         radius, trans = radius_and_trans
         # get transform parent to children
         tmat = np.eye(4)
@@ -3230,6 +3231,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         else:
             views = {}
 
+        symbol_make_map = {
+            'arche': 'arch',
+        }
+
         for main_group in list(meshes.keys()):
             specs = meshes[main_group]
             props = self.group_properties.get(main_group)
@@ -3237,9 +3242,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 continue
             method = None
             stype = props.label
-            if hasattr(self, 'make_%s' % stype):
-                method = getattr(self, 'make_%s' % stype)
-            elif props.well:
+            method = getattr(self, 'make_%s' % stype, None)
+            if method is None:
+                trans_stype = symbol_make_map.get(stype)
+                method = getattr(self, 'make_%s' % trans_stype, None)
+            if method is None and props.well:
                 method = self.make_well
             if method:
                 level = props.level
@@ -3909,6 +3916,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def attach_arrows_to_text(self, meshes, with_squares=True):
         print('*** attach_arrows_to_text ***')
+        #print('layers:')
+        #for mtype in meshes:
+            #mprops = self.group_properties.get(mtype)
+            #print(mtype, ':', mprops.name)
+        #raise RuntimeError('stop.')
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
@@ -3931,6 +3943,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         is_text = (props.get('type') != 'mesh')  # text
                         # if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
                         pos = props['position']
+                        anchor_p = pos
                         vert = mesh.vertex()
                         size = props['size']
                         if is_text:
@@ -3949,6 +3962,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             - vert[0]
                         # print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
                         n = len(vert)
+                        v0 = list(vert[0])
+                        v1 = list(vert[-1])
                         for i, v in enumerate(vert):
                             # print('vert', i, ':', v.np, '->', (v + decal * (1. - v[2])).np)
                             # v += decal * float(n - i) / n
@@ -3967,6 +3982,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             poly = mesh.polygon()
                             poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
                                      (n+3, n)]
+                            # line between anchor point and dest
+                            vert += [(anchor_p[0], anchor_p[1], z), v0, v1]
+                            poly += [(n+4, n+5), (n+5, n+6)]
 
     def find_text_for_arrow(self, meshes, mesh, in_layers=None):
         dmin = -1
@@ -3974,7 +3992,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         inside_text = False
         point = mesh.vertex()[0][:2]
         debug = 0
-        #if point[0] >= 747 and point[0] < 748 and point[1] >= 470 and point[1] < 471:
+        #if point[0] >= 855 and point[0] < 856 and point[1] >= 310 and point[1] < 311:
             #debug = 3
         if debug:
             print('find_text_for_arrow', mesh, point, 'in layers:', in_layers)
@@ -3995,7 +4013,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if debug >= 2:
                     print(mtype, ' text:', len(mesh_items['objects']))
                 for text in mesh_items['objects']:
-                    #if text.get('objects', [{}])[0].get('properties', {}).get('text', '') == 'AVENUE DU NORD' and not getattr(self, '_mydebug', False):
+                    #if text.get('objects', [{}])[0].get('properties', {}).get('text', '') == 'CHEMIN\nCONDUISANT\nA L\'ESCALIER\nUE N D  DES CHAMPS' and not getattr(self, '_mydebug', False):
                         #debug = 3
                         #self._mydebug = True
                     #else:
@@ -4019,40 +4037,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         tprops = tobj['properties']
                     anchor = tprops.get('text-anchor')
                     size = props.get('size', [0., 0.])
+                    bbshift = props.get('bbox_shift',
+                                        [-size[0] / 2., -size[1] / 2.])
                     # if size == [0., 0.]:
                         # print('text with no size in group', mtype, ':')
                         # print(props)
-                    if anchor != 'middle':
-                        pos = [pos[0] + size[0] / 2, pos[1]]
-                    text_str = tprops.get('text')
-                    dy = 0
-                    if text_str is not None:
-                        nlines = len(text_str.split('\n'))
-                        if nlines >= 2:
-                            dy = size[1] / nlines * (nlines - 1)
-                            pos = [pos[0], pos[1] + dy]
-                            # print('text:', text_str, ', dy:', dy)
                     if debug >= 3:
                         print('pos:', pos, ', size:', size)
                     # distances to each segment
-                    #x0 = pos[0] - size[0] / 2
-                    #x1 = pos[0] + size[0] / 2
-                    #y0 = pos[1] - size[1]  # / 2
-                    #y1 = pos[1]  # + size[1] / 2
-                    x0 = - size[0] / 2
-                    x1 = size[0] / 2
-                    y0 = - size[1]  # / 2
-                    y1 = 0  # + size[1] / 2
+                    x0 = bbshift[0]
+                    x1 = x0 + size[0]
+                    y0 = bbshift[1]
+                    y1 = y0 + size[1]
                     locpoint = np.array(point + [1.])
                     locpoint[:2] -= pos[:2]
                     if trans is not None:
                         # transform point in local coords of text
                         itrans = np.linalg.inv(trans)
+                        if debug >= 3:
+                            print('locpoint before trans:', locpoint)
+                            print('trans:', trans)
+                            print('itrans:', itrans)
                         locpoint = np.array(itrans.dot(locpoint))[0]
-                    # print('trans:', trans)
-                    # print('itrans:', itrans)
-                    # print('locpoint:', locpoint)
-                    # print('pos:', pos, 'point:', point)
+                    if debug >= 3:
+                        print('locpoint:', locpoint)
+                        print('pos:', pos, 'point:', point)
+                        print('local bbox:', x0, y0, x1, y1)
                     if locpoint[0] < x0:
                         d0 = x0 - locpoint[0]
                     elif locpoint[0] > x1:
@@ -4070,8 +4080,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # inside rect
                         if debug >= 1:
                             print('inside', text, ', pos:', pos, 'size:', size)
-                        #d0 = point[0] - pos[0]
-                        #d1 = point[1] - pos[1]
                         d0 = locpoint[0]
                         d1 = locpoint[1]
                         d = d0 * d0 + d1 * d1
