@@ -3536,17 +3536,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         worker.args = [cstm] + list(worker.args)
         cstm.depth_aimsmeshes = depth_meshes
         cstm.init_ground_altitude()
-        print('depth meshes:', depth_meshes.keys())
-        print('*** restoring depth windows')
-        sys.stdout.flush()
+        # print('depth meshes:', depth_meshes.keys())
+        # print('*** restoring depth windows')
+        # sys.stdout.flush()
         cstm.restore_depth_wins(size, object_win_size)
-        print('*** worker CataSvgToMesh ready.')
-        win = cstm.depth_wins.get('sup')
-        print('win level sup:', win, len(cstm.depth_wins))
-        view = win.view() if win is not None else None
-        print('view:', view, ', depth:', cstm.get_depth((150, 150, 0), view, (2., 2.)))
-        print('grnd:', cstm.get_depth((150, 150, 0), None, (2., 2.)))
-        sys.stdout.flush()
+        # print('*** worker CataSvgToMesh ready.')
+        # win = cstm.depth_wins.get('sup')
+        # print('win level sup:', win, len(cstm.depth_wins))
+        # view = win.view() if win is not None else None
+        # print('view:', view, ', depth:', cstm.get_depth((150, 150, 0), view, (2., 2.)))
+        # print('grnd:', cstm.get_depth((150, 150, 0), None, (2., 2.)))
+        # sys.stdout.flush()
 
     def apply_arrow_depth(self, mesh, props):
         alt_color = self.get_alt_color(props)
