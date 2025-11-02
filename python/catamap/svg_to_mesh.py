@@ -2417,7 +2417,7 @@ class SvgToMesh:
             xml_group.remove(xml_group[1])
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.obj',
-                       mesh_wf_format='.obj', lights=None):
+                       mesh_wf_format='.obj', lights=None, verbose=True):
         '''
         mesh_format may be a valid mesh extension (".obj", ".gii", ".mesh") or
         GLTF (".gltf" or ".glb"), or None (not saved here).
@@ -2444,13 +2444,15 @@ class SvgToMesh:
                 # dict object (text...), save as .aobj
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + '.aobj')
-                print('saving:', filename, '(', key, ')')
+                if verbose:
+                    print('saving:', filename, '(', key, ')')
                 try:
                     json.dump(mesh, open(filename, 'w'))
                     summary.setdefault('text_fnames', {})[filename] = key
                 except Exception as e:
                     print(e)
-                    print('while saving object:', mesh)
+                    if verbose:
+                        print('while saving object:', mesh)
                     try:
                         os.unlink(filename)
                     except Exception:
@@ -2469,7 +2471,8 @@ class SvgToMesh:
                     fext = ''
                 filename = os.path.join(dirname,
                                         key.replace('/', '_') + fext)
-                print('saving:', filename, '(', key, ')')
+                if verbose:
+                    print('saving:', filename, '(', key, ')')
                 self.build_texture(mesh, key)
                 if ext in ('.gltf', '.glb'):
                     gltf = self.store_gltf_texmesh(mesh, key, gltf)
@@ -2488,7 +2491,7 @@ class SvgToMesh:
                                           [{'nodes': []}])[0]['nodes']
                 nn = len(scnodes)
                 nl = 0
-                print('LIGHTS:', lights)
+                # print('LIGHTS:', lights)
                 for light in lights:
                     pos = light[0][:3]
                     props = light[0][4]
@@ -2523,7 +2526,7 @@ class SvgToMesh:
     def store_gltf_texmesh(self, mesh, name, gltf):
         from soma.aims import gltf_io
         if 'texture' in mesh.header():
-            print('MESH WITH TEXTURE', name)
+            # print('MESH WITH TEXTURE', name)
             texture = mesh.header()['texture']
             tcoords = texture['coords']
             gltf = gltf_io.tex_mesh_to_gltf(
@@ -2591,8 +2594,8 @@ class SvgToMesh:
                     trans = trans * scipy.linalg.inv(telem)
                 else:
                     trans = scipy.linalg.inv(telem)
-            print('elem:', elem)
-            print(elem.items())
+            # print('elem:', elem)
+            # print(elem.items())
             bbox = self.boundingbox(elem, trans)
             dims = [bbox[0][0],
                     bbox[0][1],

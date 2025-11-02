@@ -2818,10 +2818,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     @staticmethod
     def build_depth_win(depth_mesh, size=(1000, 1000), object_win_size=(8, 8)):
-        print('build_depth_win')
-        sys.stdout.flush()
-        import time
-        t0 = time.time()
+        # import time
+        # print('build_depth_win')
+        # sys.stdout.flush()
+        # t0 = time.time()
         headless = False
         if headless:
             import anatomist.headless as ana
@@ -2863,8 +2863,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         #view.qglWidget().updateGL()
         view.paintScene()
         #view.updateGL()
-        print('depth win created, time:', time.time() - t0)
-        sys.stdout.flush()
+        # print('depth win created, time:', time.time() - t0)
+        # sys.stdout.flush()
         return win, admesh
 
     def load_ground_altitude(self, filename):
@@ -2977,8 +2977,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if not self.build_depth:
             return
 
-        if self.gpu_workers is not None:
-            return self.parallel_build_depth_wins(size, object_win_size)
+        # if self.gpu_workers is not None:
+        #     return self.parallel_build_depth_wins(size, object_win_size)
 
         todo = list(self.depth_meshes_def.items())
         while todo:
@@ -3056,7 +3056,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             res = []
             jobs = []
             init_child_function = [CataSvgToMesh._init_p_build_depth_wins,
-                                   (self.svg_filename, self.lambert_coords)]
+                                   (self.svg_filename, self.lambert_coords,
+                                    self.z_scale)]
             gpu_prefixes = self.select_gpu_prefix_for_workers(len(levels))
             print('gpu_prefixes:', gpu_prefixes)
             sys.stdout.flush()
@@ -3097,13 +3098,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 self.depth_wins[level] = win
 
     @staticmethod
-    def _init_p_build_depth_wins(svg_filename, lambert_coords):
+    def _init_p_build_depth_wins(svg_filename, lambert_coords, z_scale):
         worker = sys.modules['__main__'].worker
         print('worker:', worker)
         sys.stdout.flush()
         cstm = CataSvgToMesh()
         cstm.svg_filename = svg_filename
         cstm.lambert_coords = lambert_coords
+        cstm.z_scale = z_scale
         cstm.init_ground_altitude()
         worker.args = [cstm] + list(worker.args)
         print('init done')
@@ -3394,7 +3396,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             q, res, self.gpu_nproc,
             spawn_prefixes=gpu_prefixes,
             init_child_function=[CataSvgToMesh._init_p_apply_depth,
-                                 (self.svg_filename, self.lambert_coords),
+                                 (self.svg_filename, self.lambert_coords,
+                                  self.z_scale),
                                  {'size': (250, 250),
                                   'object_win_size': (2., 2.),
                                   'depth_meshes': self.depth_aimsmeshes}],
@@ -3526,12 +3529,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         print('built depths in', self.nrenders, 'renderings')
 
     @staticmethod
-    def _init_p_apply_depth(svg_filename, lambert_coords,
+    def _init_p_apply_depth(svg_filename, lambert_coords, z_scale,
                             size, object_win_size, depth_meshes):
         worker = sys.modules['__main__'].worker
         cstm = CataSvgToMesh()
         cstm.svg_filename = svg_filename
         cstm.lambert_coords = lambert_coords
+        cstm.z_scale = z_scale
         sys.stdout.flush()
         worker.args = [cstm] + list(worker.args)
         cstm.depth_aimsmeshes = depth_meshes
@@ -4035,7 +4039,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         jobs = []
         current_index = 0
         init_child_function = [CataSvgToMesh._init_p_apply_depth,
-                               (self.svg_filename, self.lambert_coords),
+                               (self.svg_filename, self.lambert_coords,
+                                self.z_scale),
                                {'size': (250, 250),
                                 'object_win_size': (2., 2.),
                                 'depth_meshes': self.depth_aimsmeshes}]
@@ -5152,7 +5157,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def save_mesh_dict(self, meshes, dirname, mesh_format='.glb',
                        mesh_wf_format='.glb', json_filename=None,
-                       map2d_filename=None):
+                       map2d_filename=None, verbose=True):
         # filter out wells definitions
         def mod_key(key, item):
             if isinstance(item, aims.AimsTimeSurface_3):
@@ -5177,7 +5182,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             wf_format = None
             use_gltf = True
         summary = super().save_mesh_dict(
-            mdict, dirname,  mesh_format=format, mesh_wf_format=wf_format)
+            mdict, dirname,  mesh_format=format, mesh_wf_format=wf_format,
+            verbose=False)
 
         if use_gltf:
             from soma.aims import gltf_io
@@ -5280,7 +5286,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 if 'bord' in filename:
                     continue  # skip
                 if props and props.depth_map:
-                    print('DEPTH MAP MESH:', filename)
+                    # print('DEPTH MAP MESH:', filename)
                     layer = -1  # not displayed
                 elif props and props.category:
                     if props.category not in categories:
