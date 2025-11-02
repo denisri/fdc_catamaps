@@ -781,6 +781,35 @@ class xml_help(object):
     pass
 
 
+if aims:
+    # define picking functions for AIMS meshes
+    def _mesh_getstate(self):
+        state = {'vertices': self.vertex().np,
+                 'normals': self.normal().np,
+                 'polygons': self.polygon().np,
+                 'header': dict(self.header())}
+        return state
+
+
+    def _mesh_setstate(self, state):
+        self.__init__()
+        vert = state.get('vertices')
+        if vert is not None:
+            self.vertex().assign(vert)
+        norm = state.get('normals')
+        if norm is not None:
+            self.normal().assign(norm)
+        poly = state.get('polygons')
+        if poly is not None:
+            self.polygon().assign(poly)
+        self.header().update(state.get('header', {}))
+
+    aims.AimsTimeSurface_3.__getstate__ = _mesh_getstate
+    aims.AimsTimeSurface_3.__setstate__ = _mesh_setstate
+    aims.AimsTimeSurface_2.__getstate__ = _mesh_getstate
+    aims.AimsTimeSurface_2.__setstate__ = _mesh_setstate
+
+
 class ItemProperties(object):
     '''
     XML item properties structure, used by
@@ -1505,6 +1534,12 @@ class DefaultItemProperties(object):
     }
 
 
+class LambertCoords:
+    def __init__(self):
+        self.x = 0.
+        self.y = 0.
+
+
 class CataSvgToMesh(svg_to_mesh.SvgToMesh):
     '''
     Process XML tree to build 3D meshes
@@ -1546,6 +1581,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         # since meshes may be concatenated)
         self.symbols = {}
         self.build_depth = True
+        self.parallel_nproc = None
+        self.gpu_nproc = None
+        self.gpu_workers = None
+        self.gpu_start_commands = None
 
         if headless:
             try:
@@ -2754,9 +2793,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         x = [l[0][1] for l in lambert_map]
         y = [l[1][1] for l in lambert_map]
         lamb_y = stats.linregress(x, y)
-        class xy(object):
-            pass
-        self.lambert_coords = xy()
+        self.lambert_coords = LambertCoords()
         self.lambert_coords.x = lamb_x
         self.lambert_coords.y = lamb_y
         # print('Lambert93 slope:', lamb_x.slope, lamb_y.slope)
@@ -2777,9 +2814,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         tri = Delaunay(points)
         mesh.polygon().assign(tri.simplices)
         #mesh.header()['material']['face_culling'] = 0
+        return mesh
 
     @staticmethod
     def build_depth_win(depth_mesh, size=(1000, 1000), object_win_size=(8, 8)):
+        print('build_depth_win')
+        sys.stdout.flush()
+        import time
+        t0 = time.time()
         headless = False
         if headless:
             import anatomist.headless as ana
@@ -2788,24 +2830,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             import anatomist.api as ana
             a = ana.Anatomist()
         from soma.qt_gui.qt_backend import Qt
-        import time
 
         win = a.createWindow('Axial')  #, options={'hidden': 1})
         Qt.qApp.processEvents()
-        time.sleep(0.5)
+        # time.sleep(0.5)
         win.windowConfig(view_size=size, cursor_visibility=0)
 
         Qt.qApp.processEvents()
-        time.sleep(0.5)
+        # time.sleep(0.5)
         Qt.qApp.processEvents()
         admesh = a.toAObject(depth_mesh)
         a.releaseObject(admesh)
         for i in range(10):
-            time.sleep(0.2)
+            # time.sleep(0.2)
             Qt.qApp.processEvents()
         win.addObjects(admesh)
         for i in range(10):
-            time.sleep(0.2)
+            # time.sleep(0.2)
             Qt.qApp.processEvents()
         view = win.view()
         bbmin = view.boundingMin()
@@ -2822,6 +2863,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         #view.qglWidget().updateGL()
         view.paintScene()
         #view.updateGL()
+        print('depth win created, time:', time.time() - t0)
+        sys.stdout.flush()
         return win, admesh
 
     def load_ground_altitude(self, filename):
@@ -2832,7 +2875,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             ground_img = aims.read(filename)
             alt_extr_filename = os.path.join(os.path.dirname(filename),
                                              'global.json')
-            print('realding altidude extrema:', alt_extr_filename)
+            print('reading altitude extrema:', alt_extr_filename)
             alt_extr = json.load(open(alt_extr_filename))
             print('extrema:', alt_extr)
 
@@ -2915,13 +2958,27 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if verbose:
                 print('->', v[2])
 
+    def select_gpu_prefix_for_workers(self, max_workers=0):
+        from soma import mpfork2
+
+        prefixes = mpfork2.select_gpu_prefix_for_workers(
+            self.gpu_workers,  max_workers)
+
+        self.gpu_nproc = len(prefixes)
+
+        return prefixes
+
     def build_depth_wins(self, size=(1000, 1000),
                          object_win_size=(8, 8)):
         self.depth_meshes = {}
         self.depth_wins = {}
+        self.depth_aimsmeshes = {}
 
         if not self.build_depth:
             return
+
+        if self.gpu_workers is not None:
+            return self.parallel_build_depth_wins(size, object_win_size)
 
         todo = list(self.depth_meshes_def.items())
         while todo:
@@ -2951,8 +3008,132 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     continue
             win, amesh = self.build_depth_win(depth_mesh, size,
                                               object_win_size)
+            self.depth_aimsmeshes[level] = depth_mesh
             self.depth_meshes[level] = amesh
             self.depth_wins[level] = win
+
+    def restore_depth_wins(self, size, object_win_size):
+        import anatomist.headless as ana
+
+        self.depth_wins = {}
+        self.depth_meshes = {}
+
+        if hasattr(self, 'depth_aimsmeshes'):
+            a = ana.HeadlessAnatomist()
+            for level, mesh in self.depth_aimsmeshes.items():
+                win, amesh = self.build_depth_win(mesh, size, object_win_size)
+                self.depth_meshes[level] = amesh
+                self.depth_wins[level] = win
+
+    def parallel_build_depth_wins(self, size, object_win_size):
+        from soma import mpfork2
+        import queue
+
+        deps = {}
+        for level, mesh_def in self.depth_meshes_def.items():
+            depth_mesh, props = mesh_def
+            if props.relative_to is not None \
+                    and props.relative_to != self.ground_level:
+                deps.setdefault(props.relative_to, []).append(level)
+            else:
+                deps.setdefault(None, []).append(level)
+        print('parallel_build_depth_wins, deps:', len(deps))
+        sys.stdout.flush()
+
+        next_levels = [None]
+        while len(next_levels) != 0:
+            levels = []
+            for dep in next_levels:
+                levels += [(dep, level) for level in deps.get(dep, [])]
+            if len(levels) == 0:
+                break  # all done
+
+            next_levels = [level[1] for level in levels]
+            print('curernt levels:', levels)
+            sys.stdout.flush()
+
+            q = queue.Queue()
+            res = []
+            jobs = []
+            init_child_function = [CataSvgToMesh._init_p_build_depth_wins,
+                                   (self.svg_filename, self.lambert_coords)]
+            gpu_prefixes = self.select_gpu_prefix_for_workers(len(levels))
+            print('gpu_prefixes:', gpu_prefixes)
+            sys.stdout.flush()
+            workers = mpfork2.allocate_workers(
+                q, res, self.gpu_nproc, len(levels),
+                spawn_prefixes=gpu_prefixes,
+                fork_mode='spawn',
+                init_child_function=init_child_function)
+            current_id = 0
+            for dep, level in levels:
+                dep_mesh = None
+                if dep is not None:
+                    dep_mesh, _ = self.depth_meshes_def[dep]
+                depth_mesh, props = self.depth_meshes_def[level]
+                job = (current_id, '_p_build_depth_win',
+                       (dep, level, dep_mesh, depth_mesh, props.inverse,
+                        size, object_win_size), {})
+                jobs.append(level)
+                res.append(None)
+                q.put(job)
+                current_id += 1
+
+            for i in range(len(workers)):
+                q.put(None)
+            for w in workers:
+                w.start()
+            q.join()
+            for w in workers:
+                w.join()
+
+            for level, depth_mesh in zip(jobs, res):
+                self.depth_meshes_def[level] = (
+                    depth_mesh, self.depth_meshes_def[level][1])
+                self.depth_aimsmeshes[level] = depth_mesh
+                win, amesh = self.build_depth_win(depth_mesh, size,
+                                                  object_win_size)
+                self.depth_meshes[level] = amesh
+                self.depth_wins[level] = win
+
+    @staticmethod
+    def _init_p_build_depth_wins(svg_filename, lambert_coords):
+        worker = sys.modules['__main__'].worker
+        print('worker:', worker)
+        sys.stdout.flush()
+        cstm = CataSvgToMesh()
+        cstm.svg_filename = svg_filename
+        cstm.lambert_coords = lambert_coords
+        cstm.init_ground_altitude()
+        worker.args = [cstm] + list(worker.args)
+        print('init done')
+        sys.stdout.flush()
+
+    def _p_build_depth_win(self, dep, level, dep_mesh, depth_mesh, inverse,
+                           size, object_win_size):
+        print('building depth map', level)
+        sys.stdout.flush()
+        if dep is not None:
+            # apply dependent map
+            if inverse:
+                print('    height map')
+                sys.stdout.flush()
+                depth_mesh.vertex().np[:, 2] *= -1
+            print('    apply relative depth:', dep)
+            sys.stdout.flush()
+            dwin = self.depth_wins.get(dep)
+            if dwin is None:
+                dwin, amesh = self.build_depth_win(dep_mesh, size,
+                                                   object_win_size)
+                self.depth_meshes_def[dep] = (dep_mesh, None)
+                self.depth_aimsmeshes[dep] = dep_mesh
+                self.depth_meshes[dep] = amesh
+                self.depth_wins[dep] = dwin
+            view = dwin.view()
+            for vertex in depth_mesh.vertex():
+                vertex[2] += self.get_depth(vertex, view)
+
+        return depth_mesh
 
     def release_depth_wins(self):
         del self.depth_meshes, self.depth_wins
@@ -3063,6 +3244,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return {k: convert_color(v) for k, v in color.items()}
 
     def apply_depths(self, meshes):
+        if self.gpu_workers is not None:
+            self.mesh_dict = meshes
+            return self.parallel_apply_depths()
+
         self.nrenders = 0
 
         object_win_size = (2., 2.)
@@ -3165,6 +3350,203 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         position[2] = z + hshift
 
         print('built depths in', self.nrenders, 'renderings')
+
+    def _p_apply_mesh_depth(self, mesh, props):
+        object_win_size = (2., 2.)
+
+        level = props.level
+        win = self.depth_wins.get(level)
+        if win is not None:
+            view = win.view()
+        else:
+            view = None
+
+        failed = 0
+
+        for v in mesh.vertex():
+            if np.isnan(v[0]):
+                print('NAN in mesh:', mesh.vertex().np)
+            z = self.get_depth(v, view, object_win_size)
+            if z is not None:
+                v[2] += z  # + hshift  # done via transform_3d
+            else:
+                failed += 1
+
+        return mesh, failed
+
+    def parallel_apply_depths(self):
+        from soma import mpfork2
+        import queue
+
+        meshes = self.mesh_dict
+        self.nrenders = 0
+
+        object_win_size = (2., 2.)
+        self.build_depth_wins((250, 250))
+
+        # we cannot fork here because Qt and the X server are using threads,
+        # which will not run in a forked instance.
+        # so we have to spawn a new program for workers
+        q = queue.Queue()
+        res = []
+        gpu_prefixes = self.select_gpu_prefix_for_workers()
+        workers = mpfork2.allocate_workers(
+            q, res, self.gpu_nproc,
+            spawn_prefixes=gpu_prefixes,
+            init_child_function=[CataSvgToMesh._init_p_apply_depth,
+                                 (self.svg_filename, self.lambert_coords),
+                                 {'size': (250, 250),
+                                  'object_win_size': (2., 2.),
+                                  'depth_meshes': self.depth_aimsmeshes}],
+            fork_mode='spawn')
+        jobs = []
+        current_id = 0
+
+        for main_group, mesh_l in meshes.items():
+            props = self.group_properties.get(main_group)
+            if not props:
+                print('skip group', main_group, 'with no properties')
+                continue
+
+            if props.text or props.depth_map or props.arrow:
+                # text and arrows will be done just after.
+                # depth maps will not need it
+                continue
+
+            alt_colors = self.get_alt_colors(props)
+            level = props.level
+
+            if mesh_l is not None:
+                print('processing corridor depth:', main_group, '(level:',
+                      level, ')')
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for imesh, mesh in enumerate(mesh_l):
+                    if not hasattr(mesh, 'vertex'):
+                        # not a mesh: skip it
+                        continue
+
+                    material = mesh.header().get('material', {})
+                    if alt_colors[0] is not None:
+                        material['diffuse'] = alt_colors[0]
+                    if alt_colors[1] is not None:
+                        material['border_color'] = alt_colors[1]
+
+                    # avoid transfering mesh header (may contain images)
+                    # and cut mesh into several pieces if it is big
+                    chunk_size = 5000
+                    chunks = int(np.ceil(len(mesh.vertex()) / chunk_size))
+                    for chunk in range(chunks):
+                        fv = chunk * chunk_size
+                        lv = (chunk + 1) * chunk_size
+                        mesh2 = type(mesh)()
+                        mesh2.vertex().assign(mesh.vertex()[fv: lv])
+                        # mesh2.normal().assign(mesh.normal())
+                        # mesh2.polygon().assign(mesh.polygon())
+                        job = (current_id, '_p_apply_mesh_depth',
+                               (mesh2, props), {})
+                        jobs.append((main_group, imesh, chunk))
+                        res.append(None)
+                        q.put(job)
+                        current_id += 1
+
+        for i in range(len(workers)):
+            q.put(None)
+        for w in workers:
+            w.start()
+        # wait for every job to complete
+        q.join()
+        for w in workers:
+            w.join()
+
+        # print('apply depth result:', res)
+
+        total_failed = 0
+        total_vertices = 0
+        for index, (main_group, imesh, chunk) in enumerate(jobs):
+            mesh, failed = res[index]
+            mesh_l = meshes[main_group]
+            if isinstance(mesh_l, list):
+                old_mesh = mesh_l[imesh]
+            else:
+                old_mesh = mesh_l
+            fv = chunk * chunk_size
+            lv = len(mesh.vertex()) + fv
+            old_mesh.vertex()[fv: lv] = mesh.vertex()
+            total_failed += failed
+            total_vertices += len(mesh.vertex())
+
+        if total_failed != 0:
+            print('failed:', total_failed, '/', total_vertices)
+            if float(total_failed) / total_vertices >= 0.2:
+                print('abnormal failure rate - '
+                      'malfunction in 3D renderings ?')
+
+        print('apply depths for', len(jobs), 'meshes done')
+
+        # apply texts depths and colors
+        text_zshift = 5.
+        for main_group, mesh_items in meshes.items():
+            props = self.group_properties.get(main_group)
+            if not props or not props.text:
+                continue
+
+            alt_colors = self.get_alt_colors(props, default_bg=False)
+
+            for text_item in mesh_items['objects']:
+                if alt_colors[1] is not None:
+                    text_item.setdefault('properties', {})['background'] \
+                        = alt_colors[1]
+                if alt_colors[0] is not None:
+                    for tobj in text_item.get('objects', []):
+                        tobj.setdefault(
+                            'properties', {}).setdefault(
+                                'material', {})['diffuse'] = alt_colors[0]
+
+                position = text_item.get('properties', {}).get('position')
+                if position is not None:
+                    level = text_item.get('properties', {}).get('level',
+                                                                '')
+                    # print('text:', text_item)
+                    # print('text depth:', text_item['objects'][0]['properties']['text'], position, ', level:', level)
+                    win = self.depth_wins.get(level)
+                    if win is not None:
+                        view = win.view()
+                    else:
+                        view = None
+                    hshift = (props.height_shift
+                              if props.height_shift else text_zshift) \
+                                  * self.z_scale
+                    # print('hshift:', hshift)
+                    z = self.get_depth(position, view, object_win_size)
+                    # print('z:', z, '->', z + hshift)
+                    if z is not None:  # and z + hshift > position[2]:
+                        position[2] = z + hshift
+
+        print('built depths in', self.nrenders, 'renderings')
+
+    @staticmethod
+    def _init_p_apply_depth(svg_filename, lambert_coords,
+                            size, object_win_size, depth_meshes):
+        worker = sys.modules['__main__'].worker
+        cstm = CataSvgToMesh()
+        cstm.svg_filename = svg_filename
+        cstm.lambert_coords = lambert_coords
+        sys.stdout.flush()
+        worker.args = [cstm] + list(worker.args)
+        cstm.depth_aimsmeshes = depth_meshes
+        cstm.init_ground_altitude()
+        print('depth meshes:', depth_meshes.keys())
+        print('*** restoring depth windows')
+        sys.stdout.flush()
+        cstm.restore_depth_wins(size, object_win_size)
+        print('*** worker CataSvgToMesh ready.')
+        win = cstm.depth_wins.get('sup')
+        print('win level sup:', win, len(cstm.depth_wins))
+        view = win.view() if win is not None else None
+        print('view:', view, ', depth:', cstm.get_depth((150, 150, 0), view, (2., 2.)))
+        print('grnd:', cstm.get_depth((150, 150, 0), None, (2., 2.)))
+        sys.stdout.flush()
 
     def apply_arrow_depth(self, mesh, props):
         alt_color = self.get_alt_color(props)
@@ -3591,6 +3973,215 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 material = props.setdefault('material', {})
                 material['diffuse'] = diffuse
 
+    def _p_gnd_alt_delaunay(self, level):
+        mesh, props = self.depth_meshes_def[level]
+        self.add_ground_alt(mesh)
+        self.delaunay(mesh)
+        return mesh
+
+    def _p_delaunay(self, level):
+        mesh, props = self.depth_meshes_def[level]
+        self.delaunay(mesh)
+        return mesh
+
+    def extrude_corridor_walls(self):
+        if self.gpu_workers is not None:
+            return self.parallel_extrude_corridor_walls()
+
+        meshes = self.mesh_dict
+        for main_group in list(meshes.keys()):
+            # here we iterate through list(keys) instead of using items()
+            # because some processings will insert new meshes in meshes,
+            # and this would make the iteration fail
+            props = self.group_properties.get(main_group)
+            if not props:
+                continue
+            # print(props)
+            mesh_l = meshes[main_group]
+            if mesh_l and props.corridor or props.block or props.wall:
+                print('extrude:', main_group, props.corridor, props.block,
+                      props.use_height_map)
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    if not hasattr(mesh, 'vertex') or props.symbol:
+                        # not a mesh
+                        continue
+
+                    emeshes = self.extrude_corridor_single(mesh, props)
+
+                    for mtype, mesh in emeshes.items():
+                        meshes.setdefault(f'{main_group}_{mtype}', []).append(
+                            mesh)
+                        self.group_properties[f'{main_group}_{mtype}'] = props
+
+            # set border color to filar meshes
+            if mesh_l and not props.arrow:  # arrows are colored already
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    if isinstance(mesh, aims.AimsTimeSurface_2):
+                        mat = mesh.header().get('material')
+                        if mat is not None and 'border_color' in mat:
+                            mat['diffuse'] = mat['border_color']
+
+    def parallel_extrude_corridor_walls(self):
+        from soma import mpfork2
+        import queue
+
+        meshes = self.mesh_dict
+        q = queue.Queue()
+        res = []
+        jobs = []
+        current_index = 0
+        init_child_function = [CataSvgToMesh._init_p_apply_depth,
+                               (self.svg_filename, self.lambert_coords),
+                               {'size': (250, 250),
+                                'object_win_size': (2., 2.),
+                                'depth_meshes': self.depth_aimsmeshes}]
+        gpu_prefixes = self.select_gpu_prefix_for_workers()
+        workers = mpfork2.allocate_workers(
+            q, res, self.gpu_nproc, 0,
+            spawn_prefixes=gpu_prefixes,
+            fork_mode='spawn',
+            init_child_function=init_child_function)
+
+        # print('*** extrude loop')
+        # sys.stdout.flush()
+
+        for main_group in list(meshes.keys()):
+            # here we iterate through list(keys) instead of using items()
+            # because some processings will insert new meshes in meshes,
+            # and this would make the iteration fail
+            props = self.group_properties.get(main_group)
+            if not props:
+                continue
+            # print(props)
+            mesh_l = meshes[main_group]
+            if mesh_l and props.corridor or props.block or props.wall:
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for imesh, mesh in enumerate(mesh_l):
+                    if not hasattr(mesh, 'vertex') or props.symbol:
+                        # not a mesh
+                        continue
+
+                    job = (current_index, 'extrude_corridor_single',
+                           (mesh, props), {})
+                    res.append(None)
+                    q.put(job)
+                    jobs.append((main_group, imesh))
+                    current_index += 1
+
+        for i in range(len(workers)):
+            q.put(None)
+        # print('*** start workers')
+        # sys.stdout.flush()
+        for w in workers:
+            w.start()
+        # print('*** join')
+        # sys.stdout.flush()
+        q.join()
+        for w in workers:
+            w.join()
+        # print('*** extrude done')
+        # sys.stdout.flush()
+
+        # groups = set()
+        for (main_group, imesh), emeshes in zip(jobs, res):
+            # groups.add(main_group)
+            props = self.group_properties.get(main_group)
+            for mtype, mesh in emeshes.items():
+                meshes.setdefault(f'{main_group}_{mtype}', []).append(
+                    mesh)
+                self.group_properties[f'{main_group}_{mtype}'] = props
+
+        print('extruded:', len(res), 'meshes.')
+        sys.stdout.flush()
+        # set border color to filar meshes
+        for main_group, mesh_l in meshes.items():
+            props = self.group_properties.get(main_group)
+            if not props.arrow:  # arrows are colored already
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                for mesh in mesh_l:
+                    if isinstance(mesh, aims.AimsTimeSurface_2):
+                        mat = mesh.header().get('material')
+                        if mat is not None and 'border_color' in mat:
+                            mat['diffuse'] = mat['border_color']
+
+    def extrude_corridor_single(self, mesh, props):
+        # print('extrude:', props.name, props.corridor, props.block,
+        #         props.use_height_map)
+        sys.stdout.flush()
+
+        height_map = props.use_height_map
+        if height_map in ('none', 'None', 'false'):
+            height_map = None
+
+        height = props.height * self.z_scale
+        ceil, wall = self.extrude(mesh, height, height_map)
+        if 'material' not in ceil.header():
+            ceil.header()['material'] \
+                = {'diffuse': [0.3, 0.3, 0.3, 1.]}
+        elif 'diffuse' not in ceil.header()['material']:
+            ceil.header()['material']['diffuse'] = [0.3, 0.3,
+                                                    0.3, 1.]
+        elif props.contrast_floor or (
+                props.contrast_floor is None
+                and not self.enable_texturing):
+            color = list(ceil.header()['material']['diffuse'])
+            intensity \
+                = np.sqrt(np.sum(np.array(color[:3])**2) / 3)
+            if intensity <= 0.75:
+                for i in range(3):
+                    c = color[i] + 0.4
+                    # if c > 1.:
+                        # c = 1.
+                    color[i] = c
+                m = max(color[:3])
+                if m > 1.:
+                    for i in range(3):
+                        color[i] /= m
+            else:
+                for i in range(3):
+                    c = color[i] - 0.4
+                    if c < 0.:
+                        c = 0.
+                    color[i] = c
+            ceil.header()['material']['diffuse'] = color
+
+        res = {'wall': wall, 'ceil': ceil}
+
+        # build floor or ceiling meshes using tesselated objects
+        # (anatomist)
+        if props.block:
+            # "blocks" have a closed ceiling
+            tess_mesh = self.tesselate(ceil, flat=True)
+            if tess_mesh is not None:
+                res['ceil_tri'] = tess_mesh
+
+        if props.corridor:
+            # corridor have a closed floor
+            # print('tesselate corridor:', props.main_group)
+            tess_mesh = self.tesselate(mesh, flat=True)
+            if tess_mesh is not None:
+                res['floor_tri'] = tess_mesh
+
+        sys.stdout.flush()
+
+        return res
+
+    def init_ground_altitude(self):
+        #self.load_ground_altitude(
+            #os.path.join(os.path.dirname(self.svg_filename),
+                         #'altitude', 'real', 'alt_image.png'))
+        bdalti_map = os.path.join(
+            os.path.dirname(self.svg_filename),
+            'altitude', 'BDALTIV2_2-0_75M_ASC_LAMB93-IGN69_FRANCE_2020-04-28',
+            'BDALTIV2', 'map.json')
+        self.load_ground_altitude_bdalti(bdalti_map)
+
     def postprocess(self, meshes):
         self.ground_level = DefaultItemProperties.ground_level
 
@@ -3606,24 +4197,66 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.attach_arrows_to_text(meshes, with_squares=False)
 
         # get ground altitude map
-        #self.load_ground_altitude(
-            #os.path.join(os.path.dirname(self.svg_filename),
-                         #'altitude', 'real', 'alt_image.png'))
-        bdalti_map = os.path.join(
-            os.path.dirname(self.svg_filename),
-            'altitude', 'BDALTIV2_2-0_75M_ASC_LAMB93-IGN69_FRANCE_2020-04-28',
-            'BDALTIV2', 'map.json')
-        self.load_ground_altitude_bdalti(bdalti_map)
+        self.init_ground_altitude()
 
-        # make depth maps
-        if self.build_depth:
-            for level, mesh_def in self.depth_meshes_def.items():
-                mesh, props = mesh_def
-                if mesh is not None:
-                    if props.relative_to == self.ground_level:
-                        print('add ground alt on:', level)
-                        self.add_ground_alt(mesh)
-                    self.delaunay(mesh)
+        if self.parallel_nproc is not None:
+            print('***PARALLEL POSTPROC.***')
+            from soma import mpfork2 as mpfork
+            import queue
+
+            # make depth maps
+            if self.build_depth:
+
+                # force load almtitude maps
+                z = self.ground_altitude((0, 0))
+                njobs = len(self.depth_meshes_def)
+                q = queue.Queue()
+                res = [None] * njobs
+                keys = [None] * njobs
+                workers = mpfork.allocate_workers(
+                    q, res, self.parallel_nproc, 0, self)
+                job_index = 0
+                for level, mesh_def in self.depth_meshes_def.items():
+                    mesh, props = mesh_def
+                    if mesh is not None:
+                        if props.relative_to == self.ground_level:
+                            print('add ground alt on:', level)
+                            job = (job_index, '_p_gnd_alt_delaunay',
+                                   (level, ), {})
+                        else:
+                            job = (job_index, '_p_delaunay',
+                                   (level, ), {})
+                        keys[job_index] = level
+                        job_index += 1
+                        q.put(job)
+
+                # add as many empty jobs as the workers number to end them
+                for w in workers:
+                    q.put(None)
+                    w.start()
+
+                # wait for every job to complete
+                q.join()
+                # terminate all threads
+                for w in workers:
+                    w.join()
+
+                # print('result:', res)
+                for i, level in enumerate(keys):
+                    mesh_def = ()
+                    self.depth_meshes_def[level] = (
+                        res[i], self.depth_meshes_def[level][1])
+
+        else:
+            # make depth maps
+            if self.build_depth:
+                for level, mesh_def in self.depth_meshes_def.items():
+                    mesh, props = mesh_def
+                    if mesh is not None:
+                        if props.relative_to == self.ground_level:
+                            print('add ground alt on:', level)
+                            self.add_ground_alt(mesh)
+                        self.delaunay(mesh)
 
         meshes['grille surface'] = self.build_ground_grid()
         props = ItemProperties()
@@ -3660,94 +4293,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.setup_travel_speed()
 
         # extrude corridors walls
-        for main_group in list(meshes.keys()):
-            # here we iterate through list(keys) instead of using items()
-            # because some processings will insert new meshes in meshes,
-            # and this would make the iteration fail
-            props = self.group_properties.get(main_group)
-            if not props:
-                continue
-            # print(props)
-            mesh_l = meshes[main_group]
-            height_map = props.use_height_map
-            if height_map in ('none', 'None', 'false'):
-                height_map = None
-            if mesh_l and props.corridor or props.block or props.wall:
-                print('extrude:', main_group, props.corridor, props.block,
-                      height_map)
-                if not isinstance(mesh_l, list):
-                    mesh_l = [mesh_l]
-                for mesh in mesh_l:
-                    if not hasattr(mesh, 'vertex') or props.symbol:
-                        # not a mesh
-                        continue
-                    height = props.height * self.z_scale
-                    ceil, wall = self.extrude(mesh, height, height_map)
-                    if 'material' not in ceil.header():
-                        ceil.header()['material'] \
-                            = {'diffuse': [0.3, 0.3, 0.3, 1.]}
-                    elif 'diffuse' not in ceil.header()['material']:
-                        ceil.header()['material']['diffuse'] = [0.3, 0.3,
-                                                                0.3, 1.]
-                    elif props.contrast_floor or (
-                            props.contrast_floor is None
-                            and not self.enable_texturing):
-                        color = list(ceil.header()['material']['diffuse'])
-                        intensity \
-                            = np.sqrt(np.sum(np.array(color[:3])**2) / 3)
-                        if intensity <= 0.75:
-                            for i in range(3):
-                                c = color[i] + 0.4
-                                # if c > 1.:
-                                    # c = 1.
-                                color[i] = c
-                            m = max(color[:3])
-                            if m > 1.:
-                                for i in range(3):
-                                    color[i] /= m
-                        else:
-                            for i in range(3):
-                                c = color[i] - 0.4
-                                if c < 0.:
-                                    c = 0.
-                                color[i] = c
-                        ceil.header()['material']['diffuse'] = color
-                    meshes.setdefault(main_group + '_wall', []).append(wall)
-                    meshes.setdefault(main_group + '_ceil', []).append(ceil)
-                    self.group_properties[main_group + '_wall'] = props
-                    self.group_properties[main_group + '_ceil'] = props
-                    self.group_properties[main_group + '_floor'] = props
-
-                    # build floor or ceiling meshes using tesselated objects
-                    # (anatomist)
-                    if props.block:
-                        # "blocks" have a closed ceiling
-                        tess_mesh = self.tesselate(ceil, flat=True)
-                        if tess_mesh is not None:
-                            meshes.setdefault(main_group + '_ceil_tri',
-                                              []).append(tess_mesh)
-                            self.group_properties[main_group + '_ceil_tri'] \
-                                = props
-
-                    if props.corridor:
-                        # corridor have a closed floor
-                        # print('tesselate corridor:', props.main_group)
-                        tess_mesh = self.tesselate(mesh, flat=True)
-                        if tess_mesh is not None:
-                            meshes.setdefault(main_group + '_floor_tri',
-                                              []).append(tess_mesh)
-                            self.group_properties[main_group + '_floor_tri'] \
-                                = props
-
-            # set border color to filar meshes
-            if mesh_l and not props.arrow:  # arrows are colored already
-                if not isinstance(mesh_l, list):
-                    mesh_l = [mesh_l]
-                for mesh in mesh_l:
-                    if isinstance(mesh, aims.AimsTimeSurface_2):
-                        mat = mesh.header().get('material')
-                        if mat is not None and 'border_color' in mat:
-                            mat['diffuse'] = mat['border_color']
+        self.extrude_corridor_walls()
 
         # merge meshes in each group
         self.merge_meshes_by_group(meshes)
@@ -3872,6 +4418,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return super().extrude(mesh, distance)
 
         # print('MAP extrude:', height_map)
+        # sys.stdout.flush()
 
         if self.build_depth:
             win = self.depth_wins.get(height_map)
@@ -3915,6 +4462,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         return up, walls
 
     def attach_arrows_to_text(self, meshes, with_squares=True):
+        if self.parallel_nproc is not None:
+            return self.parallel_attach_arrows_to_text(
+                meshes,  with_squares=with_squares)
         print('*** attach_arrows_to_text ***')
         #print('layers:')
         #for mtype in meshes:
@@ -3936,55 +4486,119 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         print(props)
                         print('faulty mesh:', mesh)
                         continue
-                    text_o = self.find_text_for_arrow(meshes, mesh, in_layers)
-                    # print('arrow/text:', mesh, text_o)
-                    if text_o:
-                        props = text_o['properties']
-                        is_text = (props.get('type') != 'mesh')  # text
-                        # if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
-                        pos = props['position']
-                        anchor_p = pos
-                        vert = mesh.vertex()
-                        size = props['size']
-                        if is_text:
-                            anchor = text_o['objects'][0]['properties'].get(
-                                'text-anchor')
-                            if anchor != 'middle':
-                                pos = [pos[0] + size[0] / 2, pos[1]]
-                            text = text_o['objects'][0]['properties']['text']
-                            nlines = len(text.split('\n'))
-                            if nlines >= 2:
-                                dy = size[1] / nlines * (nlines - 1)
-                                pos = [pos[0], pos[1] + dy]
-                        # print('text pos:', pos)
-                        # vert2 = aims.vector_POINT3DF(vert)
-                        decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
-                            - vert[0]
-                        # print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
-                        n = len(vert)
-                        v0 = list(vert[0])
-                        v1 = list(vert[-1])
-                        for i, v in enumerate(vert):
-                            # print('vert', i, ':', v.np, '->', (v + decal * (1. - v[2])).np)
-                            # v += decal * float(n - i) / n
-                            v += decal * (1. - v[2])
-                        if with_squares:
-                            # debug: display rectangle around text location
-                            x0 = pos[0] - size[0] / 2
-                            x1 = pos[0] + size[0] / 2
-                            y0 = pos[1] - size[1]  # / 2
-                            y1 = pos[1]  # + size[1] / 2
-                            vert = mesh.vertex()
-                            z = vert[0][2]
-                            n = len(vert)
-                            vert += [(x0, y0, z), (x1, y0, z), (x1, y1, z),
-                                     (x0, y1, z)]
-                            poly = mesh.polygon()
-                            poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
-                                     (n+3, n)]
-                            # line between anchor point and dest
-                            vert += [(anchor_p[0], anchor_p[1], z), v0, v1]
-                            poly += [(n+4, n+5), (n+5, n+6)]
+                    text_o = self.attach_arrow_to_text(
+                        meshes, mesh, in_layers, with_squares=with_squares)
+
+    def parallel_attach_arrows_to_text(self, meshes, with_squares=True):
+        from soma import mpfork2
+        import queue
+
+        self.mesh_dict = meshes
+        print('*** attach_arrows_to_text ***')
+        sys.stdout.flush()
+        # find text attached to each arrow
+
+        q = queue.Queue()
+        res = []
+        jobs = []
+        workers = mpfork2.allocate_workers(q, res, self.parallel_nproc, 0,
+                                           self, with_squares=with_squares)
+        current_id = 0
+
+        for arrow, mesh_l in meshes.items():
+            props = self.group_properties.get(arrow)
+            if props and props.arrow and mesh_l:
+                if not isinstance(mesh_l, list):
+                    mesh_l = [mesh_l]
+                in_layers = props.attached_text_layers
+                for imesh, mesh in enumerate(mesh_l):
+                    if not hasattr(mesh, 'vertex'):
+                        print('*** WARNING: ***')
+                        print('A non-mesh object lies in an arrows '
+                              'layer/group')
+                        print(props)
+                        print('faulty mesh:', mesh)
+                        continue
+
+                    job = (current_id, '_p_attach_arrow_to_text',
+                           (arrow, imesh, in_layers), {})
+                    res.append(None)
+                    q.put(job)
+                    jobs.append((arrow, imesh))
+                    current_id += 1
+
+        for i in range(len(workers)):
+            q.put(None)
+        for w in workers:
+            w.start()
+        q.join()
+        for w in workers:
+            w.join()
+        for (arrow, imesh), mesh in zip(jobs, res):
+            meshes[arrow][imesh] = mesh
+        print('parallel_attach_arrows_to_text jobs finished')
+        sys.stdout.flush()
+
+    def _p_attach_arrow_to_text(self, arrow, imesh, in_layers,
+                                with_squares=False):
+        mesh = self.mesh_dict[arrow][imesh]
+        self.attach_arrow_to_text(self.mesh_dict, mesh, in_layers=in_layers,
+                                  with_squares=with_squares)
+        return mesh
+
+    def attach_arrow_to_text(self, meshes, mesh, in_layers=None,
+                             with_squares=False):
+        text_o = self.find_text_for_arrow(meshes, mesh, in_layers)
+        # print('arrow/text:', mesh, text_o)
+        if text_o:
+            props = text_o['properties']
+            is_text = (props.get('type') != 'mesh')  # text
+            # if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
+            pos = props['position']
+            anchor_p = pos
+            vert = mesh.vertex()
+            size = props['size']
+            if is_text:
+                anchor = text_o['objects'][0]['properties'].get(
+                    'text-anchor')
+                if anchor != 'middle':
+                    pos = [pos[0] + size[0] / 2, pos[1]]
+                text = text_o['objects'][0]['properties']['text']
+                nlines = len(text.split('\n'))
+                if nlines >= 2:
+                    dy = size[1] / nlines * (nlines - 1)
+                    pos = [pos[0], pos[1] + dy]
+            # print('text pos:', pos)
+            # vert2 = aims.vector_POINT3DF(vert)
+            decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
+                - vert[0]
+            # print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
+            n = len(vert)
+            v0 = list(vert[0])
+            v1 = list(vert[-1])
+            for i, v in enumerate(vert):
+                # print('vert', i, ':', v.np, '->', (v + decal * (1. - v[2])).np)
+                # v += decal * float(n - i) / n
+                v += decal * (1. - v[2])
+            if with_squares:
+                # debug: display rectangle around text location
+                x0 = pos[0] - size[0] / 2
+                x1 = pos[0] + size[0] / 2
+                y0 = pos[1] - size[1]  # / 2
+                y1 = pos[1]  # + size[1] / 2
+                vert = mesh.vertex()
+                z = vert[0][2]
+                n = len(vert)
+                vert += [(x0, y0, z), (x1, y0, z), (x1, y1, z),
+                            (x0, y1, z)]
+                poly = mesh.polygon()
+                poly += [(n, n+1), (n+1, n+2), (n+2, n+3),
+                            (n+3, n)]
+                # line between anchor point and dest
+                vert += [(anchor_p[0], anchor_p[1], z), v0, v1]
+                poly += [(n+4, n+5), (n+5, n+6)]
+
+        return mesh
 
     def find_text_for_arrow(self, meshes, mesh, in_layers=None):
         dmin = -1
@@ -7058,6 +7672,29 @@ The program allows to produce:
     parser.add_argument(
         '--nodepth', action='store_true',
         help='do not build 3D depth maps and don\'t apply them')
+    parser.add_argument(
+        '-p', '--parallel', type=int, default=None,
+        help='use parallel processing. Available only on unix, and needs '
+        'soma-base library installed. The argument is the number of cores '
+        'used. Positive num: use that number of CPU cores; 0: use all '
+        'available cores; negative num: use the available ones except that '
+        'number.')
+    parser.add_argument(
+        '-gp', '--gpu', default=None,
+        help='use parallel processing while GPU operations are needed. '
+        'Available only on unix, and needs '
+        'soma-base library installed. The argument is the number of cores '
+        'used. Positive num: use that number of CPU cores; 0: use all '
+        'available cores; negative num: use the available ones except that '
+        'number. Depth calculation operations make use of the GPU, but could '
+        'be parallelized for CPU also (so the number of workers is based on '
+        'the numper of CPU cores), but GPU operations are still performed on '
+        'the same GPU. However a single GPU might not handle parallel '
+        'requests in an optimal way, so it is not enabled by default.\n'
+        'If the tool switcherooctl is present, it is also possible to specify '
+        'limits by GPU and thus use several GPUs: in this case, use a '
+        'dict-like syntax, ex: "{0: 0, 1: 2}" means: max 2 instances '
+        'for GPU 1 and as many as CPU cores minus 2 for GPU 0')
 
     options = parser.parse_args()
 
@@ -7117,6 +7754,15 @@ The program allows to produce:
     if not out_filename.endswith('.svg'):
         out_filename += '.svg'
 
+    georef = options.georef
+    parallel = options.parallel
+    gpu_nproc = options.gpu
+    if gpu_nproc is not None:
+        if gpu_nproc[0] == '{':
+            gpu_nproc = eval(gpu_nproc)
+        else:
+            gpu_nproc = int(gpu_nproc)
+
     if do_3d:
         svg_mesh = CataSvgToMesh()
         svg_mesh.enable_texturing = texturing
@@ -7124,8 +7770,8 @@ The program allows to produce:
     else:
         svg_mesh = CataMapTo2DMap()
     # svg_mesh.debug = True
-
-    georef = options.georef
+    svg_mesh.parallel_nproc = parallel
+    svg_mesh.gpu_workers = gpu_nproc
 
     if colorset:
         svg_mesh.colorset = colorset
