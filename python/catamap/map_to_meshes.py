@@ -5279,6 +5279,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     group = group[:-5]
                 props = self.group_properties.get(group)
                 if not props:
+                    group = mesh
+                    props = self.group_properties.get(group)
+                if not props:
                     print('no props for mesh:', group, filename)
                 if '.' in filename:  # remove extension
                     filename = '.'.join(filename.split('.')[:-1])
