@@ -753,7 +753,7 @@ class SvgToMesh:
 
     def make_texcoords(self, mesh, tex_def):
         map_meth = tex_def.get('params', {}).get('mapping_method', 'xy')
-        print('map meth:', tex_def.get('params', {}).get('mapping_method'))
+        # print('map meth:', tex_def.get('params', {}).get('mapping_method'))
         map_method = self.tex_mapping_methods[map_meth]
         tex_coords = map_method(mesh, tex_def)
         tex_coords.header()['gltf_texture'] = {'teximage': tex_def['image']}
@@ -859,7 +859,7 @@ class SvgToMesh:
         dtex[0].resize(mesh.vertex(0).size())
         dtex0 = dtex[0].np
         dtex0[:] = -1
-        print('geodesic distance map...')
+        # print('geodesic distance map...')
         # print('dmax:', dmax)
         # print('init mesh:', mesh.vertex(0).np)
         ftex = aims.meshdistance.MeshDistance(mesh2d, itex, False)

@@ -4034,7 +4034,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         import queue
 
         meshes = self.mesh_dict
-        q = queue.Queue()
+        q = queue.PriorityQueue()
         res = []
         jobs = []
         current_index = 0
@@ -4062,6 +4062,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             if not props:
                 continue
             # print(props)
+            height_map = props.use_height_map
+            if height_map in ('none', 'None', 'false'):
+                height_map = None
             mesh_l = meshes[main_group]
             if mesh_l and props.corridor or props.block or props.wall:
                 if not isinstance(mesh_l, list):
@@ -4071,15 +4074,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         # not a mesh
                         continue
 
-                    job = (current_index, 'extrude_corridor_single',
-                           (mesh, props), {})
+                    # prioritize jobs, larger meshes first
+                    prio = -len(mesh.vertex())
+                    if height_map is not None:
+                        prio *= 5
+                    job = (prio,
+                           (current_index, 'extrude_corridor_single',
+                            (mesh, props), {}))
                     res.append(None)
                     q.put(job)
                     jobs.append((main_group, imesh))
                     current_index += 1
 
         for i in range(len(workers)):
-            q.put(None)
+            q.put((1, None))
         # print('*** start workers')
         # sys.stdout.flush()
         for w in workers:
@@ -5159,6 +5167,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                        mesh_wf_format='.glb', json_filename=None,
                        map2d_filename=None, verbose=True):
         # filter out wells definitions
+        print('**** SAVE ***')
+        t = [time.time()]
         def mod_key(key, item):
             if isinstance(item, aims.AimsTimeSurface_3):
                 if not key.endswith('_tri'):
@@ -5192,6 +5202,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             gltf_lights = None
             gltf_p_lights = None
             lights = getattr(self, 'lights', None)
+            gltf_by_layer = {}
             if lights:
                 gltf_lights = super().save_mesh_dict(
                     {}, dirname,  mesh_format=mesh_format, mesh_wf_format=None,
@@ -5265,6 +5276,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         json_obj['default_categories'] = def_categories
         used_layers = set()
 
+        t.append(time.time())
+
         # print('summary:', summary, '\n')
         if 'meshes' in summary:
             jmeshes = []
@@ -5329,7 +5342,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     elif 'grille surface' in filename:
                         layer = 9
                 if use_gltf:
-                    if 'private' in filename or (props and props.private):
+                    private = ('private' in filename
+                               or (props and props.private))
+                    if private:
                         gltf = gltf_p_dicts.setdefault(layer, {})
                     else:
                         gltf = gltf_dicts.setdefault(layer, {})
@@ -5340,7 +5355,15 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if len(mdict[mesh].vertex()) == 0:
                         print('mesh has 0 size:', mesh)
                     else:
-                        self.store_gltf_texmesh(mdict[mesh], mesh, gltf=gltf)
+                        gltf_layer = gltf_by_layer.setdefault(
+                            (layer, private), [])
+                        if len(gltf_layer) == 0:
+                            gltf_layer.append(gltf)
+                            gltf_layer.append([])
+                        gltf_layer[1].append((mdict[mesh], mesh))
+                        if self.parallel_nproc is None:
+                            self.store_gltf_texmesh(mdict[mesh], mesh,
+                                                    gltf=gltf)
                 else:
                     # print('mesh:', layer, ':', filename, props)
                     size = os.stat(os.path.join(dirname,
@@ -5356,6 +5379,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
                 used_layers.add(layer)
 
+        t.append(time.time())
+        print('meshes list:', t[-1] - t[-2])
+
         if use_gltf:
             for light_l, l_summary, private, gltf_d in (
                     (lights, gltf_lights, '', gltf_dicts),
@@ -5368,49 +5394,58 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         layer = categories.index(category)
                         used_layers.add(layer)
                         gltf_d[layer] = glight
+
                         # print('Light dict, layer', layer, ':', glight)
 
-            try:
-                from pygltflib import GLTF2, BufferFormat, ImageFormat
-            except ImportError:
-                GLTF2 = None  # no GLTF/GLB conversion support
+            if self.parallel_nproc is not None:
+                self.parallel_save_gltf(
+                    gltf_by_layer, gltf_lights, gltf_p_lights, categories,
+                    mesh_format, dirname, jmeshes, pmeshes)
+            else:
+                # try:
+                #     from pygltflib import GLTF2, BufferFormat, ImageFormat
+                # except ImportError:
+                #     GLTF2 = None  # no GLTF/GLB conversion support
 
-            for gltf_d, private, mmeshes in (
-                    (gltf_dicts, '', jmeshes),
-                    (gltf_p_dicts, '_private', pmeshes)):
-                # regroup GLTFs
-                for layer, gltf in gltf_d.items():
-                    print('layer:', layer)
-                    if layer < 0:
-                        category = 'hidden'
-                    else:
-                        category = categories[layer]
+                for gltf_d, private, mmeshes in (
+                        (gltf_dicts, '', jmeshes),
+                        (gltf_p_dicts, '_private', pmeshes)):
+                    # regroup GLTFs
+                    for layer, gltf in gltf_d.items():
+                        print('layer:', layer)
+                        if layer < 0:
+                            category = 'hidden'
+                        else:
+                            category = categories[layer]
 
-                    mformat = mesh_format
-                    if category == 'Lumières':
-                        use_draco = False
-                        # mformat = '.gltf'
-                    else:
-                        use_draco = True
+                        mformat = mesh_format
+                        if category == 'Lumières':
+                            use_draco = False
+                            # mformat = '.gltf'
+                        else:
+                            use_draco = True
 
-                    filename = osp.join(
-                        dirname, category + private + mformat)
-                    print('GLTF layer:', layer, ':', filename)
+                        filename = osp.join(
+                            dirname, category + private + mformat)
+                        print('GLTF layer:', layer, ':', filename)
 
-                    filename = gltf_io.save_gltf(gltf, filename,
-                                                 use_draco=use_draco)
+                        filename = gltf_io.save_gltf(gltf, filename,
+                                                     use_draco=use_draco)
 
-                    # print('GLTF mesh:', layer, ':', filename, props)
-                    size = os.stat(filename).st_size
-                    if layer >= 0:  # layer -1 is hidden
-                        # hash
-                        md5 = hashlib.md5(
-                            open(filename, 'rb').read()).hexdigest()
-                        mmeshes.append([layer, osp.basename(filename), size,
-                                        md5])
+                        # print('GLTF mesh:', layer, ':', filename, props)
+                        size = os.stat(filename).st_size
+                        if layer >= 0:  # layer -1 is hidden
+                            # hash
+                            md5 = hashlib.md5(
+                                open(filename, 'rb').read()).hexdigest()
+                            mmeshes.append(
+                                [layer, osp.basename(filename), size, md5])
 
             json_obj['meshes'] = sorted(jmeshes)
             json_obj['meshes_private'] = sorted(pmeshes)
+
+        t.append(time.time())
+        print('GLTF:', t[-1] - t[-2])
 
         new_nums = {l: i for i, l in enumerate(used_layers)}
         categories = [c for i, c in enumerate(categories) if i in used_layers]
@@ -5480,12 +5515,152 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if travel_speed is not None:
             json_obj['travel_speed_projection'] = list(travel_speed)
 
+        t.append(time.time())
+        print('texts/sounds:', t[-1] - t[-2])
+
         if json_filename is not None:
             with open(json_filename, 'w') as f:
                 json.dump(json_obj, f, indent=4, sort_keys=False,
                           ensure_ascii=False)
 
+        t.append(time.time())
+        print('total save time:', t[-1] - t[0])
         return json_obj
+
+    def parallel_save_gltf(self, gltf_by_layer, gltf_lights, gltf_p_lights,
+                           categories, mesh_format, dirname, jmeshes,
+                           pmeshes):
+        from soma import mpfork2
+        import queue
+
+        # print('*** parallel_save_gltf ***')
+
+        q = queue.PriorityQueue()
+        res = []
+        current_index = 0
+        njobs = len(gltf_by_layer)
+        if gltf_lights is not None:
+            njobs += 1
+        if gltf_p_lights is not None:
+            njobs += 1
+
+        # store in self before fork
+        self.gltf_by_layer = gltf_by_layer
+        self.gltf_lights = [gltf_lights, gltf_p_lights]
+        self.categories = categories
+        self.mesh_format = mesh_format
+        self.dirname = dirname
+
+        workers = mpfork2.allocate_workers(q, res, self.parallel_nproc,
+                                           njobs, self)
+
+        for (layer, private), (gltf, meshes) in gltf_by_layer.items():
+            job = (current_index, '_p_save_gltf_mesh',
+                   (layer, private), {})
+            current_index += 1
+            prio = -sum(len(mesh.vertex()) for mesh, name in meshes)
+            q.put((prio, job))
+            res.append(None)
+
+        if gltf_lights:
+            job = (current_index, '_p_save_gltf_light', (0, ), {})
+            current_index += 1
+            prio = -10
+            q.put((prio, job))
+            res.append(None)
+        if gltf_p_lights:
+            job = (current_index, '_p_save_gltf_light', (1, ), {})
+            current_index += 1
+            prio = -10
+            q.put((prio, job))
+            res.append(None)
+
+        for i in range(len(workers)):
+            q.put((10, None))
+        for w in workers:
+            w.start()
+        q.join()
+        for w in workers:
+            w.join()
+
+        del (self.dirname, self.mesh_format, self.categories,
+             self.gltf_lights, self.gltf_by_layer)
+
+        for item in res:
+            if item is not None:
+                if item[0]:
+                    meshes = pmeshes
+                else:
+                    meshes = jmeshes
+                meshes.append(item[1:])
+
+    def _p_save_gltf_mesh(self, layer, private):
+        from soma.aims import gltf_io
+        # try:
+        #     from pygltflib import GLTF2, BufferFormat, ImageFormat
+        # except ImportError:
+        #     GLTF2 = None  # no GLTF/GLB conversion support
+
+        # print('SAVE GLTF JOB:', layer, private)
+        # sys.stdout.flush()
+
+        (gltf, meshes) = self.gltf_by_layer[(layer, private)]
+        for mesh, name in meshes:
+            self.store_gltf_texmesh(mesh, name, gltf=gltf)
+
+        private_str = '_private' if private else ''
+
+        if layer < 0:
+            category = 'hidden'
+        else:
+            category = self.categories[layer]
+
+        mformat = self.mesh_format
+        if category == 'Lumières':
+            use_draco = False
+        else:
+            use_draco = True
+
+        filename = osp.join(self.dirname, category + private_str + mformat)
+        print('GLTF layer:', layer, ':', filename)
+        sys.stdout.flush()
+
+        filename = gltf_io.save_gltf(gltf, filename,
+                                     use_draco=use_draco)
+
+        # print('GLTF mesh:', layer, ':', filename, props)
+        size = os.stat(filename).st_size
+        if layer >= 0:  # layer -1 is hidden
+            # hash
+            with open(filename, 'rb') as f:
+                md5 = hashlib.md5(f.read()).hexdigest()
+
+            return [private, layer, osp.basename(filename), size, md5]
+        return None
+
+    def _p_save_gltf_light(self, private):
+        from soma.aims import gltf_io
+
+        mformat = self.mesh_format
+        category = 'Lumières'
+        layer = self.categories.index[category]
+        use_draco = False
+        private_str = '_private' if private else ''
+        gltf = self.gltf_lights[private]
+
+        filename = osp.join(self.dirname, category + private_str + mformat)
+        print('GLTF layer:', layer, ':', filename)
+        sys.stdout.flush()
+
+        filename = gltf_io.save_gltf(gltf, filename, use_draco=use_draco)
+
+        # print('GLTF mesh:', layer, ':', filename, props)
+        size = os.stat(filename).st_size
+        # hash
+        with open(filename, 'rb') as f:
+            md5 = hashlib.md5(f.read()).hexdigest()
+
+        return [private, layer, osp.basename(filename), size, md5]
 
 
 class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
