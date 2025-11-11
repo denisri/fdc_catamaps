@@ -2833,20 +2833,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         win = a.createWindow('Axial')  #, options={'hidden': 1})
         Qt.qApp.processEvents()
-        # time.sleep(0.5)
+        time.sleep(0.1)
         win.windowConfig(view_size=size, cursor_visibility=0)
 
         Qt.qApp.processEvents()
-        # time.sleep(0.5)
+        time.sleep(0.1)
         Qt.qApp.processEvents()
         admesh = a.toAObject(depth_mesh)
         a.releaseObject(admesh)
         for i in range(10):
-            # time.sleep(0.2)
+            time.sleep(0.1)
             Qt.qApp.processEvents()
         win.addObjects(admesh)
         for i in range(10):
-            # time.sleep(0.2)
+            time.sleep(0.1)
             Qt.qApp.processEvents()
         view = win.view()
         bbmin = view.boundingMin()
@@ -4566,26 +4566,17 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if text_o:
             props = text_o['properties']
             is_text = (props.get('type') != 'mesh')  # text
-            # if not is_text: print('arrow attached to non-text:', arrow, text_o, 'pos:', mesh.vertex()[0].np)
             pos = props['position']
             anchor_p = pos
             vert = mesh.vertex()
             size = props['size']
-            if is_text:
-                anchor = text_o['objects'][0]['properties'].get(
-                    'text-anchor')
-                if anchor != 'middle':
-                    pos = [pos[0] + size[0] / 2, pos[1]]
-                text = text_o['objects'][0]['properties']['text']
-                nlines = len(text.split('\n'))
-                if nlines >= 2:
-                    dy = size[1] / nlines * (nlines - 1)
-                    pos = [pos[0], pos[1] + dy]
-            # print('text pos:', pos)
-            # vert2 = aims.vector_POINT3DF(vert)
+            bbshift = props.get('bbox_shift')
+            if bbshift is None:
+                bbshift = [- size[0] / 2, - size[1]]
+            pos = [pos[0] + bbshift[0] + size[0] / 2,
+                   pos[1] + bbshift[1] + size[1]]
             decal = aims.Point3df(pos[0], pos[1], vert[0][2]) \
                 - vert[0]
-            # print('decal text', text_o['objects'][0]['properties']['text'], list(decal), 'to:', pos, ', size', size)
             n = len(vert)
             v0 = list(vert[0])
             v1 = list(vert[-1])
@@ -4595,10 +4586,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 v += decal * (1. - v[2])
             if with_squares:
                 # debug: display rectangle around text location
-                x0 = pos[0] - size[0] / 2
-                x1 = pos[0] + size[0] / 2
-                y0 = pos[1] - size[1]  # / 2
-                y1 = pos[1]  # + size[1] / 2
+                x0 = anchor_p[0] + bbshift[0]
+                x1 = x0 + size[0]
+                y0 = anchor_p[1] + bbshift[1]
+                y1 = y0 + size[1]
                 vert = mesh.vertex()
                 z = vert[0][2]
                 n = len(vert)
@@ -4665,7 +4656,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     anchor = tprops.get('text-anchor')
                     size = props.get('size', [0., 0.])
                     bbshift = props.get('bbox_shift',
-                                        [-size[0] / 2., -size[1] / 2.])
+                                        [-size[0] / 2., -size[1]])
                     # if size == [0., 0.]:
                         # print('text with no size in group', mtype, ':')
                         # print(props)
@@ -4680,6 +4671,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     locpoint[:2] -= pos[:2]
                     if trans is not None:
                         # transform point in local coords of text
+                        # remove translation (local to pos) and scaling
+                        # (already in text size)
+                        trans = np.matrix(trans, copy=True)
+                        trans[:2, 2] = 0
+                        scl = np.matrix(np.eye(3))
+                        pt0 = trans.dot([1., 0., 1])
+                        scl0 = np.sqrt(pt0[0, 0] * pt0[0, 0]
+                                       + pt0[0, 1] * pt0[0, 1])
+                        pt0 = trans.dot([0., 1., 1])
+                        scl1 = np.sqrt(pt0[0, 0] * pt0[0, 0]
+                                       + pt0[0, 1] * pt0[0, 1])
+                        scl[0, 0] = 1. / scl0
+                        scl[1, 1] = 1. / scl1
+                        trans = trans * scl
                         itrans = np.linalg.inv(trans)
                         if debug >= 3:
                             print('locpoint before trans:', locpoint)
@@ -4902,9 +4907,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if not protos:
             return
         fproto = protos['label'].get('fontis')
-        trans = self.get_transform(fproto['element'])
         if fproto is None:
             return
+        trans = self.get_transform(fproto['element'])
         self.main_group = 'fontis'
         fmesh_l = aims.AimsTimeSurface_2()
         fmesh_l.header()['material'] = {'diffuse': [0.74, 0.33, 0., 1.]}

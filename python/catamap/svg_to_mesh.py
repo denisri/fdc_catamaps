@@ -1711,10 +1711,8 @@ class SvgToMesh:
                 if x is not None and y is not None:
                     p0 = np.array(((float(x), float(y), 1.),)).T
                     p1 = list(np.array(tr.dot(p0)).ravel()[:2])
-                    if pos is None:
-                        pos = (p1[0], p1[1])
-                    else:
-                        pos = (min(pos[0], p1[0]), min(pos[1], p1[1]))
+                    pos = (p1[0], p1[1])
+                    break
                 else:
                     children += [(it, self.get_transform(it, tr))
                                  for it in child[:]]
@@ -1889,27 +1887,35 @@ class SvgToMesh:
             ffamily = text_obj.get('font_family')
             if ffamily is None:
                 ffamily = QtGui.QFont().family()
-            font = QtGui.QFont(ffamily, int(round(fsize)))  # , QtGui.QFont.Bold)
-            fm = QtGui.QFontMetrics(font)
+            font = QtGui.QFont(ffamily, int(round(fsize)))
+            fm = QtGui.QFontMetricsF(font)
             width = 0
             height = 0
             anchor = None
-            for line in text:
+            bbox = None
+            a_line_height = (fm.height() + fm.leading()) * line_height
+            for iline, line in enumerate(text):
                 if line == '':
                     line = 'I'
-                r = fm.boundingRect(line)
-                width = max(width, r.width())
-                if height != 0:
-                    height += fm.leading() * line_height
-                height += r.height() * line_height
-                if anchor is None:
-                    anchor = [0., fm.ascent()]
+                r = fm.tightBoundingRect(line)
+                if bbox is None:
+                    bbox = [r.left(), r.top(), r.right(), r.bottom()]
+                else:
+                    bbox = [
+                        min(bbox[0], r.left()),
+                        min(bbox[1],
+                            r.top() + iline * a_line_height),
+                        max(bbox[2], r.right()),
+                        max(bbox[3],
+                            r.bottom() + iline * a_line_height)]
+            width = bbox[2] - bbox[1]
+            height = bbox[3] - bbox[1]
             width *= scale / fscale
             height *= scale / fscale
+            anchor = [0., -bbox[1] * scale / fscale]
             tanchor = text_obj.get('text-anchor')
             if tanchor == 'middle':
                 anchor[0] = width / 2.  # centered
-            anchor[1] *= scale / fscale
             # print('text size:', width, height, anchor, scale, fscale, fsize, text)
 
         except ImportError:
