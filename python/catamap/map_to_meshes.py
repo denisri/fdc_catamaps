@@ -745,7 +745,7 @@ import collections
 import sys
 import subprocess
 import shutil
-import imp
+import importlib
 import time  # just for exec time stats
 from argparse import ArgumentParser
 import textwrap as _textwrap
@@ -5227,7 +5227,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         sys.path.insert(0, p)
         try:
             import build_version
-            imp.reload(build_version)
+            importlib.reload(build_version)
             # increment build version
             build_version.build_version += 1
             # save modified build version
