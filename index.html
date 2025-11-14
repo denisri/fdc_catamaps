@@ -40,10 +40,840 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="module-catamap.svg_to_mesh">
-<span id="catamap"></span><h1>CataMap<a class="headerlink" href="#module-catamap.svg_to_mesh" title="Link to this heading">¶</a></h1>
+  <section id="module-catamap.map_to_meshes">
+<span id="catamap"></span><h1>CataMap<a class="headerlink" href="#module-catamap.map_to_meshes" title="Link to this heading">¶</a></h1>
+<p>Catacombs maps using SVG source map with codes inside it.</p>
+<p>The program allows to produce:</p>
+<ul class="simple">
+<li><p>2D “readable” maps with symbols changed to larger ones, second level shifted to avoid superimposition of corridors, enlarged zooms, shadowing etc.</p></li>
+<li><p>3D maps to be used in a 3D visualization program, a webGL server, or the CataZoom app.</p></li>
+</ul>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>Having inkscape installed on the system and available in the PATH.
+A recent version of inkscape (1.0 at least) is recommended to avoid units and
+scaling problems.
+<strong>Inkscape is needed for 2D maps renderings</strong>, it is not needed for the 3D
+mode.</p></li>
+<li><p>Either (<strong>for 2D maps</strong>):</p>
+<ul>
+<li><p>the Pillow (PIL) python module (see later)</p></li>
+<li><p>or ImageMagick “convert” tool to convert PNG to JPEG. If Pillow is present,
+then convert will not be
+used.</p>
+<p><strong>Warning:</strong> <a class="reference external" href="https://github.com/ImageMagick/ImageMagick/issues/396">https://github.com/ImageMagick/ImageMagick/issues/396</a>
+ImageMagick cache (disk limit) size is too small.
+Edit /etc/ImageMagick-6/policy.xml and change disk resource limit:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;12GiB&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;map&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;20GiiB&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;width&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;50KP&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;height&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;50KP&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;area&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;20GiB&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;disk&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;80GiB&quot;</span><span class="o">/&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+<p>Python modules:</p>
+<p>These can be installed using the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">Pillow</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference internal" href="#module-catamap.svg_to_mesh" title="catamap.svg_to_mesh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">svg_to_mesh</span></code></a> submodule and its requirements (part of this
+project)</p></li>
+<li><p>xml ElementTree</p></li>
+<li><p>numpy</p></li>
+<li><p>scipy</p></li>
+<li><p>Pillow (PIL) optionally for PNG/JPEG image conversion. Otherwise ImageMagick
+“convert” tool will be used (see above)</p></li>
+<li><p>pyclipper, used in <strong>2D maps</strong> and only when <strong>zoomed zones</strong> are used. You
+can install it via pip.</p></li>
+</ul>
+<p>The 3D part has additional requirements:</p>
+<ul class="simple">
+<li><p>soma.aims (<a class="reference external" href="https://github.com/brainvisa/aims-free">https://github.com/brainvisa/aims-free</a>)</p></li>
+<li><p>anatomist (<a class="reference external" href="https://github.com/brainvisa/anatomist-free">https://github.com/brainvisa/anatomist-free</a> and
+<a class="reference external" href="https://github.com/brainvisa/anatomist-gpl">https://github.com/brainvisa/anatomist-gpl</a>)</p></li>
+<li><p>json</p></li>
+</ul>
+<p>The maps differences tool (<a class="reference internal" href="#module-catamap.diff_svg" title="catamap.diff_svg"><code class="xref py py-mod docutils literal notranslate"><span class="pre">diff_svg</span></code></a>) also needs:</p>
+<ul class="simple">
+<li><p>yaml (pip module <code class="docutils literal notranslate"><span class="pre">pyyaml</span></code>)</p></li>
+</ul>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>set the <code class="docutils literal notranslate"><span class="pre">python</span></code> subdirectory of the project in your <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable. Under Unix sh/bash shells, this would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;~/fdc_catamaps/python:$PYTHONPATH&quot;</span>
+</pre></div>
+</div>
+<p>(it can be set in a <code class="docutils literal notranslate"><span class="pre">.bash_profile</span></code> or <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> init file)</p>
+</li>
+<li><p>get or make the source SVG file with codes inside, for instance <code class="docutils literal notranslate"><span class="pre">plan_14_fdc_2021_04_29.svg</span></code></p></li>
+</ul>
+<p>main
+* go to the directory containing it
+* run the module <code class="docutils literal notranslate"><span class="pre">catamap</span></code> as a program:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span> <span class="o">--</span><span class="mi">2</span><span class="n">d</span> <span class="n">plan_14_fdc_2021_04_29</span><span class="o">.</span><span class="n">svg</span>
+</pre></div>
+</div>
+<p>It should work using python3 (python2 support has been dropped).
+The 2D maps options will produce files with suffixes in the current directory:
+modified .svg files, .pdf and .jpg files.</p>
+<p>The 3D maps option will produce meshes in a subdirectory.</p>
+<p>Use the commandline with the ‘-h’ option to get all parameters help.</p>
+</section>
+<section id="inkscape-svg-files">
+<h2>Inkscape SVG files<a class="headerlink" href="#inkscape-svg-files" title="Link to this heading">¶</a></h2>
+<p>SVG files may (should) contain additional XML properties that can be set in the XML editor in the Inkscape software. They allow to specify how objects should be parsed, grouped, represented etc. For now they are mainly used in the 3D part, but the 2D part also uses <code class="docutils literal notranslate"><span class="pre">level</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code>, and <code class="docutils literal notranslate"><span class="pre">private</span></code> information information.</p>
+<p>Codes correspond to properties used in the program, and can be set in XML elements in the SVG file.</p>
+<p>Bool properties can be written <code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code>, or <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<p>Properties are inherited from parent (group/layer) to children. Thus if a layer has the property <code class="docutils literal notranslate"><span class="pre">corridor</span></code> set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, all objects in this layer will be marked as <code class="docutils literal notranslate"><span class="pre">corridor</span></code>.</p>
+<p>In the program, elements are grouped into meshes: a mesh will be the concatenation of all elements of the same kind, to avoid having dozens of thousands of mesh files to load. An object “kind” (a group making a single mesh) is identified by several of its properties, but not all. Namely the identifier is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">label</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">level</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">public</span><span class="o">/</span><span class="n">private</span><span class="o">&gt;</span><span class="n">_</span><span class="o">&lt;</span><span class="n">accessible</span><span class="o">/</span><span class="n">inaccessible</span><span class="o">&gt;</span><span class="p">[</span><span class="n">_</span><span class="o">&lt;</span><span class="n">category</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Other properties are not discriminative, so in some conditions may not be taken into account. For instance if a layer defines a label, level, public and accessible states, and marks items as corridors, if one element inside adds a property <code class="docutils literal notranslate"><span class="pre">block</span></code>, it will be part of the same mesh group anyway, and the <code class="docutils literal notranslate"><span class="pre">block</span></code> property will be ignored.</p>
+<section id="properties-list">
+<h3>Properties list<a class="headerlink" href="#properties-list" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><strong>alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>color to be used alternatively in maps. This is a string representing a
+JSON format dictionary. Keys are colorsets names, values are a second level
+of dictionary which specifies color properties, a bit like for SVG elements
+style. The
+default colorset for 3D maps is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>arrow:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>arrows join a text label to a location on map. They are filar meshes. Most
+of them are just a segment (2 points) but they may contain more points.
+Points orientation is important as the arrow goes from the text (above the
+meshes) down to the pointed item below.</p>
+</dd>
+<dt><strong>arrow_base_height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the base of an arrow element in the upper layer depth. The arrow
+head shift is specified using height_shift.</p>
+</dd>
+<dt><strong>attached_text_layers:</strong> list of strings (<strong>3D maps</strong>)</dt><dd><p>In an arrow layer, lells to look for attached texts only in the given
+layers. By default, texts are looked for in all layers, so if the map is
+dense and many texts are near, there may be confusions. This property
+allows to remove (or reduce) ambiguities.</p>
+</dd>
+<dt><strong>block:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>block elements have a ceiling and walls. Meshes are extruded and tesselated
+to be filled.</p>
+</dd>
+<dt><strong>border:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not used if I remember…</p>
+</dd>
+<dt><strong>camera_light:</strong> str (<strong>3D maps</strong>)</dt><dd><p>if set to <code class="docutils literal notranslate"><span class="pre">off</span></code>, the camera light (headlamp) is disabled.</p>
+</dd>
+<dt><strong>category:</strong> str (<strong>3D maps</strong>)</dt><dd><p>the category string the element will be associated in the 3D views.
+Categories can be displayed/hidden using buttons or menus in 3D views.</p>
+</dd>
+<dt><strong>catflap:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>In catflaps, paths are replaced with striped tubes.</p>
+</dd>
+<dt><strong>ceil_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the ceiling part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
+</dl>
+<dl id="colorsets-prop">
+<dt><strong>colorsets:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies which
+default colorset is associated with specific map types, for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="s2">&quot;igc&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>colorset_inheritance:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies colorsets
+which can inherit the colors defined by another, in order to minimally
+specialize it.</p>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>contrast_floor:</strong> str (<strong>3D maps</strong>)</dt><dd><p>if true (which is the default), corridor or block top and bottom meshes are
+contrasted compared to wall meshes: the wall colors (given as the color
+properties) are lightened or darkened before being assigned to floor or
+ceilings. If you don’t want this, set this property to false.
+A third value is allowed: <code class="docutils literal notranslate"><span class="pre">if_no_tex</span></code>, meaning that contrasting colors is
+enabled only in non-textured mode (if the commandline option <code class="docutils literal notranslate"><span class="pre">--texture</span></code>
+is not set).</p>
+</dd>
+<dt><strong>corridor:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>corridors have a floor and walls. Meshes are extruded and tesselated to be
+filled.</p>
+</dd>
+<dt><strong>date:</strong> str (<strong>2D maps</strong>)</dt><dd><p>the date text will be replaced with the date of the map build.</p>
+</dd>
+<dt><strong>default_categories:</strong> JSON list (<strong>3D maps</strong>)</dt><dd><p>list of categories which are visible by default (checked in the viewer)</p>
+</dd>
+<dt><strong>depth_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a depth map. It should contain a <code class="docutils literal notranslate"><span class="pre">level</span></code> property to define
+the level it maps. See <a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a> for details.</p>
+</dd>
+<dt><strong>floor_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the floor part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
+<dt><strong>glabel:</strong> str (<strong>2D maps</strong>)</dt><dd><p>“group label” used to replace elements with ones from the legends layer.
+The <code class="docutils literal notranslate"><span class="pre">glabel</span></code> is associated to one legends element if the legends element
+<code class="docutils literal notranslate"><span class="pre">label</span></code> property has the value of the <code class="docutils literal notranslate"><span class="pre">glabel</span></code> property of the element
+plus the suffix <code class="docutils literal notranslate"><span class="pre">_proto</span></code>. Ex, in the legends:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">label</span><span class="p">:</span> <span class="n">colim_proto</span>
+</pre></div>
+</div>
+<p>in the map elements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">glabel</span><span class="p">:</span> <span class="n">colim</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>gltf_properties:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>optionally set on texture image elements, they specify how the texture
+image is mapped and repeaded on the meshes. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a> for
+details.</p>
+</dd>
+<dt><strong>height_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is a height map. This is the same as <strong>depth_map</strong> except that
+heights are inverted compared to depths, and that a height map may be
+relative to another depth map (see the <code class="docutils literal notranslate"><span class="pre">relative_to</span></code> property). All
+related attributes are the same as for <strong>depth_map</strong> otherwise.</p>
+</dd>
+<dt><strong>height_shift:</strong> float (<strong>3D maps</strong>)</dt><dd><p>z shift of the element (esp. for corridor, block, wall elements, but also
+wells and arrows). An element with a height shift will not begin on the
+ground, but above or below as specified.</p>
+</dd>
+<dt><strong>hidden:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>removed from 3D maps.</p>
+</dd>
+<dt><strong>inaccessible:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>inaccessible elements will be separated from others, and set in the
+<code class="docutils literal notranslate"><span class="pre">Inaccessible</span></code> display category.</p>
+</dd>
+<dt><strong>item_height:</strong> float (<strong>3D maps</strong>)</dt><dd><p>height of the element (esp. for corridor, block, wall elements).
+<strong>WARNING:</strong> it is <code class="docutils literal notranslate"><span class="pre">item_height</span></code>, not <code class="docutils literal notranslate"><span class="pre">height</span></code> as height is already an
+official SVG attribute for some elements (rectangles for instance).</p>
+</dd>
+<dt><strong>label:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>name of the element type</p>
+</dd>
+<dt><strong>label_alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys area
+object labels. The dict can be applied hierarchically, thus put in a layer.
+Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
+<p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
+</dd>
+<dt><strong>legend:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>set on a layer, indicates that this layer contains the legend symbols and
+can be searched for replacement symbols (wells, etc) which will replace
+those in the map to enlarge them and ease view from a bit further.</p>
+</dd>
+<dt><strong>level:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>depth level name (sup, inf, surf, tech, metro, esc…). Levels are an
+“open” property, there is no predefined list of levels, apart for 2
+exceptions:</p>
+<ul class="simple">
+<li><p>items which don’t specify a level are set by default to a level named
+<code class="docutils literal notranslate"><span class="pre">sup</span></code> (generally superior corridor level).</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">surf</span></code> level represents the ground surface, and is automatically
+built. It is flat, altitude 0 by default, but can be associated to an
+altitude map and geolocalisation information. See <a class="reference internal" href="#altitude-maps"><span class="std std-ref">Altitude maps</span></a>
+later.</p></li>
+</ul>
+<p>Levels are associated to depth maps, so for each level used (except
+<code class="docutils literal notranslate"><span class="pre">surf</span></code>), a <code class="docutils literal notranslate"><span class="pre">depth_map</span></code> layer is supposed to be defined. See
+<a class="reference internal" href="#depth-maps"><span class="std std-ref">Depth maps</span></a>.</p>
+</dd>
+<dt><strong>main_clip_rect_id:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>set in the Inkscape metadata layer, it indicates the clip rectangle ID (in
+the XML elements IDs) for each map type. A default (fallback) one can be
+given under the key <code class="docutils literal notranslate"><span class="pre">default</span></code> in the dict. Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_general&quot;</span><span class="p">,</span> <span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_all&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>so that, in this example, the <code class="docutils literal notranslate"><span class="pre">private</span></code> map gets a different field of
+view from the other ones.</p>
+</dd>
+<dt><strong>map_transform:</strong> SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
+instance to shift lower level parts when they are superimposed under an
+upper level. Without this shift, they would not be seen because they are
+hidden by the upper level. The transform is specified in the same way as
+the standard SVG <code class="docutils literal notranslate"><span class="pre">transform</span></code> property.</p>
+<p>This propery can be set to paths, groups, and arrows (which will thus point
+to a shifted location).</p>
+</dd>
+<dt><strong>maps_def:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p><strong>In the SVG metadtadata layer</strong>.
+Definition of 2D maps types (to be used with the -m commandline option).
+See <a class="reference internal" href="#maps-types"><span class="std std-ref">maps types later</span></a> for details.</p>
+</dd>
+<dt><strong>marker:</strong> str (<strong>3D maps</strong>)</dt><dd><p>set on a layer to specify that this layer is a <strong>markers layer</strong>. Three
+types of markers are currently recognized: <code class="docutils literal notranslate"><span class="pre">sounds</span></code>, <code class="docutils literal notranslate"><span class="pre">photos</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
+<p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
+<dt><strong>markers_base_url:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a> to specify that marekrs in this
+layer have URLS which point to the server directory specified here.
+Individual markers will be appended to this base URL. The URL may be
+absolute (<code class="docutils literal notranslate"><span class="pre">https://photos.google.com/xyzsomething</span></code>) or relative to the
+map server (<code class="docutils literal notranslate"><span class="pre">photos/photo_dir</span></code>). If not specified, the default base url
+is the markers type (<code class="docutils literal notranslate"><span class="pre">photos</span></code>, <code class="docutils literal notranslate"><span class="pre">sounds</span></code>), in relative mode.</p>
+</dd>
+<dt><strong>markers_map:</strong> str (<strong>3D maps</strong>)</dt><dd><p>Set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a>: correspondence map file name (CSV
+file) for markers text. Alternatively it may be a pattern for filenames as
+a regular expression.
+See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
+<dt><strong>non_visibility:</strong> str (<strong>2D maps</strong>)</dt><dd><p>list of maps types (json-like), for which this layer is removed. The
+inverse of <strong>visibility</strong> (see below).</p>
+</dd>
+<dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
+</dd>
+<dt><strong>proto_scale:</strong> float (<strong>2D maps</strong>)</dt><dd><p>Only in the legend layers elements which are prototypes for symbols
+replacements, this is the scale to be applied when replacing. The default
+scale is 0.5 (replaced elements will be half the size they have in the
+legend).</p>
+</dd>
+<dt><strong>radius:</strong> float (<a href="#id1"><span class="problematic" id="id2">**</span></a>3D maps)</dt><dd><p>used in a “marker” layer to specify the max radius between the user click
+and the marker position for it to be triggered. It can be set on the marker
+layer itself, or on any marker item inside.</p>
+<p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
+</dd>
+<dt><strong>relative_to:</strong> str (<strong>3D maps</strong>)</dt><dd><p>for height maps or depth maps layers, specify to which depth map the height
+is relative to. The default is surface depth (which means 0 or the ground
+altitude map).</p>
+</dd>
+<dt><strong>replace_children:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>should be set only in replacement symbols in the legend layer (wells signs,
+etc) to indicate that children of matching elements should be parsed
+recursively and their children may be replaced also.</p>
+</dd>
+<dt><strong>shadow:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>marks the element (or layer…) to have a halo / shadow around it</p>
+</dd>
+<dt><strong>shadow_scale:</strong> float (2D maps)</dt><dd><p>in the metadata layer, sets a global shadow scale applied to all shadow
+operations.</p>
+</dd>
+<dt><strong>symbol:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not sure it is used, after all…</p>
+</dd>
+<dt><strong>symbol_scale:</strong> float (<strong>3D maps</strong>)</dt><dd><p>in the metadata layer, scale of symbol meshes (markers, fontis, etc)</p>
+</dd>
+<dt><strong>text:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>text layers.</p>
+</dd>
+<dt><strong>texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
+<dt><strong>title:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>The title string(s) will be used and displayed in the web site title.</p>
+</dd>
+<dt><strong>travel_ref_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level used to define the 3D ground level. It is used to adapt the
+travel speed scale (for 3D controls) depending to the altitude of the
+camera to this level. Up to now the level is assimilated to its average
+altitude, but this could be refined to approximate a plane, if needed.
+The default is the <code class="docutils literal notranslate"><span class="pre">sup</span></code> level (default level for all elements).</p>
+</dd>
+<dt><strong>travel_speed_base:</strong> float (<strong>3D maps</strong>)</dt><dd><p>Travel speed factor for 3D controls at the altitude of the <code class="docutils literal notranslate"><span class="pre">travel_level</span></code>
+altitude, which is the minimum speed. The default is <strong>0.03</strong>.</p>
+</dd>
+<dt><strong>travel_speed_alt_factor:</strong> float (<strong>3D maps</strong>)</dt><dd><p>Scale factor applied to the distance to the <code class="docutils literal notranslate"><span class="pre">travel</span> <span class="pre">level</span></code> to adapt the
+travel speed: speed increases with this “elevation” according to this
+factor. The default is: <strong>0.003</strong>.</p>
+</dd>
+<dt><strong>transform_3d:</strong> str( <strong>3D maps</strong>)</dt><dd><p>3D transformation, used to rotate an object in space. The spec is similar
+to SVG transformations specs, except that it has one more dimension, and
+the “matrix()” spec becomes “matrix4()”, with 12 parameters (columns of the
+matrix).</p>
+</dd>
+<dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
+levels (wells, arrows)</p>
+</dd>
+<dt><strong>use_height_map:</strong> str (<strong>3D maps</strong>)</dt><dd><p>When set on a corridor, block or wall layer, it replaces the constant
+<strong>item_height</strong> when extruding the height with a height map whose level is
+given by the value of this property.</p>
+</dd>
+<dt><strong>visibility:</strong> str (<strong>2D and 3D maps</strong>)</dt><dd><p>may be either: <code class="docutils literal notranslate"><span class="pre">private</span></code>: alternative to <code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code>, or a list of
+maps types (json-like), for which this layer is kept visible. If such a
+list is specified, then maps types not listed here will drop the layer.
+As <code class="docutils literal notranslate"><span class="pre">visibility</span></code> has now a broader meaning, it is better to specify
+<code class="docutils literal notranslate"><span class="pre">private:</span> <span class="pre">true</span></code> for private things, to avoid ambiguities.</p>
+</dd>
+<dt><strong>wall:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wall elements have only side walls (no floor or ceiling).</p>
+</dd>
+<dt><strong>wall_texture:</strong> JSON dict (<strong>3D maps</strong>)</dt><dd><p>Texture definition for the walls part of elements. See <a class="reference internal" href="#texturing"><span class="std std-ref">Texturing</span></a>
+below for details.</p>
+</dd>
+<dt><strong>well:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>wells are replaced with custom elements, which type is the element label
+(PE, PS, PSh, échelle, sans, P ossements, …). Well elements (or groups,
+or layers) shoud specify the level and upper_level.</p>
+</dd>
+<dt><strong>well_read_mode:</strong> str (<strong>3D maps</strong>)</dt><dd><p>tells if well elements should be read in the XML file as a single “path”
+element (a circle for instance), or a group (a grop containing a circle,
+and additional lines). Thus allowed values are <code class="docutils literal notranslate"><span class="pre">path</span></code> or <code class="docutils literal notranslate"><span class="pre">group</span></code>.</p>
+</dd>
+<dt><strong>z_scale:</strong> float or “auto” (<a href="#id3"><span class="problematic" id="id4">**</span></a>3D maps)</dt><dd><p>Can be set <strong>in the SVG metadtadata layer</strong>. This scale factor applies to
+depths and heights in order to match x, y scalings which may be arbitraty.
+The default is 0.5 and is also arbitrary. If it is set to “auto”, then if
+<strong>lambert93</strong> coordinates are provied in the appropriate layer, the scale
+factor will be processed according to these “true” coordinates to match x
+and y scales.</p>
+</dd>
+<dt><strong>zoom_area_id:</strong> str (<strong>2D maps</strong>)</dt><dd><p>Identifier for a zoomed area zone layer. Should be present in a layer
+containing a polygon which defines a source region. The identifier is also
+present in a target zoom region layer, see <code class="docutils literal notranslate"><span class="pre">zoom_id</span></code>.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
+<dt><strong>zoom_hidden:</strong> bool (<strong>2D maps</strong>)</dt><dd><p>Layers marked with this will be excluded from zoomed areas.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
+<dt><em>zoom_id:*</em> str (<strong>2D maps</strong>)</dt><dd><p>Identifier for a zoomed area zone layer. Should be present in a layer
+containing a rectangle for the target zoomed region. The identifier is also
+present in a source zoom region polygon layer, see <code class="docutils literal notranslate"><span class="pre">zoom_area_id</span></code>.
+See also <a class="reference internal" href="#zoomed-regions"><span class="std std-ref">Zoomed regions</span></a> for details.</p>
+</dd>
+</dl>
+</section>
+<section id="maps-types">
+<span id="id5"></span><h3>Maps types<a class="headerlink" href="#maps-types" title="Link to this heading">¶</a></h3>
+<p>Most common types, such as “public”, “private” are (for now at least) builtin
+in the program, but the <code class="docutils literal notranslate"><span class="pre">maps_def</span></code> property dict in the metadata layer allows
+to define new maps types associated with specific filters. Each map type is a
+dictionary which defines the following:</p>
+<p>Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;igcportail&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;igcportail&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;igc_private&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;shadows&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">&quot;do_pdf&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">&quot;do_jpg&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>name: str</dt><dd><p>name of the map type, usually the same as the map type key.</p>
+</dd>
+<dt>filters: list</dt><dd><p>list of filters used for this map type. Several filters are available in
+the program. The filters list is available using the <code class="docutils literal notranslate"><span class="pre">--list-filters</span></code>
+option of the commandline.</p>
+</dd>
+<dt>shadows: bool</dt><dd><p>if true, shadows are applied in layers or objects which define the
+<code class="docutils literal notranslate"><span class="pre">shadow</span></code> property. If false, shadows are disabled.</p>
+</dd>
+<dt>do_pdf: bool</dt><dd><p>if false, PDF output is not processed.</p>
+</dd>
+<dt>do_jpg: bool</dt><dd><p>if false, JPEG or TIFF bitmap output is not processed.</p>
+</dd>
+</dl>
+</section>
+<section id="depth-maps">
+<span id="id6"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Link to this heading">¶</a></h3>
+<p>Depth maps are layers containing depth information, <strong>and nothing else</strong>.</p>
+<p>Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:</p>
+<ul class="simple">
+<li><p>a <em>text element</em>: the position of the element (its center if the text is centered) will be used as the position. The text should specify a floating point number which is the depth at this position.</p></li>
+<li><p>a group containing a text element and a segment path: the text is a float number specifying the depth, and the segment (2 points, oriented from the text toward the application point) specifies where the depth applied: the end pont of the segment will be assigned the given depth.</p></li>
+<li><p>a rectangle: this was originally the way to specify depth, but it proved to be difficult to read and is thus obsolete. Prefer the two above methods. In 2 words, the min of the rectangle is the depth, and the position of the rectangle (its center) is the position. Well, better forget it.</p></li>
+</ul>
+</section>
+<section id="altitude-maps">
+<span id="id7"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Link to this heading">¶</a></h3>
+<p>Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an <code class="docutils literal notranslate"><span class="pre">upper_level</span></code> property in depth maps which could be any other map).</p>
+<p>To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.</p>
+<section id="geolocalisation-of-the-svg-file">
+<h4>Geolocalisation of the SVG file<a class="headerlink" href="#geolocalisation-of-the-svg-file" title="Link to this heading">¶</a></h4>
+<p>The SVG file should contain a layer named <code class="docutils literal notranslate"><span class="pre">lambert93</span></code> which contains, as its name says it, world coordinates in the <strong>Lambert 93 coordinates system</strong>.</p>
+<p>Coordinates can be specified at any location of the map. At least 3 points are needed to estimate a transformation, but the more points are provided, the more precise the estimation will be. The coordinates transformation between the SVG positions and the Lambert93 coordinates will be estimated as a linear transformation fit to all SVG/Lambert 93 coortinates couples.</p>
+<p>A Lambert93 point is specified in this <code class="docutils literal notranslate"><span class="pre">lambert93</span></code> layer as a group containing 2 objects:</p>
+<ul>
+<li><p>a text item with text being the 2 cooridinates separated by a coma, ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">652470.89</span><span class="p">,</span><span class="mf">6858871.84</span>
+</pre></div>
+</div>
+</li>
+<li><p>a segment line (2 points, oriented) going from the text toward the application point on the map.</p></li>
+</ul>
+<p>Lambert 93 positions can be found using <a class="reference external" href="https://www.geoportail.gouv.fr/carte">https://www.geoportail.gouv.fr/carte</a>: on the map, select “tools” on the right, and enable “display coordinates”. Then select for “reference system” the “Lambert 93” mode.</p>
+</section>
+<section id="id8">
+<h4>Altitude maps<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h4>
+<p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
+<p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
+The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
+<p class="rubric">Example</p>
+<p>See the map: <a class="reference download internal" download="" href="_downloads/f7d0dcd037969d9801fd77f4de6636b1/example_map.svg"><code class="xref download docutils literal notranslate"><span class="pre">example</span> <span class="pre">map</span></code></a>
+The result in 2D is (left: original map, right: result):</p>
+<a class="reference internal image-reference" href="_images/example_map.png"><img alt="_images/example_map.png" src="_images/example_map.png" style="height: 400px;" />
+</a>
+<a class="reference internal image-reference" href="_images/example_map_imprimable.jpg"><img alt="_images/example_map_imprimable.jpg" src="_images/example_map_imprimable.jpg" style="height: 400px;" />
+</a>
+<p>In 3D: <a class="reference external" href="_static/example_3d/index.html">here</a></p>
+<p>See for instance how wells indications are enlarged in the “printable” 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.</p>
+</section>
+</section>
+<section id="colorsets">
+<span id="id9"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Link to this heading">¶</a></h3>
+<p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
+<p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
+<ul class="simple">
+<li><p>3D maps use by default the <code class="docutils literal notranslate"><span class="pre">map_3d</span></code> colorset.</p></li>
+<li><p>2D maps using “igc” mode (with ICC maps overlayed) use the <code class="docutils literal notranslate"><span class="pre">igc</span></code> colorset.</p></li>
+</ul>
+<p>The list of colorsets defined in a given SVG map file can be queried using the <code class="docutils literal notranslate"><span class="pre">--list-colorsets</span></code> option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span> <span class="o">--</span><span class="nb">list</span><span class="o">-</span><span class="n">colorsets</span> <span class="n">plan_14_fdc_2023_07_31</span><span class="o">.</span><span class="n">svg</span>
+</pre></div>
+</div>
+<p>A map file may specify which colorset is used by each map type in the <code class="docutils literal notranslate"><span class="pre">colorsets</span></code> property in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer. See <a class="reference internal" href="#colorsets-prop"><span class="std std-ref">colorsets property</span></a>.</p>
+<section id="colorsets-inheritance">
+<h4>Colorsets inheritance<a class="headerlink" href="#colorsets-inheritance" title="Link to this heading">¶</a></h4>
+<p>Some colorsets may be slight variants to other existing ones. To avoid redefining every element color in the SVG file, it is possible to specify some “colorset inheritances”. This is done using the <code class="docutils literal notranslate"><span class="pre">colorset_inheritance</span></code> property in the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer (a hidden layer made for SVG / inkscape). This property is a JSON dictionary, with a <code class="docutils literal notranslate"><span class="pre">{'child':</span> <span class="pre">'parent'}</span></code> shape. The meaning is that a child inherits all its parent colors, and then can override some.</p>
+</section>
+<section id="colors-specifications">
+<h4>Colors specifications<a class="headerlink" href="#colors-specifications" title="Link to this heading">¶</a></h4>
+<p>An <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property applies recursively to all its children. It is a JSON dictionary, whith the followin shape:</p>
+<ul class="simple">
+<li><p>primary keys are colorset names</p></li>
+<li><p>primary values are <cite>color specs</cite></p></li>
+</ul>
+<p>A <cite>color spec</cite> is normally also a dict, with the following shape:</p>
+<ul class="simple">
+<li><p>keys are like in SVG elements style, <code class="docutils literal notranslate"><span class="pre">fg</span></code> (foreground), <code class="docutils literal notranslate"><span class="pre">bg</span></code> (background), <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code></p></li>
+<li><p>values are strings, either containing the RGBA color, or a float value for <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code>.</p></li>
+<li><p>colorsets used only in 3D may shunt the second level and specify directly a single RGBA color string as colorspec value.</p></li>
+</ul>
+<p>Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ff0000ff&quot;</span><span class="p">},</span>
+ <span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ffffffff&quot;</span><span class="p">,</span> <span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0606060ff&quot;</span><span class="p">,</span> <span class="s2">&quot;stroke-width&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">label_alt_colors</span></code> property has an additional upper level whick key is the element label, and the primary value is like the <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> dict:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}},</span>
+ <span class="s2">&quot;marches&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="markers">
+<span id="id10"></span><h3>Markers<a class="headerlink" href="#markers" title="Link to this heading">¶</a></h3>
+<p><strong>Markers</strong> are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).</p>
+<p>Markers are recorded in dedicated layers in the SVG file. Such layer must have a <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, which value is the type of markers in the layer. Currently two types of markers are handled: <code class="docutils literal notranslate"><span class="pre">photos</span></code> (links to photographs URLS) or <code class="docutils literal notranslate"><span class="pre">sounds</span></code>.</p>
+<p>Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).</p>
+<p>A marker layer can have <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> or <code class="docutils literal notranslate"><span class="pre">radius</span></code> properties, which respectively specify the base URL for all markers, and the max distance to the marker for which a user click will trigger the marker.</p>
+<p>The layer contents are similar to depth layers: they are text objects, or groups containing a text object and a line object to make an arrow from the text to the marker exact location. The layer may not have other kind of groups, it is not recursive.</p>
+<p>Items in the marker layer are thus text at specified locations. The text is the URL of the resource (sound, photo, …) and is appended to the base URL above. If no <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> is specified, the marker value (type) is used as a relative directory as base URL (<code class="docutils literal notranslate"><span class="pre">sounds/...</span></code> or <code class="docutils literal notranslate"><span class="pre">photos/...</span></code>).</p>
+<p>Each item may get a specific <code class="docutils literal notranslate"><span class="pre">radius</span></code> property, which may overload the layer radius. If no radius is specified, a default is used (10., which would correspond to 10 m radisu, depending on the map scale).</p>
+<p>If an item text has no file extension, <code class="docutils literal notranslate"><span class="pre">.jpg</span></code> will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, <code class="docutils literal notranslate"><span class="pre">123</span></code> will be replaced with <code class="docutils literal notranslate"><span class="pre">photos/123.jpg</span></code>.</p>
+<p>On the web server side, photos and sounds directory have to be created and contain the referenced files.</p>
+<section id="markers-text-syntax">
+<h4>Markers text syntax<a class="headerlink" href="#markers-text-syntax" title="Link to this heading">¶</a></h4>
+<p>Markers text may be a filename (which will be prefixed with the contents of the <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> property, and possibly suffixed with <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>), or a list of such filenames:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image1</span><span class="o">.</span><span class="n">jpg</span><span class="p">,</span> <span class="n">video2</span><span class="o">.</span><span class="n">mp4</span><span class="p">,</span> <span class="n">image3</span><span class="o">.</span><span class="n">jpg</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image1</span><span class="p">,</span> <span class="n">video2</span><span class="o">.</span><span class="n">mp4</span><span class="p">,</span> <span class="n">image3</span>
+</pre></div>
+</div>
+<p>In addition to the “direct URL” mechanism above, it is also possible to specify, for each markers layer, a “correspondance map” file (using the <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> property on the layer). This file will be read as a CSV file (with <code class="docutils literal notranslate"><span class="pre">tab</span></code> separators). Then texts in markers text in the SGV file will go through this map to get a “final” file name for the marker element. A given marker text can be found several times in the file, and then several files will be associated with the marker element. For instance if you use numbers for markers texts, <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code> in the SVG map, a <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> can specify final filenames such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">20220304_201758.</span><span class="n">jpg</span> <span class="mi">1</span>
+<span class="mf">20220304_201802.</span><span class="n">jpg</span> <span class="mi">2</span>
+<span class="mf">20220304_201804.</span><span class="n">jpg</span> <span class="mi">1</span>
+<span class="mf">20220304_201815.</span><span class="n">jpg</span> <span class="mi">3</span>
+<span class="mf">20220304_202652.</span><span class="n">jpg</span> <span class="mi">2</span>
+<span class="mf">20220304_202810.</span><span class="n">jpg</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>will assign to marker <code class="docutils literal notranslate"><span class="pre">1</span></code> the files: <code class="docutils literal notranslate"><span class="pre">20220304_201758.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_201804.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">20220304_202810.jpg</span></code>, and so on. Each of the file names will undergo the prefix/suffix transformations using <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> etc.</p>
+<p>Alternatively, the <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> property on the layer may specify, not a correspondance file, but a pattern which will match files found in the <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> directory. In this case, <code class="docutils literal notranslate"><span class="pre">markers_map</span></code> has the form: <code class="docutils literal notranslate"><span class="pre">regex://&lt;expr&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;expr&gt;</span></code> is a regular expression. It will be used to match all filenames found in the markers directory. Ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>markers_base_url: regex://^[^_]+_[^_]+_([^_.]+).*$
+</pre></div>
+</div>
+<p>with a files directory containing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">XVI_20230817_122</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_123</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_124</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_125_2</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_125</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_127</span><span class="o">.</span><span class="n">jpg</span>
+<span class="n">XVI_20230817_128</span><span class="o">.</span><span class="n">jpg</span>
+</pre></div>
+</div>
+<p>will make this correspondance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">122</span><span class="p">:</span> <span class="n">XVI_20230817_122</span><span class="o">.</span><span class="n">jpg</span>
+<span class="mi">123</span><span class="p">:</span> <span class="n">XVI_20230817_123</span><span class="o">.</span><span class="n">jpg</span>
+<span class="mi">124</span><span class="p">:</span> <span class="n">XVI_20230817_124</span><span class="o">.</span><span class="n">jpg</span>
+<span class="mi">125</span><span class="p">:</span> <span class="p">[</span><span class="n">XVI_20230817_125_2</span><span class="o">.</span><span class="n">jpg</span><span class="p">,</span> <span class="n">XVI_20230817_125</span><span class="o">.</span><span class="n">jpg</span><span class="p">]</span>
+<span class="mi">127</span><span class="p">:</span> <span class="n">XVI_20230817_127</span><span class="o">.</span><span class="n">jpg</span>
+<span class="mi">128</span><span class="p">:</span> <span class="n">XVI_20230817_128</span><span class="o">.</span><span class="n">jpg</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">122</span></code>, <code class="docutils literal notranslate"><span class="pre">123</span></code>, etc, being the markers in the SVG file.</p>
+</section>
+</section>
+<section id="zoomed-regions">
+<span id="id11"></span><h3>Zoomed regions<a class="headerlink" href="#zoomed-regions" title="Link to this heading">¶</a></h3>
+<p>Zoomed regions may be displayed to represent en enlarged duplicated portion of the original map. To do so we need 3 components, in 3 different layers:</p>
+<ul class="simple">
+<li><p>a source zoomed region definition. This is done in a layer containing a <code class="docutils literal notranslate"><span class="pre">zoom_area_id</span></code> property, this layer should contain a single closed and connected polygon, which traces the region to be zoomed. The <cite>zoom_area_id`</cite> identifier will be matched to a target zoom region.</p></li>
+<li><p>a target zoomed region area definition (where the zoomed copy will be drawn). This is done in a layer containing a <code class="docutils literal notranslate"><span class="pre">zoom_id</span></code> property (matching a source region definition identifier). This layer should contain a single rectangle, which marks the bounding box of where the zoomed copy of the map will be drawn.</p></li>
+</ul>
+<p>Other layers can be marked with a <code class="docutils literal notranslate"><span class="pre">zoom_hidden</span></code> property, which indicates that these layers should not be part of zoomed regions.</p>
+</section>
+<section id="lights">
+<h3>Lights<a class="headerlink" href="#lights" title="Link to this heading">¶</a></h3>
+<p>Lights may be inserted in the 3D maps. They are actually handled as a special marker type. Thus they are specified in a dedicated layer, using the <code class="docutils literal notranslate"><span class="pre">marker</span></code> property with the value <code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
+<p>Then elements are like markers: either a text element, or a group containing a text and a segment arrow to point at its exact position. The element can contain the property <code class="docutils literal notranslate"><span class="pre">light_props</span></code> to specify the light characteristics. This property is a JSON dict, with the following items:</p>
+<dl class="simple">
+<dt>type: string</dt><dd><p>light type: <code class="docutils literal notranslate"><span class="pre">point</span></code>, <code class="docutils literal notranslate"><span class="pre">directional</span></code> or <code class="docutils literal notranslate"><span class="pre">spot</span></code>.</p>
+</dd>
+<dt>color: list of float</dt><dd><p>color of the light, as a triplet (RGB) of float values in the range 0.-1.</p>
+</dd>
+<dt>intensity: float</dt><dd><p>intensity of the light source, default: 1.0</p>
+</dd>
+<dt>range: float</dt><dd><p>range of the light. 0 is infinity, otherwise this value drives the decay of the light with distance from the source.</p>
+</dd>
+<dt>direction: list of float</dt><dd><p>for directional lights (directional, spot), direction of the light.</p>
+</dd>
+</dl>
+<p>Other properties may be specified (like the spot cone angle) as in <a class="reference external" href="https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md">https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md</a></p>
+</section>
+<section id="texturing">
+<span id="id12"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Link to this heading">¶</a></h3>
+<p>In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</p>
+<p>Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.</p>
+<section id="texture-images">
+<h4>Texture images<a class="headerlink" href="#texture-images" title="Link to this heading">¶</a></h4>
+<p>They are images inserted in the Inkscape SVG file, and meant to be used for texturing. They are generally inserted into one or several separate layers, which are hidden in normal display modes.</p>
+<p>Texture image elements may optionally contain texture mapping properties, in the <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> property (see below, texturing properties).</p>
+</section>
+<section id="mesh-image-mapping">
+<h4>Mesh-image mapping<a class="headerlink" href="#mesh-image-mapping" title="Link to this heading">¶</a></h4>
+<p>Texture may be associated with an individual polygon element, or to a group or a layer, like most other properties. To be textured, an element shoud have either <code class="docutils literal notranslate"><span class="pre">texture</span></code>, <code class="docutils literal notranslate"><span class="pre">ceil_texture</span></code>, <code class="docutils literal notranslate"><span class="pre">wall_texture</span></code> or <code class="docutils literal notranslate"><span class="pre">floor_texture</span></code> properties defined, or several of them. <code class="docutils literal notranslate"><span class="pre">ceil_texture</span></code>, <code class="docutils literal notranslate"><span class="pre">wall_texture</span></code> or <code class="docutils literal notranslate"><span class="pre">floor_texture</span></code> represent texturing properties for (respectively) the ceiling, walls, or floor part of an element. <code class="docutils literal notranslate"><span class="pre">texture</span></code> is the default texturing properties used for all of them (walls, ceil, floor) if other parts specifications are not given. Each of those texturing definition properties is a JSON dictionary, structured like the following:</p>
+<dl class="simple">
+<dt>id: string (mandatory)</dt><dd><p>SVG ID of the texture image to be mapped. The image element itself is generally in a different SVG layer, as explained above.</p>
+</dd>
+<dt>mapping_method: string (optional)</dt><dd><p>specifies how the image is mapped on the mesh. Available methods are, for now, <code class="docutils literal notranslate"><span class="pre">geodesic_z</span></code> and <code class="docutils literal notranslate"><span class="pre">xy</span></code>. These are described below. The defautl value for ceilings and floors is <code class="docutils literal notranslate"><span class="pre">xy</span></code> and <code class="docutils literal notranslate"><span class="pre">geodesic_z</span></code> is the default for walls.</p>
+</dd>
+</dl>
+</section>
+<section id="texture-mapping-modes">
+<h4>Texture mapping modes<a class="headerlink" href="#texture-mapping-modes" title="Link to this heading">¶</a></h4>
+<dl class="simple">
+<dt>xy:</dt><dd><p>used for horizontal (or semi-horizontal) meshes. Texture coordinates are the x,y projection (2D) of mesh coordinates, with appropriate scaling factors, in order to have the texture image exactly where it is in the SVG file.</p>
+</dd>
+<dt>geodesic_z:</dt><dd><p>used for vertical meshes. Walls are generally not all in the same plane, and can contain bifurcations. To be correctly mapped (as a wallpaper), texture images should follow a geodesic alignment, starting at the first mesh point, in order to follow curves and bifurcations.</p>
+</dd>
+</dl>
+</section>
+<section id="texturing-properties">
+<h4>Texturing properties<a class="headerlink" href="#texturing-properties" title="Link to this heading">¶</a></h4>
+<p>They describe how a texture image is colored, and repeated on a mesh.
+At the moment, only limited support for properties is implemented, and such properties are only associated with the texture image elements. In the future we could also specify it in the mesh-image mapping. Anyway this is given via the optional <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> property on the texture image element.</p>
+<p>We use <code class="docutils literal notranslate"><span class="pre">gltf_properties</span></code> because these properties are based on the GLTF format. See <a class="reference external" href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler">https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler</a> for details. This property is a JSON dictionary, which may contain the following:</p>
+<dl>
+<dt>sampler: JSON dict</dt><dd><p>specified how the image wraps around the mesh texture coordinates. The fll description is fund at:  <a class="reference external" href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler">https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#reference-sampler</a>, but mainly, the following sub-properties are used:</p>
+<dl class="simple">
+<dt>wrapS: int</dt><dd><p>1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values…)</p>
+</dd>
+<dt>wrapT: int</dt><dd><p>2nd texture coord mapping. Same values as for <code class="docutils literal notranslate"><span class="pre">wrapS</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="map-to-meshes-module">
+<h2>map_to_meshes module<a class="headerlink" href="#map-to-meshes-module" title="Link to this heading">¶</a></h2>
+<p>This module is an extension of the <a class="reference internal" href="#module-catamap.svg_to_mesh" title="catamap.svg_to_mesh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">svg_to_mesh</span></code></a> module and ist main class, <a class="reference internal" href="#catamap.svg_to_mesh.SvgToMesh" title="catamap.svg_to_mesh.SvgToMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">SvgToMesh</span></code></a> for more specific purposes. This means the former is dedicated to generically read Inkscape files and convert elements to meshes, while the specialized classes here are dedicated to building catacombs maps.</p>
+<p><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh" title="catamap.map_to_meshes.CataSvgToMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a> wiil build 3D maps meshes and objects</p>
+<p><a class="reference internal" href="#catamap.map_to_meshes.CataMapTo2DMap" title="catamap.map_to_meshes.CataMapTo2DMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">CataMapTo2DMap</span></code></a> will build “cleaner” 2D maps (with some symbols replaced and enlarged, regions zooms and more, and export PDF and JPG versions.</p>
+<section id="map-to-meshes-module-api">
+<h3>map_to_meshes module API<a class="headerlink" href="#map-to-meshes-module-api" title="Link to this heading">¶</a></h3>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataMapTo2DMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bygroup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap" title="Link to this definition">¶</a></dt>
+<dd><p>Process XML tree to build modified 2D maps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>concat_mesh</strong> (<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – <p>concatenation method between multiple paths in SVG file.
+‘merge’: merge all paths in a single mesh
+‘time’: use mesh timestep to store each path
+‘list’: return a list of meshes
+‘bygroup’ (default): return a dict of meshes, one for each main</p>
+<blockquote>
+<div><p>group, paths are concatenated inside each group</p>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap.box_in_region">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">box_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap.box_in_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap.box_in_region" title="Link to this definition">¶</a></dt>
+<dd><p>check if a box is totally inside a region, or totally outside, or
+intersecting</p>
+<p>Warning: if 4 corners are inside, the test says inside, whereas it is not always true for a non-convex clip polygon</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>1</strong> (<em>inside</em>)</p></li>
+<li><p><strong>0</strong> (<em>intersecting</em>)</p></li>
+<li><p><strong>-1</strong> (<em>outside</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap.ensure_clip_rect">
+<span class="sig-name descname"><span class="pre">ensure_clip_rect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_xml</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rect_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_xml</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap.ensure_clip_rect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap.ensure_clip_rect" title="Link to this definition">¶</a></dt>
+<dd><p>if rect_id is not in out_xml, then take it from in_xml and copy it
+in a new layer un out_xml.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap.replace_filter_element">
+<span class="sig-name descname"><span class="pre">replace_filter_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap.replace_filter_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap.replace_filter_element" title="Link to this definition">¶</a></dt>
+<dd><p>Inside replace_elements, this function is called for each xml element,
+and should return either the element itself (no replacement), or None
+(element is discarded), or a replaced XML element.</p>
+<p>The default method always returns the input element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataSvgToMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list_bygroup'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headless</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh" title="Link to this definition">¶</a></dt>
+<dd><p>Process XML tree to build 3D meshes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>concat_mesh</strong> (<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – <p>concatenation method between multiple paths in SVG file.
+‘merge’: merge all paths in a single mesh
+‘time’: use mesh timestep to store each path
+‘list’: return a list of meshes
+‘bygroup’ (default): return a dict of meshes, one for each main</p>
+<blockquote>
+<div><p>group, paths are concatenated inside each group</p>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.extrude">
+<span class="sig-name descname"><span class="pre">extrude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.extrude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.extrude" title="Link to this definition">¶</a></dt>
+<dd><p>This is an overloaded version of the static SvgToMesh.extrude(mesh,
+distance)</p>
+<p>When height_map is given, use this level height map to shift Z
+positions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.filter_element">
+<span class="sig-name descname"><span class="pre">filter_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.filter_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.filter_element" title="Link to this definition">¶</a></dt>
+<dd><p>Assign a processing function / method to the given element, a
+cleaning function to be called after the associated sub-tree is
+processed, and a bool to tell if children should be skipped.
+This method can be overloaded and is called for each XML tree element.
+The default implementation returns None, which means that there is no
+specific processing and the default behavior should happen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>proc</strong> – proc_callable and clean_callable may be None, meaning that normal
+processing should happen.
+The processing callable will be called with 3 arguments:
+(xml_element, transform_matrix, style_dict).
+The cleaning callable will be called without arguments.
+if skip_children is True, children are skipped.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>(proc_callable, clean_callable, skip_children) or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.get_alt_colors">
+<span class="sig-name descname"><span class="pre">get_alt_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">props</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_bg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.get_alt_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.get_alt_colors" title="Link to this definition">¶</a></dt>
+<dd><p>Get backgroud, foreground colors (fill/border)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti">
+<span class="sig-name descname"><span class="pre">load_ground_altitude_bdalti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.load_ground_altitude_bdalti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>filename:</dt><dd><p>json map, to be used with the API module bdalti.py</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.make_ps_well">
+<span class="sig-name descname"><span class="pre">make_ps_well</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">well_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">props</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.make_ps_well"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.make_ps_well" title="Link to this definition">¶</a></dt>
+<dd><p>PS or PE (blue), P ossements (yellow)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.read_path">
+<span class="sig-name descname"><span class="pre">read_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.read_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.read_path" title="Link to this definition">¶</a></dt>
+<dd><p>Read a path element as mesh, apply coords transformations</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.read_paths">
+<span class="sig-name descname"><span class="pre">read_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.read_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.read_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Parse XML tree and extract meshes, text and other objects</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>xml_et</strong> (<em>XML tree</em>) – obtained using xml.etree.cElementTree.parse(svg_filename)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict">
+<span class="sig-name descname"><span class="pre">save_mesh_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.glb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_wf_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.glb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map2d_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.save_mesh_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict" title="Link to this definition">¶</a></dt>
+<dd><p>mesh_format may be a valid mesh extension (“.obj”, “.gii”, “.mesh”) or
+GLTF (“.gltf” or “.glb”), or None (not saved here).</p>
+<p>If GLTF is used a scene dict (JSON) is returned in the output summary
+under the key “gltf_scene”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed">
+<span class="sig-name descname"><span class="pre">setup_travel_speed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh.setup_travel_speed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.DefaultItemProperties">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">DefaultItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#DefaultItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.DefaultItemProperties" title="Link to this definition">¶</a></dt>
+<dd><p>Defaults and constant values.</p>
+<p>This is mainly a remaining of the v1 of the software, where fewer things
+were indicated in the SVG file, and the program was written originally for
+a single map (GRS, Paris 14e) with hard-coded labels.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.ItemProperties">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">ItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties" title="Link to this definition">¶</a></dt>
+<dd><p>XML item properties structure, used by
+<a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh" title="catamap.map_to_meshes.CataSvgToMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a>. They represent properties
+read from the XML file elements.</p>
+<p>Properties match those documented in <a class="reference internal" href="#inkscape-svg-files">Inkscape SVG files</a>, except the <code class="docutils literal notranslate"><span class="pre">height</span></code> property which is named <code class="docutils literal notranslate"><span class="pre">item_height</span></code> in XML file elements (because <code class="docutils literal notranslate"><span class="pre">height</span></code> is already used in SVG).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.ItemProperties.remove_word">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties.remove_word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties.remove_word" title="Link to this definition">¶</a></dt>
+<dd><p>remove word suffix to label (which may end with several
+variants, _word_0 etc)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="catamap.map_to_meshes.scale_georef_points_file">
+<span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">scale_georef_points_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#scale_georef_points_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.scale_georef_points_file" title="Link to this definition">¶</a></dt>
+<dd><p>Rescale source positions in a QGis .points file in order to adapt
+to a different resolution</p>
+</dd></dl>
+
 <section id="svg-to-mesh-module">
-<h2>svg_to_mesh module<a class="headerlink" href="#svg-to-mesh-module" title="Link to this heading">¶</a></h2>
+<span id="module-catamap.svg_to_mesh"></span><h2>svg_to_mesh module<a class="headerlink" href="#svg-to-mesh-module" title="Link to this heading">¶</a></h2>
 <p>This modules allows to read an Inkscape SVG file, parse its elements, and convert them to 3D meshes.</p>
 <section id="svg-to-mesh-module-api">
 <h3>svg_to_mesh module API<a class="headerlink" href="#svg-to-mesh-module-api" title="Link to this heading">¶</a></h3>
@@ -306,6 +1136,65 @@ children in a readable dictionary.</p>
     <h3><a href="#">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">CataMap</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#inkscape-svg-files">Inkscape SVG files</a><ul>
+<li><a class="reference internal" href="#properties-list">Properties list</a></li>
+<li><a class="reference internal" href="#maps-types">Maps types</a></li>
+<li><a class="reference internal" href="#depth-maps">Depth maps</a></li>
+<li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
+<li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
+<li><a class="reference internal" href="#id8">Altitude maps</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
+<li><a class="reference internal" href="#colorsets-inheritance">Colorsets inheritance</a></li>
+<li><a class="reference internal" href="#colors-specifications">Colors specifications</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#markers">Markers</a><ul>
+<li><a class="reference internal" href="#markers-text-syntax">Markers text syntax</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#zoomed-regions">Zoomed regions</a></li>
+<li><a class="reference internal" href="#lights">Lights</a></li>
+<li><a class="reference internal" href="#texturing">Texturing</a><ul>
+<li><a class="reference internal" href="#texture-images">Texture images</a></li>
+<li><a class="reference internal" href="#mesh-image-mapping">Mesh-image mapping</a></li>
+<li><a class="reference internal" href="#texture-mapping-modes">Texture mapping modes</a></li>
+<li><a class="reference internal" href="#texturing-properties">Texturing properties</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#map-to-meshes-module">map_to_meshes module</a><ul>
+<li><a class="reference internal" href="#map-to-meshes-module-api">map_to_meshes module API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataMapTo2DMap"><code class="docutils literal notranslate"><span class="pre">CataMapTo2DMap</span></code></a><ul>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataMapTo2DMap.box_in_region"><code class="docutils literal notranslate"><span class="pre">CataMapTo2DMap.box_in_region()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataMapTo2DMap.ensure_clip_rect"><code class="docutils literal notranslate"><span class="pre">CataMapTo2DMap.ensure_clip_rect()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataMapTo2DMap.replace_filter_element"><code class="docutils literal notranslate"><span class="pre">CataMapTo2DMap.replace_filter_element()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a><ul>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.extrude"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.extrude()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.filter_element"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.filter_element()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.get_alt_colors"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.get_alt_colors()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.load_ground_altitude_bdalti"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.load_ground_altitude_bdalti()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.make_ps_well"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.make_ps_well()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_path"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_path()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.read_paths"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.read_paths()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.save_mesh_dict"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.save_mesh_dict()</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh.setup_travel_speed"><code class="docutils literal notranslate"><span class="pre">CataSvgToMesh.setup_travel_speed()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.DefaultItemProperties"><code class="docutils literal notranslate"><span class="pre">DefaultItemProperties</span></code></a></li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.ItemProperties"><code class="docutils literal notranslate"><span class="pre">ItemProperties</span></code></a><ul>
+<li><a class="reference internal" href="#catamap.map_to_meshes.ItemProperties.remove_word"><code class="docutils literal notranslate"><span class="pre">ItemProperties.remove_word()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#catamap.map_to_meshes.scale_georef_points_file"><code class="docutils literal notranslate"><span class="pre">scale_georef_points_file()</span></code></a></li>
 <li><a class="reference internal" href="#svg-to-mesh-module">svg_to_mesh module</a><ul>
 <li><a class="reference internal" href="#svg-to-mesh-module-api">svg_to_mesh module API</a></li>
 </ul>
