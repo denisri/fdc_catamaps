@@ -196,8 +196,9 @@
 
       <div class="top_row">
         <h1 id="title_0">GRAND RÉSEAU SUD</h1>
-        <h3 id="title_1">LE FOND DU CREW 2023</h3>
+        <h3 id="title_1">LE FOND DU CREW</h3>
         <h3 id="title_2"></h3>
+        <h3 id="date">2025</h3>
       </div>
 
       <div class="button_bar" id="button_bar">
@@ -1430,6 +1431,10 @@
         $('#title_' + i).text(title[i]);
       $('#main_title').text(title[0]);
     }
+
+    var date = map_objects.date;
+    if( date && date.length != 0 )
+      $('#date').text(date);
 
 
     for( i=0; i<def_cat_num.length; i++ )
