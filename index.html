@@ -11,8 +11,8 @@
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     
     <script src="_static/documentation_options.js?v=51b770b3"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -493,9 +493,9 @@ The <code class="docutils literal notranslate"><span class="pre">altitude</span>
 <p class="rubric">Example</p>
 <p>See the map: <a class="reference download internal" download="" href="_downloads/f7d0dcd037969d9801fd77f4de6636b1/example_map.svg"><code class="xref download docutils literal notranslate"><span class="pre">example</span> <span class="pre">map</span></code></a>
 The result in 2D is (left: original map, right: result):</p>
-<a class="reference internal image-reference" href="_images/example_map.png"><img alt="_images/example_map.png" src="_images/example_map.png" style="height: 400px;" />
+<a class="reference internal image-reference" href="_images/example_map.png"><img alt="_images/example_map.png" height="400" src="_images/example_map.png" />
 </a>
-<a class="reference internal image-reference" href="_images/example_map_imprimable.jpg"><img alt="_images/example_map_imprimable.jpg" src="_images/example_map_imprimable.jpg" style="height: 400px;" />
+<a class="reference internal image-reference" href="_images/example_map_imprimable.jpg"><img alt="_images/example_map_imprimable.jpg" height="400" src="_images/example_map_imprimable.jpg" />
 </a>
 <p>In 3D: <a class="reference external" href="_static/example_3d/index.html">here</a></p>
 <p>See for instance how wells indications are enlarged in the “printable” 2D map, the inferior level is shifted to allow seing it when it is superimposed with the upper level, while they are still superposed in the 3D map.</p>
@@ -685,7 +685,7 @@ At the moment, only limited support for properties is implemented, and such prop
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataMapTo2DMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bygroup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataMapTo2DMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bygroup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap" title="Link to this definition">¶</a></dt>
 <dd><p>Process XML tree to build modified 2D maps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -702,7 +702,7 @@ At the moment, only limited support for properties is implemented, and such prop
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.CataMapTo2DMap.box_in_region">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">box_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap.box_in_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap.box_in_region" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">box_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">box</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataMapTo2DMap.box_in_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataMapTo2DMap.box_in_region" title="Link to this definition">¶</a></dt>
 <dd><p>check if a box is totally inside a region, or totally outside, or
 intersecting</p>
 <p>Warning: if 4 corners are inside, the test says inside, whereas it is not always true for a non-convex clip polygon</p>
@@ -738,7 +738,7 @@ and should return either the element itself (no replacement), or None
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.CataSvgToMesh">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataSvgToMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list_bygroup'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headless</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">CataSvgToMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list_bygroup'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headless</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#CataSvgToMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.CataSvgToMesh" title="Link to this definition">¶</a></dt>
 <dd><p>Process XML tree to build 3D meshes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -842,7 +842,7 @@ under the key “gltf_scene”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.DefaultItemProperties">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">DefaultItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#DefaultItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.DefaultItemProperties" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">DefaultItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#DefaultItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.DefaultItemProperties" title="Link to this definition">¶</a></dt>
 <dd><p>Defaults and constant values.</p>
 <p>This is mainly a remaining of the v1 of the software, where fewer things
 were indicated in the SVG file, and the program was written originally for
@@ -851,14 +851,14 @@ a single map (GRS, Paris 14e) with hard-coded labels.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.ItemProperties">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">ItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.map_to_meshes.</span></span><span class="sig-name descname"><span class="pre">ItemProperties</span></span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties" title="Link to this definition">¶</a></dt>
 <dd><p>XML item properties structure, used by
 <a class="reference internal" href="#catamap.map_to_meshes.CataSvgToMesh" title="catamap.map_to_meshes.CataSvgToMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">CataSvgToMesh</span></code></a>. They represent properties
 read from the XML file elements.</p>
 <p>Properties match those documented in <a class="reference internal" href="#inkscape-svg-files">Inkscape SVG files</a>, except the <code class="docutils literal notranslate"><span class="pre">height</span></code> property which is named <code class="docutils literal notranslate"><span class="pre">item_height</span></code> in XML file elements (because <code class="docutils literal notranslate"><span class="pre">height</span></code> is already used in SVG).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.map_to_meshes.ItemProperties.remove_word">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties.remove_word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties.remove_word" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">remove_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/map_to_meshes.html#ItemProperties.remove_word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.map_to_meshes.ItemProperties.remove_word" title="Link to this definition">¶</a></dt>
 <dd><p>remove word suffix to label (which may end with several
 variants, _word_0 etc)</p>
 </dd></dl>
@@ -881,7 +881,7 @@ to a different resolution</p>
 </section>
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.svg_to_mesh.</span></span><span class="sig-name descname"><span class="pre">SvgToMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bygroup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.svg_to_mesh.</span></span><span class="sig-name descname"><span class="pre">SvgToMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concat_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bygroup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh" title="Link to this definition">¶</a></dt>
 <dd><p>Read SVG, transforms things into meshes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -928,7 +928,7 @@ if skip_children is True, children are skipped.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.get_mesh_color">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_mesh_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.get_mesh_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.get_mesh_color" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_mesh_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.get_mesh_color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.get_mesh_color" title="Link to this definition">¶</a></dt>
 <dd><p>Returns background_color (fill), foreground_color (borders)</p>
 </dd></dl>
 
@@ -1021,7 +1021,7 @@ otrans: transform in the output subtree. default=in_trans</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.SvgToMesh.unitscale">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unitscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.unitscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.unitscale" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unitscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#SvgToMesh.unitscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.SvgToMesh.unitscale" title="Link to this definition">¶</a></dt>
 <dd><p>convert unit scale to px (used in inkscape)</p>
 </dd></dl>
 
@@ -1029,23 +1029,23 @@ otrans: transform in the output subtree. default=in_trans</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.aims">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">catamap.svg_to_mesh.</span></span><span class="sig-name descname"><span class="pre">aims</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">catamap.svg_to_mesh.</span></span><span class="sig-name descname"><span class="pre">aims</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims" title="Link to this definition">¶</a></dt>
 <dd><p>Fake aims-lite module</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.aims.AimsTimeSurface_2">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AimsTimeSurface_2</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_2" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AimsTimeSurface_2</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_2" title="Link to this definition">¶</a></dt>
 <dd><p>Segments mesh (2 points per polygon)</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.aims.AimsTimeSurface_3">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">AimsTimeSurface_3</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface_3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_3" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AimsTimeSurface_3</span></span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.AimsTimeSurface_3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.AimsTimeSurface_3" title="Link to this definition">¶</a></dt>
 <dd><p>Triangles mesh (3 points per polygon)</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="catamap.svg_to_mesh.aims.vector">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.vector" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/catamap/svg_to_mesh.html#aims.vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#catamap.svg_to_mesh.aims.vector" title="Link to this definition">¶</a></dt>
 <dd><p>Fixed size vector</p>
 </dd></dl>
 
@@ -1287,7 +1287,7 @@ children in a readable dictionary.</p>
     </div>
     <div class="footer" role="contentinfo">
     &#169; Copyright 2021, FDC.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
     </div>
   </body>
 </html>
