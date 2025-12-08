@@ -2508,29 +2508,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         try:
             mmap = {}
-            with open(filename) as f:
-                #for line in f.readlines():
-                    #items = line.strip().split('\t')
-                    #row = []
-                    #for item in items:
-                        #row += _parse(item)
-
-                dialect = csv.Sniffer().sniff(f.read(1024))
-                f.seek(0)
-                #reader = csv.reader(f, delimiter='\t')
-                reader = csv.reader(f, dialect=dialect)
-                for row in reader:
-                    if row:
-                        if len(row) == 1:  # no \t separtator
-                            row = [x.strip() for x in row[0].split()]
-                        if len(row) == 1:  # still no split
-                            print('marker without identifier:', row[0])
-                            continue
-                        if len(row) == 0:
-                            continue  # empty line
-                        mmap.setdefault(row[1].strip(),
-                                        []).append(row[0].strip())
-        except Exception as e:
+            if os.stat(filename).st_size != 0:
+                with open(filename) as f:
+                    dialect = csv.Sniffer().sniff(f.read(1024))
+                    f.seek(0)
+                    reader = csv.reader(f, dialect=dialect)
+                    for row in reader:
+                        if row:
+                            if len(row) == 1:  # no \t separtator
+                                row = [x.strip() for x in row[0].split()]
+                            if len(row) == 1:  # still no split
+                                print('marker without identifier:', row[0])
+                                continue
+                            if len(row) == 0:
+                                continue  # empty line
+                            mmap.setdefault(row[1].strip(),
+                                            []).append(row[0].strip())
+        except Exception:
             print('error reading markers map file:', filename, file=sys.stderr)
             raise
         return mmap
@@ -5064,7 +5058,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             print('No proto for rose')
             return
         self.main_group = 'rose'
-        trans = self.proto_scale * lproto['trans']
+        scale = 0.25  # the sigh is too large
+        trans = self.proto_scale * np.matrix(np.diag((scale, scale , 1.))) \
+            * lproto['trans']
         quadrant, quadrant_c = self.extrude_fill_part(
             lproto['element'][:2], trans)
 
