@@ -1698,15 +1698,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 return (self.start_depth_rect,
                         [self.clean_depth] + clean_return, False)
             if item_props.marker:
-                print('MARKER:', item_props.marker)
                 sname = item_props.marker
+                print('MARKER:', sname)
                 if item_props.private:
                     sname += '_private'
-                mmname = '%s_marker_model' % item_props.marker
+                mmname = '%s_marker_model' % sname
                 model = getattr(self, mmname, None)
                 if model is None:
-                    mmname = 'photos_marker_model'
-                    model = self.photos_marker_model
+                    if item_props.private:
+                        model = model = getattr(
+                            self, '%s_marker_model' % item_props.marker, None)
+                    if model is None:
+                        model = self.photos_marker_model
+                    model = type(model)(model)  # duplicate
+                    setattr(self, mmname, model)
                 if not hasattr(self, 'marker_types'):
                     self.marker_types = {}
                 self.marker_types[sname] = mmname
@@ -2594,6 +2599,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             layer_hshift = float(layer_hshift) * self.z_scale
         else:
             layer_hshift = 0.
+        color = xml.get('marker_color')
+        if color is not None:
+            color = json.loads(color)
+            print('MARKER COLOR:', color)
+            mat = dict(marker_model.header().get('material', {}))
+            mat['diffuse'] = color
+            marker_model.header()['material'] = mat
 
         used_texts = {}
         missing = []
