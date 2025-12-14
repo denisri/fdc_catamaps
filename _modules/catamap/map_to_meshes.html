@@ -1750,15 +1750,20 @@
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_depth_rect</span><span class="p">,</span>
                         <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_depth</span><span class="p">]</span> <span class="o">+</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MARKER:&#39;</span><span class="p">,</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span><span class="p">)</span>
                 <span class="n">sname</span> <span class="o">=</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MARKER:&#39;</span><span class="p">,</span> <span class="n">sname</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">item_props</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
                     <span class="n">sname</span> <span class="o">+=</span> <span class="s1">&#39;_private&#39;</span>
-                <span class="n">mmname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_marker_model&#39;</span> <span class="o">%</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span>
+                <span class="n">mmname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_marker_model&#39;</span> <span class="o">%</span> <span class="n">sname</span>
                 <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">mmname</span> <span class="o">=</span> <span class="s1">&#39;photos_marker_model&#39;</span>
-                    <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_marker_model</span>
+                    <span class="k">if</span> <span class="n">item_props</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
+                        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_marker_model&#39;</span> <span class="o">%</span> <span class="n">item_props</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_marker_model</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)(</span><span class="n">model</span><span class="p">)</span>  <span class="c1"># duplicate</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mmname</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;marker_types&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">marker_types</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span> <span class="o">=</span> <span class="n">mmname</span>
@@ -2656,6 +2661,13 @@
             <span class="n">layer_hshift</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">layer_hshift</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">layer_hshift</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;marker_color&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MARKER COLOR:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">marker_model</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+            <span class="n">mat</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+            <span class="n">marker_model</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>
 
         <span class="n">used_texts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
