@@ -286,6 +286,12 @@ Properties list
 
     See :ref:`markers` for more details.
 
+**marker_color:** JSON list (**3D maps**)
+    set on a layer which also has the ``marker`` property, sets the given
+    color (3 or 4 floats in the range 0.0-1.0, RGB or RGBA ). Note that the
+    color will apply to all marker layers with the same marker identifier
+    (photos, sounds...), except that public and private markers are separated.
+
 **markers_base_url:** bool (**3D maps**)
     set on a :ref:`marker layer <markers>` to specify that marekrs in this
     layer have URLS which point to the server directory specified here.
@@ -2602,7 +2608,6 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         color = xml.get('marker_color')
         if color is not None:
             color = json.loads(color)
-            print('MARKER COLOR:', color)
             mat = dict(marker_model.header().get('material', {}))
             mat['diffuse'] = color
             marker_model.header()['material'] = mat
