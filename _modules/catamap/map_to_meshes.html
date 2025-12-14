@@ -325,6 +325,12 @@
 
 <span class="sd">    See :ref:`markers` for more details.</span>
 
+<span class="sd">**marker_color:** JSON list (**3D maps**)</span>
+<span class="sd">    set on a layer which also has the ``marker`` property, sets the given</span>
+<span class="sd">    color (3 or 4 floats in the range 0.0-1.0, RGB or RGBA ). Note that the</span>
+<span class="sd">    color will apply to all marker layers with the same marker identifier</span>
+<span class="sd">    (photos, sounds...), except that public and private markers are separated.</span>
+
 <span class="sd">**markers_base_url:** bool (**3D maps**)</span>
 <span class="sd">    set on a :ref:`marker layer &lt;markers&gt;` to specify that marekrs in this</span>
 <span class="sd">    layer have URLS which point to the server directory specified here.</span>
@@ -2664,7 +2670,6 @@
         <span class="n">color</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;marker_color&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MARKER COLOR:&#39;</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
             <span class="n">mat</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">marker_model</span><span class="o">.</span><span class="n">header</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="p">{}))</span>
             <span class="n">mat</span><span class="p">[</span><span class="s1">&#39;diffuse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
             <span class="n">marker_model</span><span class="o">.</span><span class="n">header</span><span class="p">()[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>

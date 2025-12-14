@@ -305,6 +305,11 @@ types of markers are currently recognized: <code class="docutils literal notrans
 <code class="docutils literal notranslate"><span class="pre">lights</span></code>.</p>
 <p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
+<dt><strong>marker_color:</strong> JSON list (<strong>3D maps</strong>)</dt><dd><p>set on a layer which also has the <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, sets the given
+color (3 or 4 floats in the range 0.0-1.0, RGB or RGBA ). Note that the
+color will apply to all marker layers with the same marker identifier
+(photos, sounds…), except that public and private markers are separated.</p>
+</dd>
 <dt><strong>markers_base_url:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>set on a <a class="reference internal" href="#markers"><span class="std std-ref">marker layer</span></a> to specify that marekrs in this
 layer have URLS which point to the server directory specified here.
 Individual markers will be appended to this base URL. The URL may be
