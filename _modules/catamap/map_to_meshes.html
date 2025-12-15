@@ -1623,10 +1623,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sounds_marker_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">photos_marker_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">photos</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">group_properties</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset</span> <span class="o">=</span> <span class="s1">&#39;map_3d&#39;</span>  <span class="c1"># alt colors to translate to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colorset_inheritance</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2636,7 +2633,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;READ&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="n">markers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
+        <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">[])</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -4427,7 +4424,7 @@
             <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">mtype</span> <span class="o">==</span> <span class="s1">&#39;lights&#39;</span><span class="p">:</span>
                 <span class="n">mesh_proto</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
                     <span class="n">props</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
                     <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -4444,7 +4441,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">mesh_proto</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;proto:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_proto</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
-                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
                     <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
                     <span class="c1"># radius = mpos[0][4]</span>
@@ -5583,17 +5580,10 @@
                                        <span class="s1">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
                 <span class="n">texts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">md5</span><span class="p">])</span>
 
-        <span class="c1"># sounds</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;sounds_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds_private</span>
-
-        <span class="c1"># photos</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span><span class="p">:</span>
-            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;photos_private&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">photos_private</span>
+        <span class="c1"># markers files</span>
+        <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;markers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">markers</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;markers&#39;</span><span class="p">][</span><span class="n">mtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">markers</span>
 
         <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">svg</span><span class="p">)</span>
 
