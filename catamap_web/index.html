@@ -804,12 +804,18 @@
     var allow_private = false;
     var filenames = map_objects.meshes;
     var texts = map_objects.texts;
-    var sounds = map_objects.sounds;
-    if ( !sounds )
-      sounds = [];
-    var photos = map_objects.photos;
-    if ( !photos )
-      photos = [];
+    var sounds = [];
+    var photos = [];
+    for( const [mtype, markers] of Object.entries( map_objects.markers ) )
+    {
+      if( !mtype.endsWith( '_private' ) )
+      {
+        if( mtype.startsWith( 'sounds' ) )
+          sounds = sounds.concat( markers );
+        else
+          photos = photos.concat( markers );
+      }
+    }
     var categories = map_objects.categories;
     var def_categories = map_objects.default_categories;
     var def_cat_num = [];
@@ -899,21 +905,23 @@
     {
         filenames = map_objects.meshes;
         texts = map_objects.texts;
-        sounds = map_objects.sounds;
-        if ( !sounds )
-            sounds = [];
-        photos = map_objects.photos;
-        if ( !photos )
-            photos = [];
+        sounds = [];
+        photos = [];
+        for( const [mtype, markers] of Object.entries( map_objects.markers ) )
+        {
+          if( allow_private || !mtype.endsWith( '_private' ) )
+          {
+            if( mtype.startsWith( 'sounds' ) )
+              sounds = sounds.concat( markers );
+            else
+              photos = photos.concat( markers );
+          }
+        }
 
         if( allow_private )
         {
             filenames = filenames.concat( map_objects.meshes_private );
             texts = texts.concat( map_objects.texts_private );
-            if( map_objects.sounds_private )
-                sounds = sounds.concat( map_objects.sounds_private );
-            if( map_objects.photos_private )
-                photos = photos.concat( map_objects.photos_private );
         }
     }
 

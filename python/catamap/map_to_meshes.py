@@ -1573,10 +1573,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.sounds_marker_model = None
         self.photos_marker_model = None
         self.level = ''
-        self.sounds = []
-        self.sounds_private = []
-        self.photos = []
-        self.photos_private = []
+        self.markers_maps = {}
         self.group_properties = {}
         self.colorset = 'map_3d'  # alt colors to translate to
         self.colorset_inheritance = {}
@@ -2574,7 +2571,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         print('READ', mtype.upper())
         if not hasattr(self, mtype):
             setattr(self, mtype, [])
-        markers = getattr(self, mtype)
+        markers = self.markers_maps.setdefault(mtype, [])
         if trans is None:
             trans = self.get_transform(xml)
         if trans is None:
@@ -4359,7 +4356,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh = None
             if mtype == 'lights':
                 mesh_proto = None
-                for mpos in getattr(self, mtype):
+                for mpos in self.markers_maps.get(mtype, []):
                     pos = mpos[0][:4]
                     props = mpos[0][4]
                     hshift = pos[2]
@@ -4376,7 +4373,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             else:
                 mesh_proto = getattr(self, proto)
                 print(mtype, 'proto:', len(mesh_proto.vertex()))
-                for mpos in getattr(self, mtype):
+                for mpos in self.markers_maps.get(mtype, []):
                     pos = mpos[0][:4]
                     hshift = pos[2]
                     # radius = mpos[0][4]
@@ -5507,17 +5504,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                        'rb').read()).hexdigest()
                 texts.append([0, fname, size, md5])
 
-        # sounds
-        if self.sounds:
-            json_obj['sounds'] = self.sounds
-        if self.sounds_private:
-            json_obj['sounds_private'] = self.sounds_private
-
-        # photos
-        if self.photos:
-            json_obj['photos'] = self.photos
-        if self.photos_private:
-            json_obj['photos_private'] = self.photos_private
+        # markers files
+        json_obj['markers'] = {}
+        for mtype, markers in self.markers_maps.items():
+            json_obj['markers'][mtype] = markers
 
         metadata = self.get_metadata(self.svg)
 
