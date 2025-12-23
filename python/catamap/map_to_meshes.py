@@ -6925,8 +6925,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
             'public': {
                 'name': 'public',
-                'filters': col_filter + ['remove_private', 'remove_gtech',
-                                         'printable_map_public'],
+                'filters': col_filter + ['printable_map_public'],
                 'shadows': True,
                 'do_pdf': True,
             },
