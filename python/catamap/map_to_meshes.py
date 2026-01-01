@@ -6192,6 +6192,15 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         # to_add = []
         copied = []
         for index, element in enumerate(layer):
+            if element.tag.endswith('}g') \
+                    and element.get('{http://www.inkscape.org/namespaces/'
+                        'inkscape}groupmode') == 'layer':
+                # sub-layer
+                self.clip_and_scale(element, target_layer, trans, region,
+                                    region_bbox, src_trans,
+                                    with_copy=with_copy, verbose=verbose)
+                continue
+
             if with_copy:
                 element = copy.deepcopy(element)
                 target_layer.append(element)
