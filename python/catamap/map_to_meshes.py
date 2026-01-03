@@ -2666,6 +2666,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         pos = [x[0, 0], y[0, 0]]
                     if sub_el[0].text is None:
                         print('marker with no text:', sub_el.get('id'), sub_el)
+                        print('at pos:', pos)
+                        print('sub-text:', sub_el[0].get('id'))
+                        raise ValueError('marker with no text')
                     text = sub_el[0].text.strip()
                 elif tag == 'path':
                     trans3 = sub_el.get('transform')
@@ -6207,6 +6210,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 copied.append(element)
             bbox = self.boundingbox(element, src_trans)
             # print('bbox:', bbox)
+            if bbox == [None, None] and element.tag.endswith('}g'):
+                # group with no bbox: probably a text group
+                bbox = self.boundingbox(element, src_trans, use_text_xy=True)
             if bbox != [None, None]:
                 in_out = self.box_in_region(bbox, region, region_bbox,
                                             verbose=verbose)

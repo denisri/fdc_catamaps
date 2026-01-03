@@ -1072,7 +1072,8 @@ class SvgToMesh:
             [str(x) for x in np.asarray(matrix[:2, :].T).ravel()]) + ')'
         return transform
 
-    def boundingbox(self, element, trans=None, exhaustive=True):
+    def boundingbox(self, element, trans=None, exhaustive=True,
+                    use_text_xy=False):
         todo = [(element, trans)]
         bbox = [None, None]
         bmin, bmax = bbox
@@ -1106,6 +1107,25 @@ class SvgToMesh:
                                 bmax[1] = v[1]
                     if not exhaustive:
                         break
+                elif use_text_xy and (
+                        element.tag.endswith('}text')
+                        or element.tag.endswith('}tspan')):
+                    x = element.get('x')
+                    y = element.get('y')
+                    if x is None or y is None:
+                        todo = todo = [(c, trans) for c in element] + todo
+                    else:
+                        tx = np.array(trans.dot([float(x), float(y), 1.]))[0][
+                            :2]
+                        # print('trans text', x, y, ', tx:', tx)
+                        # print('trans:', trans)
+                        if bmin is None:
+                            bmin = [tx[0], tx[1]]
+                            bmax = [tx[0], tx[1]]
+                            bbox = [bmin, bmax]
+                        else:
+                            bmin = [min(bmin[0], tx[0]), min(bmin[1], tx[1])]
+                            bmax = [max(bmax[0], tx[0]), max(bmax[1], tx[1])]
         return bbox
 
     def transform_subtree(self, xml, in_trans, trans, otrans=None):
