@@ -6681,8 +6681,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     child[0].text = self.MapId
 
     def show_all(self, xml):
-        for layer in xml.getroot():
+        todo = [xml.getroot()]
+        while todo:
+            layer = todo.pop(0)
             layer.set('style', 'display:inline')
+            todo += [lay for lay in layer[:] if self.is_layer(lay)]
 
     def shadow_text(self, xml):
         xml2 = copy.deepcopy(xml)
