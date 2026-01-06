@@ -1436,7 +1436,7 @@ class DefaultItemProperties(object):
 
     hidden_labels = {
         'indications_big_2010', 'a_verifier', 'bord', 'bord_sud',
-        u'légende_alt', u'découpage', 'raccords plan 2D',
+        u'découpage', 'raccords plan 2D',
         'raccords 2D',
         'masque vdg', u'masque cimetière', 'masque plage',
         'agrandissement vdg', u'agrandissement cimetière',
@@ -5703,78 +5703,91 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                       '{http://www.inkscape.org/namespaces/inkscape}label')
                       == u'légende'
                       or x.get('legend') in ('1', 'True', 'true', 'TRUE')]
-        if symbols:
-            symbols = symbols[0]
-        else:
+        if not symbols:
             return
-        trans2 = symbols.get('transform')
-        if trans2 is not None:
-            transm = self.get_transform(trans2)
-            if trans is None:
-                trans = transm
-            else:
-                trans = trans * transm
-        trans_org = trans
-        trans = self.proto_scale * trans_org
 
         labels = {}
         ids = {}
         rep_child = []
         repl_map = {'id': ids, 'label': labels}
-        for child in symbols:
-            eid = child.get('id')
-            ptype = None
-            if eid and eid.endswith('_proto'):
-                ptype = eid[:-6]
-                plabel = 'id'
-                pmap = ids
-                # exception case: if label is the same without _proto
-                if child.get('label') == ptype:
-                    plabel = 'label'
-                    pmap = labels
-            else:
-                label = child.get('label')
-                if label and label.endswith('_proto'):
-                    ptype = label[:-6]
-                    plabel = 'label'
-                    pmap = labels
-            if ptype:
-                # TODO: we should manage "use" elements in a more general way
-                if child.tag == '{http://www.w3.org/2000/svg}use':
-                    orig_id = child.get('{http://www.w3.org/1999/xlink}href')
-                    orig_id = urllib.parse.unquote(orig_id).split('#')[-1]
-                    new_child = self.find_element(xml, orig_id)
-                    child = new_child[0]
-                element = copy.deepcopy(child)
-                element.set(plabel, ptype)
-                item = {'element': element}
-                etrans = trans
-                pscale = element.get('proto_scale')
-                if pscale:
-                    pscale = float(pscale)
-                    pscalem = np.matrix(np.eye(3))
-                    pscalem[0, 0] = pscale
-                    pscalem[1, 1] = pscale
-                    etrans = pscalem * trans_org
-                bbox = self.boundingbox(child, etrans)
-                if bbox is None or bbox[0] is None:
-                    print('NO BBOX FOR:', child.tag, child.get('id'))
-                    # will crash next but we'll know why.
-                item['boundingbox'] = bbox
-                item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
-                                  (bbox[0][1] + bbox[1][1]) / 2)
-                item['trans'] = etrans
-                replace_children = child.get('replace_children')
-                if replace_children:
-                    if replace_children in ('1', 'True', 'true', 'TRUE'):
+        # print('*** FIND PROTOS ***')
+        # print('layers:', [s.items() for s in symbols])
+        for symlay in symbols:
+            trans2 = symlay.get('transform')
+            if trans2 is not None:
+                transm = self.get_transform(trans2)
+                if trans is None:
+                    trans = transm
+                else:
+                    trans = trans * transm
+            trans_org = trans
+            trans = self.proto_scale * trans_org
+
+            for child in symlay:
+                eid = child.get('id')
+                ptype = None
+                exact = False
+                maps = child.get('maps')
+                if maps is not None:
+                    maps = json.loads(maps)
+                    if self.map_name in maps:
+                        exact = True
+                if eid and eid.endswith('_proto'):
+                    ptype = eid[:-6]
+                    if exact and '_' in eid:
+                        # alt symbol: remove last extension
+                        ptype = ptype[:eid.rindex('_')]
+                    plabel = 'id'
+                    pmap = ids
+                    # exception case: if label is the same without _proto
+                    if child.get('label') == ptype:
+                        plabel = 'label'
+                        pmap = labels
+                else:
+                    label = child.get('label')
+                    if label and label.endswith('_proto'):
+                        ptype = label[:-6]
+                        plabel = 'label'
+                        pmap = labels
+                if ptype and (ptype not in pmap or exact):
+                    # TODO: we should manage "use" elements in a more
+                    # general way
+                    if child.tag == '{http://www.w3.org/2000/svg}use':
+                        orig_id = child.get(
+                            '{http://www.w3.org/1999/xlink}href')
+                        orig_id = urllib.parse.unquote(orig_id).split('#')[-1]
+                        new_child = self.find_element(xml, orig_id)
+                        child = new_child[0]
+                    element = copy.deepcopy(child)
+                    element.set(plabel, ptype)
+                    item = {'element': element}
+                    etrans = trans
+                    pscale = element.get('proto_scale')
+                    if pscale:
+                        pscale = float(pscale)
+                        pscalem = np.matrix(np.eye(3))
+                        pscalem[0, 0] = pscale
+                        pscalem[1, 1] = pscale
+                        etrans = pscalem * trans_org
+                    bbox = self.boundingbox(child, etrans)
+                    if bbox is None or bbox[0] is None:
+                        print('NO BBOX FOR:', child.tag, child.get('id'))
+                        # will crash next but we'll know why.
+                    item['boundingbox'] = bbox
+                    item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
+                                      (bbox[0][1] + bbox[1][1]) / 2)
+                    item['trans'] = etrans
+                    replace_children = child.get('replace_children')
+                    if replace_children:
+                        if replace_children in ('1', 'True', 'true', 'TRUE'):
+                            replace_children = True
+                        else:
+                            replace_children = False
+                    elif ptype in rep_child:
                         replace_children = True
-                    else:
-                        replace_children = False
-                elif ptype in rep_child:
-                    replace_children = True
-                if replace_children:
-                    item['children'] = True
-                pmap[ptype] = item
+                    if replace_children:
+                        item['children'] = True
+                    pmap[ptype] = item
 
         return repl_map
 
@@ -6537,7 +6550,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
              # 'bord_sud', 'galeries big sud',
-             u'légende_alt', 'sons', 'altitude', 'lambert93',
+             'sons', 'altitude', 'lambert93',
              'bord'])
         for layer in xml.getroot():
             label = layer.get(
@@ -6554,7 +6567,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
              'bord_sud', 'galeries big sud',
-             u'légende_alt', 'sons', 'altitude', 'lambert93',])
+             'sons', 'altitude', 'lambert93',])
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -6570,7 +6583,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
              'bord_sud', 'bord',  # 'galeries big sud',
-             u'légende_alt', 'sons', 'altitude', 'lambert93', ])
+             'sons', 'altitude', 'lambert93', ])
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -6594,7 +6607,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
              'chatieres old', 'photos',
              'bord',
              # 'bord_sud', 'galeries big sud',
-             u'légende_alt', 'sons', 'altitude', 'lambert93'])
+             'sons', 'altitude', 'lambert93'])
         for layer in xml.getroot():
             label = layer.get(
                 '{http://www.inkscape.org/namespaces/inkscape}label')
@@ -7119,7 +7132,6 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                  'chatieres v3',
                 ],
                 [
-                 u'légende_alt',
                  u'légende',
                  u'découpage',
                  'profondeurs gtech',
