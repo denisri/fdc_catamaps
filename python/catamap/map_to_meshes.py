@@ -5730,13 +5730,14 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 maps = child.get('maps')
                 if maps is not None:
                     maps = json.loads(maps)
+                    # print('proto with maps:', maps, child)
                     if self.map_name in maps:
                         exact = True
                 if eid and eid.endswith('_proto'):
                     ptype = eid[:-6]
                     if exact and '_' in eid:
                         # alt symbol: remove last extension
-                        ptype = ptype[:eid.rindex('_')]
+                        ptype = ptype[:ptype.rindex('_')]
                     plabel = 'id'
                     pmap = ids
                     # exception case: if label is the same without _proto
@@ -5787,6 +5788,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         replace_children = True
                     if replace_children:
                         item['children'] = True
+                    # print('add', ptype)
                     pmap[ptype] = item
 
         return repl_map
