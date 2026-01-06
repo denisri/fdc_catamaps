@@ -1483,7 +1483,7 @@
 
     <span class="n">hidden_labels</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;indications_big_2010&#39;</span><span class="p">,</span> <span class="s1">&#39;a_verifier&#39;</span><span class="p">,</span> <span class="s1">&#39;bord&#39;</span><span class="p">,</span> <span class="s1">&#39;bord_sud&#39;</span><span class="p">,</span>
-        <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;découpage&#39;</span><span class="p">,</span> <span class="s1">&#39;raccords plan 2D&#39;</span><span class="p">,</span>
+        <span class="sa">u</span><span class="s1">&#39;découpage&#39;</span><span class="p">,</span> <span class="s1">&#39;raccords plan 2D&#39;</span><span class="p">,</span>
         <span class="s1">&#39;raccords 2D&#39;</span><span class="p">,</span>
         <span class="s1">&#39;masque vdg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;masque cimetière&#39;</span><span class="p">,</span> <span class="s1">&#39;masque plage&#39;</span><span class="p">,</span>
         <span class="s1">&#39;agrandissement vdg&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;agrandissement cimetière&#39;</span><span class="p">,</span>
@@ -5783,78 +5783,91 @@
                       <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
                       <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;légende&#39;</span>
                       <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="n">symbols</span><span class="p">:</span>
-            <span class="n">symbols</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">symbols</span><span class="p">:</span>
             <span class="k">return</span>
-        <span class="n">trans2</span> <span class="o">=</span> <span class="n">symbols</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">trans2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">transm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">trans</span> <span class="o">=</span> <span class="n">transm</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">trans</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">transm</span>
-        <span class="n">trans_org</span> <span class="o">=</span> <span class="n">trans</span>
-        <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">trans_org</span>
 
         <span class="n">labels</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">ids</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">rep_child</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">repl_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">ids</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
-        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">:</span>
-            <span class="n">eid</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
-            <span class="n">ptype</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">eid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
-                <span class="n">ptype</span> <span class="o">=</span> <span class="n">eid</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
-                <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span>
-                <span class="n">pmap</span> <span class="o">=</span> <span class="n">ids</span>
-                <span class="c1"># exception case: if label is the same without _proto</span>
-                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">ptype</span><span class="p">:</span>
-                    <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
-                    <span class="n">pmap</span> <span class="o">=</span> <span class="n">labels</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">label</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
-                    <span class="n">ptype</span> <span class="o">=</span> <span class="n">label</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
-                    <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
-                    <span class="n">pmap</span> <span class="o">=</span> <span class="n">labels</span>
-            <span class="k">if</span> <span class="n">ptype</span><span class="p">:</span>
-                <span class="c1"># TODO: we should manage &quot;use&quot; elements in a more general way</span>
-                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}use&#39;</span><span class="p">:</span>
-                    <span class="n">orig_id</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;{http://www.w3.org/1999/xlink}href&#39;</span><span class="p">)</span>
-                    <span class="n">orig_id</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">orig_id</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">new_child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">orig_id</span><span class="p">)</span>
-                    <span class="n">child</span> <span class="o">=</span> <span class="n">new_child</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">element</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
-                <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">plabel</span><span class="p">,</span> <span class="n">ptype</span><span class="p">)</span>
-                <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;element&#39;</span><span class="p">:</span> <span class="n">element</span><span class="p">}</span>
-                <span class="n">etrans</span> <span class="o">=</span> <span class="n">trans</span>
-                <span class="n">pscale</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proto_scale&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">pscale</span><span class="p">:</span>
-                    <span class="n">pscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pscale</span><span class="p">)</span>
-                    <span class="n">pscalem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-                    <span class="n">pscalem</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
-                    <span class="n">pscalem</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
-                    <span class="n">etrans</span> <span class="o">=</span> <span class="n">pscalem</span> <span class="o">*</span> <span class="n">trans_org</span>
-                <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">etrans</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">bbox</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO BBOX FOR:&#39;</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
-                    <span class="c1"># will crash next but we&#39;ll know why.</span>
-                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;boundingbox&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
-                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                                  <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etrans</span>
-                <span class="n">replace_children</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replace_children&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">replace_children</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">replace_children</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
+        <span class="c1"># print(&#39;*** FIND PROTOS ***&#39;)</span>
+        <span class="c1"># print(&#39;layers:&#39;, [s.items() for s in symbols])</span>
+        <span class="k">for</span> <span class="n">symlay</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">:</span>
+            <span class="n">trans2</span> <span class="o">=</span> <span class="n">symlay</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">trans2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">transm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">trans2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">trans</span> <span class="o">=</span> <span class="n">transm</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">trans</span> <span class="o">=</span> <span class="n">trans</span> <span class="o">*</span> <span class="n">transm</span>
+            <span class="n">trans_org</span> <span class="o">=</span> <span class="n">trans</span>
+            <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proto_scale</span> <span class="o">*</span> <span class="n">trans_org</span>
+
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">symlay</span><span class="p">:</span>
+                <span class="n">eid</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+                <span class="n">ptype</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">exact</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">maps</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maps&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">maps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">maps</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
+                        <span class="n">exact</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">eid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
+                    <span class="n">ptype</span> <span class="o">=</span> <span class="n">eid</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">exact</span> <span class="ow">and</span> <span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">eid</span><span class="p">:</span>
+                        <span class="c1"># alt symbol: remove last extension</span>
+                        <span class="n">ptype</span> <span class="o">=</span> <span class="n">ptype</span><span class="p">[:</span><span class="n">eid</span><span class="o">.</span><span class="n">rindex</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)]</span>
+                    <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span>
+                    <span class="n">pmap</span> <span class="o">=</span> <span class="n">ids</span>
+                    <span class="c1"># exception case: if label is the same without _proto</span>
+                    <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">ptype</span><span class="p">:</span>
+                        <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
+                        <span class="n">pmap</span> <span class="o">=</span> <span class="n">labels</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">label</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
+                        <span class="n">ptype</span> <span class="o">=</span> <span class="n">label</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+                        <span class="n">plabel</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
+                        <span class="n">pmap</span> <span class="o">=</span> <span class="n">labels</span>
+                <span class="k">if</span> <span class="n">ptype</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ptype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pmap</span> <span class="ow">or</span> <span class="n">exact</span><span class="p">):</span>
+                    <span class="c1"># TODO: we should manage &quot;use&quot; elements in a more</span>
+                    <span class="c1"># general way</span>
+                    <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}use&#39;</span><span class="p">:</span>
+                        <span class="n">orig_id</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                            <span class="s1">&#39;{http://www.w3.org/1999/xlink}href&#39;</span><span class="p">)</span>
+                        <span class="n">orig_id</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">orig_id</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">new_child</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">orig_id</span><span class="p">)</span>
+                        <span class="n">child</span> <span class="o">=</span> <span class="n">new_child</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">element</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                    <span class="n">element</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">plabel</span><span class="p">,</span> <span class="n">ptype</span><span class="p">)</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;element&#39;</span><span class="p">:</span> <span class="n">element</span><span class="p">}</span>
+                    <span class="n">etrans</span> <span class="o">=</span> <span class="n">trans</span>
+                    <span class="n">pscale</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proto_scale&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">pscale</span><span class="p">:</span>
+                        <span class="n">pscale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pscale</span><span class="p">)</span>
+                        <span class="n">pscalem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+                        <span class="n">pscalem</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
+                        <span class="n">pscalem</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pscale</span>
+                        <span class="n">etrans</span> <span class="o">=</span> <span class="n">pscalem</span> <span class="o">*</span> <span class="n">trans_org</span>
+                    <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingbox</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">etrans</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">bbox</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO BBOX FOR:&#39;</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
+                        <span class="c1"># will crash next but we&#39;ll know why.</span>
+                    <span class="n">item</span><span class="p">[</span><span class="s1">&#39;boundingbox&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
+                    <span class="n">item</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                                      <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">item</span><span class="p">[</span><span class="s1">&#39;trans&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etrans</span>
+                    <span class="n">replace_children</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replace_children&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">replace_children</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">replace_children</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
+                            <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">elif</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="n">rep_child</span><span class="p">:</span>
                         <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">elif</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="n">rep_child</span><span class="p">:</span>
-                    <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">if</span> <span class="n">replace_children</span><span class="p">:</span>
-                    <span class="n">item</span><span class="p">[</span><span class="s1">&#39;children&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">pmap</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+                    <span class="k">if</span> <span class="n">replace_children</span><span class="p">:</span>
+                        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;children&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">pmap</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
 
         <span class="k">return</span> <span class="n">repl_map</span>
 
@@ -6623,7 +6636,7 @@
             <span class="p">[</span><span class="s1">&#39;masque bg&#39;</span><span class="p">,</span> <span class="s1">&#39;masques v1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d</span><span class="se">\xe9</span><span class="s1">coupage&#39;</span><span class="p">,</span>
              <span class="s1">&#39;chatieres old&#39;</span><span class="p">,</span> <span class="s1">&#39;photos&#39;</span><span class="p">,</span>
              <span class="c1"># &#39;bord_sud&#39;, &#39;galeries big sud&#39;,</span>
-             <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span> <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,</span>
              <span class="s1">&#39;bord&#39;</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -6640,7 +6653,7 @@
             <span class="p">[</span><span class="s1">&#39;masque bg&#39;</span><span class="p">,</span> <span class="s1">&#39;masques v1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d</span><span class="se">\xe9</span><span class="s1">coupage&#39;</span><span class="p">,</span>
              <span class="s1">&#39;chatieres old&#39;</span><span class="p">,</span> <span class="s1">&#39;photos&#39;</span><span class="p">,</span>
              <span class="s1">&#39;bord_sud&#39;</span><span class="p">,</span> <span class="s1">&#39;galeries big sud&#39;</span><span class="p">,</span>
-             <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span> <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,])</span>
+             <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,])</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
@@ -6656,7 +6669,7 @@
             <span class="p">[</span><span class="s1">&#39;masque bg&#39;</span><span class="p">,</span> <span class="s1">&#39;masques v1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d</span><span class="se">\xe9</span><span class="s1">coupage&#39;</span><span class="p">,</span>
              <span class="s1">&#39;chatieres old&#39;</span><span class="p">,</span> <span class="s1">&#39;photos&#39;</span><span class="p">,</span>
              <span class="s1">&#39;bord_sud&#39;</span><span class="p">,</span> <span class="s1">&#39;bord&#39;</span><span class="p">,</span>  <span class="c1"># &#39;galeries big sud&#39;,</span>
-             <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span> <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,</span> <span class="p">])</span>
+             <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">,</span> <span class="p">])</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
@@ -6680,7 +6693,7 @@
              <span class="s1">&#39;chatieres old&#39;</span><span class="p">,</span> <span class="s1">&#39;photos&#39;</span><span class="p">,</span>
              <span class="s1">&#39;bord&#39;</span><span class="p">,</span>
              <span class="c1"># &#39;bord_sud&#39;, &#39;galeries big sud&#39;,</span>
-             <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span> <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">])</span>
+             <span class="s1">&#39;sons&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;lambert93&#39;</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
@@ -7205,7 +7218,6 @@
                  <span class="s1">&#39;chatieres v3&#39;</span><span class="p">,</span>
                 <span class="p">],</span>
                 <span class="p">[</span>
-                 <span class="sa">u</span><span class="s1">&#39;légende_alt&#39;</span><span class="p">,</span>
                  <span class="sa">u</span><span class="s1">&#39;légende&#39;</span><span class="p">,</span>
                  <span class="sa">u</span><span class="s1">&#39;découpage&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;profondeurs gtech&#39;</span><span class="p">,</span>
