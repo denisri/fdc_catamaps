@@ -5697,6 +5697,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 trans = transm
             else:
                 trans = trans * transm
+        trans0 = trans
 
         symbols = [x for x in root
                    if x.get(
@@ -5713,6 +5714,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         # print('*** FIND PROTOS ***')
         # print('layers:', [s.items() for s in symbols])
         for symlay in symbols:
+            trans = trans0
             trans2 = symlay.get('transform')
             if trans2 is not None:
                 transm = self.get_transform(trans2)
