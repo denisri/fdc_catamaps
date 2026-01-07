@@ -6928,9 +6928,19 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         print()
         return maps
 
-    def read_maps_def(self, xml_et, colorset, do_recolor):
+    def read_maps_def(self, xml_et, colorset):
         col_filter = []
-        if do_recolor:
+        meta = self.get_metadata(xml_et)
+        if colorset is None:
+            colorsets = meta.get('colorsets')
+            if colorsets is not None:
+                colorsets = json.loads(colorsets)
+                if getattr(self, 'map_name', None):
+                    colorset = colorsets.get(self.map_name, '%(colorset)s')
+                else:
+                    colorset = '%(colorset)s'
+
+        if colorset != 'default':
             col_filter = ['recolor="%s"' % colorset]
 
         maps_def = {
@@ -7021,12 +7031,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
         }
 
-        meta = self.get_metadata(xml_et)
         user_map_defs = meta.get('maps_def')
         if user_map_defs is not None:
             replacements = {'col_filter': col_filter,
                             'colorset': colorset}
-            user_map_defs % replacements
+            user_map_defs = user_map_defs % replacements
             user_map_defs = json.loads(user_map_defs)
             maps_def.update(user_map_defs)
 
@@ -7946,7 +7955,6 @@ The program allows to produce:
     out_filename = options.output_filename
     colorset = None
     if options.color:
-        do_recolor = True
         colorset = options.color
     if options.dpi:
         dpi = options.dpi.split(',')
@@ -8001,7 +8009,7 @@ The program allows to produce:
     if colorset:
         svg_mesh.colorset = colorset
 
-    if do_3d or do_2d or do_split or do_recolor or do_list_colorsets \
+    if do_3d or do_2d or do_split or do_list_colorsets \
             or do_list_maps or do_list_maps_details:
         print('reading SVG...')
         xml_et = svg_mesh.read_xml(svg_filename)
@@ -8010,7 +8018,7 @@ The program allows to produce:
         svg_mesh.list_colorsets(xml_et)
 
     if do_2d or do_list_maps or do_list_maps_details:
-        maps_def = svg_mesh.read_maps_def(xml_et, colorset, do_recolor)
+        maps_def = svg_mesh.read_maps_def(xml_et, colorset)
 
     if do_list_maps or do_list_maps_details:
         svg_mesh.list_maps(xml_et, maps_def, details=True)
@@ -8038,6 +8046,10 @@ The program allows to produce:
         print('build 2D maps:', do_2d_maps)
 
         for map_type in do_2d_maps:
+            # must re-read maps_def since they may change with map_type
+            # and colorset
+            svg_mesh.map_name = map_type
+            maps_def = svg_mesh.read_maps_def(xml_et, colorset)
             map_def = dict(maps_def[map_type])
             if clip_rect:
                 map_def['clip_rect'] = clip_rect
