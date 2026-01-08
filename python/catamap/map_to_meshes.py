@@ -7421,7 +7421,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         meta = self.get_metadata(xml)
 
         recolor = [x for x in filters if x.startswith('recolor=')]
-        if meta is not None and len(recolor) == 0:
+        if meta is not None and len(recolor) == 0 \
+                and getattr(self, 'colorset', None) is None:
             colorsets = meta.get('colorsets')
             if colorsets:
                 colorsets = json.loads(colorsets)
@@ -7647,9 +7648,8 @@ def convert_to_format(png_file, format='jpg', remove=True, max_pixels=None):
         os.unlink(png_file)
 
 
-def build_2d_map(xml_et, out_filename, map_name, filters, clip_rect,
+def build_2d_map(svg2d, xml_et, out_filename, map_name, filters, clip_rect,
                  dpi, MapId, shadows=True, do_pdf=False, do_jpg=True, georef=None):
-    svg2d = CataMapTo2DMap()
 
     meta = svg2d.get_metadata(xml_et)
     main_clip_rects = meta.get('main_clip_rect_id', '{}')
@@ -8060,6 +8060,7 @@ The program allows to produce:
                 # don't write jpg, we will use tiff
                 map_def['do_jpg'] = False
             build_2d_map(
+                svg_mesh,
                 xml_et,
                 out_filename,
                 map_name=map_def['name'],
