@@ -5813,7 +5813,8 @@
                 <span class="k">if</span> <span class="n">maps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">maps</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span>
                     <span class="c1"># print(&#39;proto with maps:&#39;, maps, child)</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_name</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
+                    <span class="n">map_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;map_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">map_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">map_name</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
                         <span class="n">exact</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="n">eid</span> <span class="ow">and</span> <span class="n">eid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
                     <span class="n">ptype</span> <span class="o">=</span> <span class="n">eid</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
@@ -7380,6 +7381,8 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">find_clip_rect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">,</span> <span class="n">rect_def</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">rect_def</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">tag</span> <span class="o">!=</span> <span class="s1">&#39;{http://www.w3.org/2000/svg}g&#39;</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -7790,8 +7793,8 @@
     <span class="c1"># build bitmap and pdf versions</span>
     <span class="c1"># private</span>
     <span class="n">cr</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">find_clip_rect</span><span class="p">(</span><span class="n">map2d</span><span class="p">,</span> <span class="n">clip_rect</span><span class="p">)</span>
-    <span class="n">width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
-    <span class="n">height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">measure_with_unit</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">))</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">svg2d</span><span class="o">.</span><span class="n">measure_with_unit</span><span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w, h:&#39;</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dpi:&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span>
     <span class="n">wpix</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">dpi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">25.4</span>
@@ -8160,8 +8163,8 @@
                 <span class="n">filters</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">],</span>
                 <span class="n">clip_rect</span><span class="o">=</span><span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">),</span>
                 <span class="n">dpi</span><span class="o">=</span><span class="n">maps_dpi</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">map_type</span><span class="p">,</span> <span class="n">maps_dpi</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]),</span>
-                <span class="n">shadows</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;shadows&#39;</span><span class="p">],</span>
-                <span class="n">do_pdf</span><span class="o">=</span><span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">],</span>
+                <span class="n">shadows</span><span class="o">=</span><span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shadows&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="n">do_pdf</span><span class="o">=</span><span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;do_pdf&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
                 <span class="n">do_jpg</span><span class="o">=</span><span class="n">map_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;do_jpg&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
                 <span class="n">georef</span><span class="o">=</span><span class="n">georef</span><span class="p">,</span>
                 <span class="n">MapId</span><span class="o">=</span><span class="n">MapId</span><span class="p">)</span>
