@@ -5733,7 +5733,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 if maps is not None:
                     maps = json.loads(maps)
                     # print('proto with maps:', maps, child)
-                    if self.map_name in maps:
+                    map_name = getattr(self, 'map_name', None)
+                    if map_name is not None and map_name in maps:
                         exact = True
                 if eid and eid.endswith('_proto'):
                     ptype = eid[:-6]
@@ -7294,6 +7295,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     self.set_style(layer, style)
 
     def find_clip_rect(self, xml, rect_def):
+        if rect_def is None:
+            return None
         for layer in xml.getroot():
             if layer.tag != '{http://www.w3.org/2000/svg}g':
                 continue
@@ -7700,8 +7703,8 @@ def build_2d_map(svg2d, xml_et, out_filename, map_name, filters, clip_rect,
     # build bitmap and pdf versions
     # private
     cr = svg2d.find_clip_rect(map2d, clip_rect)
-    width = float(cr.get('width'))
-    height = float(cr.get('height'))
+    width = svg2d.measure_with_unit(cr.get('width'))
+    height = svg2d.measure_with_unit(cr.get('height'))
     print('w, h:', width, height)
     print('dpi:', dpi)
     wpix = width * float(dpi) / 25.4
@@ -8067,8 +8070,8 @@ The program allows to produce:
                 filters=map_def['filters'],
                 clip_rect=map_def.get('clip_rect'),
                 dpi=maps_dpi.get(map_type, maps_dpi['default']),
-                shadows=map_def['shadows'],
-                do_pdf=map_def['do_pdf'],
+                shadows=map_def.get('shadows', False),
+                do_pdf=map_def.get('do_pdf', False),
                 do_jpg=map_def.get('do_jpg', True),
                 georef=georef,
                 MapId=MapId)

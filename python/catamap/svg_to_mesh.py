@@ -253,6 +253,16 @@ class SvgToMesh:
         raise ValueError(f'unknown unit {unit}')
 
     @staticmethod
+    def measure_with_unit(meas_str):
+        unit = 'px'
+        for unit_sym in ('mm', 'px', 'pc', 'pt', 'cm', 'in'):
+            if meas_str.endswith(unit_sym):
+                unit = unit_sym
+                meas_str = meas_str[:-len(unit_sym)]
+        meas = float(meas_str) * SvgToMesh.unitscale(unit)
+        return meas
+
+    @staticmethod
     def get_layers(xml, recursive=True, parent=True):
         todo = [(xml.getroot(), item) for item in xml.getroot()
                 if SvgToMesh.is_layer(item)]
@@ -2635,7 +2645,7 @@ class SvgToMesh:
     def clip_page(self, xml_et, dims_or_rect):
         dims = self.clip_rect_from_id(xml_et, dims_or_rect)
         doc = xml_et.getroot()
-        init_w = float(doc.get('width'))
+        init_w = self.measure_with_unit(doc.get('width'))
         init_vbox = [float(x) for x in doc.get('viewBox').split()[2:]]
         ratio = init_w / init_vbox[0]
         doc.set('width', str(dims[2] * ratio))
