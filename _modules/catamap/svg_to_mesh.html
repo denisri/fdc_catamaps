@@ -2183,6 +2183,8 @@
             <span class="n">element</span> <span class="o">=</span> <span class="n">element2</span>
             <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">eid</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">eid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_proto&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>  <span class="c1"># replacement prototype: don&#39;t replace with itself</span>
             <span class="n">glabel</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;glabel&#39;</span><span class="p">)</span>  <span class="c1"># glabel can replace id</span>
             <span class="n">relem</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">replace_children</span> <span class="o">=</span> <span class="kc">False</span>
