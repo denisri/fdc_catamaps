@@ -5702,10 +5702,22 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
         symbols = [x for x in root
                    if x.get(
                       '{http://www.inkscape.org/namespaces/inkscape}label')
-                      == u'légende'
+                      == 'légende'
                       or x.get('legend') in ('1', 'True', 'true', 'TRUE')]
         if not symbols:
             return
+        todo = list(symbols)
+        # look sur sub-layers
+        while todo:
+            syml = todo.pop(0)
+            for elem in syml:
+                if self.is_layer(elem) and elem.get(
+                        '{http://www.inkscape.org/namespaces/inkscape}'
+                        'label') == 'légende' \
+                        or elem.get('legend') in ('1', 'True', 'true',
+                                                  'TRUE'):
+                    todo.append(elem)
+                    symbols.append(elem)
 
         labels = {}
         ids = {}
@@ -7784,7 +7796,7 @@ def main():
     maps_dpi = {
         'default': '180',
         'public': '360',
-        'private': '360',
+        'private': '720',
         'private_wip': '180',
         'poster': '360',
         'poster_private': '720',

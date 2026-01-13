@@ -2088,6 +2088,8 @@ class SvgToMesh:
             element = element2
             total += 1
             eid = element.get('id')
+            if eid is not None and eid.endswith('_proto'):
+                continue  # replacement prototype: don't replace with itself
             glabel = element.get('glabel')  # glabel can replace id
             relem = None
             replace_children = False
