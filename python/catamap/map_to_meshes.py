@@ -1736,8 +1736,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if label is not None:
             if label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
-            elif label in ('fontis', 'fontis_inf', 'fontis private',
-                           'fontis private_inf'):
+            elif item_props.symbol and label in (
+                    'fontis', 'fontis_inf', 'fontis private',
+                    'fontis private_inf'):
                 return (self.read_fontis, clean_return, True)
             elif label in ('stair_symbol', ):
                 return (self.read_stair_symbol, clean_return, True)
@@ -3067,7 +3068,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             res = []
             jobs = []
             init_child_function = [CataSvgToMesh._init_p_build_depth_wins,
-                                   (self.svg_filename, self.lambert_coords,
+                                   (self.svg_filename,
+                                    getattr(self, 'lambert_coords', None),
                                     self.z_scale)]
             gpu_prefixes = self.select_gpu_prefix_for_workers(len(levels))
             print('gpu_prefixes:', gpu_prefixes)
@@ -3115,7 +3117,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         sys.stdout.flush()
         cstm = CataSvgToMesh()
         cstm.svg_filename = svg_filename
-        cstm.lambert_coords = lambert_coords
+        if lambert_coords is not None:
+            cstm.lambert_coords = lambert_coords
         cstm.z_scale = z_scale
         cstm.init_ground_altitude()
         worker.args = [cstm] + list(worker.args)
@@ -3407,7 +3410,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             q, res, self.gpu_nproc,
             spawn_prefixes=gpu_prefixes,
             init_child_function=[CataSvgToMesh._init_p_apply_depth,
-                                 (self.svg_filename, self.lambert_coords,
+                                 (self.svg_filename,
+                                  getattr(self, 'lambert_coords', None),
                                   self.z_scale),
                                  {'size': (250, 250),
                                   'object_win_size': (2., 2.),
@@ -3545,7 +3549,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         worker = sys.modules['__main__'].worker
         cstm = CataSvgToMesh()
         cstm.svg_filename = svg_filename
-        cstm.lambert_coords = lambert_coords
+        if lambert_coords is not None:
+            cstm.lambert_coords = lambert_coords
         cstm.z_scale = z_scale
         sys.stdout.flush()
         worker.args = [cstm] + list(worker.args)
@@ -4050,7 +4055,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         jobs = []
         current_index = 0
         init_child_function = [CataSvgToMesh._init_p_apply_depth,
-                               (self.svg_filename, self.lambert_coords,
+                               (self.svg_filename,
+                                getattr(self, 'lambert_coords', None),
                                 self.z_scale),
                                {'size': (250, 250),
                                 'object_win_size': (2., 2.),
@@ -4218,7 +4224,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=False)
+        self.attach_arrows_to_text(meshes, with_squares=True)
 
         # get ground altitude map
         self.init_ground_altitude()
@@ -4490,18 +4496,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return self.parallel_attach_arrows_to_text(
                 meshes,  with_squares=with_squares)
         print('*** attach_arrows_to_text ***')
-        #print('layers:')
-        #for mtype in meshes:
-            #mprops = self.group_properties.get(mtype)
-            #print(mtype, ':', mprops.name)
+        # print('layers:')
+        # for mtype in meshes:
+        #     mprops = self.group_properties.get(mtype)
+        #     print(mtype, ':', mprops.name)
         #raise RuntimeError('stop.')
         # find text attached to each arrow
         for arrow, mesh_l in meshes.items():
             props = self.group_properties.get(arrow)
             if props and props.arrow and mesh_l:
+                print('arrow layer:', props.name)
                 if not isinstance(mesh_l, list):
                     mesh_l = [mesh_l]
                 in_layers = props.attached_text_layers
+                print('in_layers:', in_layers)
                 for mesh in mesh_l:
                     if not hasattr(mesh, 'vertex'):
                         print('*** WARNING: ***')
@@ -4625,6 +4633,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             #debug = 3
         if debug:
             print('find_text_for_arrow', mesh, point, 'in layers:', in_layers)
+        mprops_min = None
         for mtype, mesh_items in meshes.items():
             if in_layers is not None:
                 mprops = self.group_properties.get(mtype)
@@ -4734,6 +4743,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     if dmin < 0 or d < dmin:
                         dmin = d
                         text_min = text
+                        mprops_min = mtype
                         if debug >= 2:
                             print('min!:', dmin)
                     if d == 0:
@@ -4816,9 +4826,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                          (bb[1][1] + bb[0][1]) / 2],
                         }
                     }
+                    mprops_min = mtype
 
         if debug:
             print('found text:', text_min)
+            print('in:', mprops_min)
 
         return text_min
 
