@@ -3671,7 +3671,8 @@
         <span class="c1">#if props.name == &#39;flèches inscriptions&#39;:</span>
             <span class="c1">#debug = True</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ARROW DEPTH for&#39;</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">,</span> <span class="n">hshift</span><span class="p">,</span> <span class="n">text_hshift</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ARROW DEPTH for&#39;</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_scale</span><span class="p">,</span> <span class="n">hshift</span><span class="p">,</span> <span class="n">text_hshift</span><span class="p">,</span>
+                  <span class="s1">&#39;text level:&#39;</span><span class="p">,</span> <span class="n">tz_level</span><span class="p">,</span> <span class="s1">&#39;, arrow level:&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Wrong mesh type for&#39;</span><span class="p">,</span> <span class="n">props</span><span class="o">.</span><span class="n">main_group</span><span class="p">,</span>
                   <span class="s1">&#39;, which is not a mesh:&#39;</span><span class="p">)</span>
@@ -4292,7 +4293,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">recolor_text_specs</span><span class="p">(</span><span class="n">tspec</span><span class="p">,</span> <span class="p">[</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
 
         <span class="c1"># move arrows in order to follow text in 3D</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="c1"># get ground altitude map</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_ground_altitude</span><span class="p">()</span>
