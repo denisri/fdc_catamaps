@@ -3603,7 +3603,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         #if props.name == 'flèches inscriptions':
             #debug = True
         if debug:
-            print('ARROW DEPTH for', props, self.z_scale, hshift, text_hshift)
+            print('ARROW DEPTH for', props, self.z_scale, hshift, text_hshift,
+                  'text level:', tz_level, ', arrow level:', level)
         if not hasattr(mesh, 'vertex'):
             print('Wrong mesh type for', props.main_group,
                   ', which is not a mesh:')
@@ -4224,7 +4225,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=True)
+        self.attach_arrows_to_text(meshes, with_squares=False)
 
         # get ground altitude map
         self.init_ground_altitude()
