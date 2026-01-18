@@ -377,7 +377,13 @@ factor. The default is: <strong>0.003</strong>.</p>
 <dt><strong>transform_3d:</strong> str( <strong>3D maps</strong>)</dt><dd><p>3D transformation, used to rotate an object in space. The spec is similar
 to SVG transformations specs, except that it has one more dimension, and
 the “matrix()” spec becomes “matrix4()”, with 12 parameters (columns of the
-matrix).</p>
+matrix). In addition, a few codes have been added for 3D transforms:</p>
+<ul class="simple">
+<li><p>center() or center4(): translate to the center of the element, canceling
+any previous translations</p></li>
+<li><p>quaternion(axis_x, axis_y, axis_z, angle) with angle in degrees (as in
+rotations)</p></li>
+</ul>
 </dd>
 <dt><strong>upper_level:</strong> str (<strong>3D maps</strong>)</dt><dd><p>depth level for the top of elements. Only used for elements joining two
 levels (wells, arrows)</p>

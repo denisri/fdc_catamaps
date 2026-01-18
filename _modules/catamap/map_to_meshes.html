@@ -401,7 +401,12 @@
 <span class="sd">    3D transformation, used to rotate an object in space. The spec is similar</span>
 <span class="sd">    to SVG transformations specs, except that it has one more dimension, and</span>
 <span class="sd">    the &quot;matrix()&quot; spec becomes &quot;matrix4()&quot;, with 12 parameters (columns of the</span>
-<span class="sd">    matrix).</span>
+<span class="sd">    matrix). In addition, a few codes have been added for 3D transforms:</span>
+
+<span class="sd">    * center() or center4(): translate to the center of the element, canceling</span>
+<span class="sd">      any previous translations</span>
+<span class="sd">    * quaternion(axis_x, axis_y, axis_z, angle) with angle in degrees (as in</span>
+<span class="sd">      rotations)</span>
 <span class="sd">**upper_level:** str (**3D maps**)</span>
 <span class="sd">    depth level for the top of elements. Only used for elements joining two</span>
 <span class="sd">    levels (wells, arrows)</span>
@@ -1740,8 +1745,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">main_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_props</span><span class="o">.</span><span class="n">main_group</span>
 
         <span class="k">if</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">):</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xml_element</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">title</span>
+            <span class="k">if</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># date is set another way</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xml_element</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="n">title</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
         <span class="n">label</span> <span class="o">=</span> <span class="n">item_props</span><span class="o">.</span><span class="n">label</span>
