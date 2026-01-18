@@ -1865,11 +1865,16 @@ class SvgToMesh:
             if font_family is not None:
                 obj_props['font_family'] = font_family
             line_height = style.get('line-height')
-            if line_height is not None:
+            if line_height not in (None, 'normal'):
                 if line_height.endswith('%'):
                     line_height = float(line_height[:-1]) / 100
                 else:
-                    line_height = float(line_height)
+                    try:
+                        line_height = float(line_height)
+                    except Exception:
+                        print('line_height problem on', xml_item.get('id'))
+                        print(props)
+                        raise
                 if line_height != 0:
                     obj_props['line_height'] = line_height
             fill = style.get('fill')
@@ -1883,6 +1888,7 @@ class SvgToMesh:
                     print(e)
                     print('error while reading text color:', repr(fill))
                     print('in element:', xml_item.get('id'))
+                    print(props)
                     raise
                 # avoid dark colors (intensity < 0.4)
                 if col[0] * col[0] + col[1] * col[1] + col[2] * col[2] < 0.16:
