@@ -1593,6 +1593,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.gpu_nproc = None
         self.gpu_workers = None
         self.gpu_start_commands = None
+        self.text_squares = False
 
         if headless:
             try:
@@ -4231,7 +4232,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             self.recolor_text_specs(tspec, [.6, .6, .6, 1.])
 
         # move arrows in order to follow text in 3D
-        self.attach_arrows_to_text(meshes, with_squares=False)
+        self.attach_arrows_to_text(meshes, with_squares=self.text_squares)
 
         # get ground altitude map
         self.init_ground_altitude()
@@ -7963,6 +7964,10 @@ The program allows to produce:
         'limits by GPU and thus use several GPUs: in this case, use a '
         'dict-like syntax, ex: "{0: 0, 1: 2}" means: max 2 instances '
         'for GPU 1 and as many as CPU cores minus 2 for GPU 0')
+    parser.add_argument(
+        '--squares', action='store_true',
+        help='materialize squares around text boxes in order to debug their '
+        'position and size.')
 
     options = parser.parse_args()
 
@@ -8011,6 +8016,7 @@ The program allows to produce:
     if options.MapId:
         MapId = options.MapId
     build_depth = not options.nodepth
+    text_squares = options.squares
 
     # print(options)
 
@@ -8063,6 +8069,7 @@ The program allows to produce:
     if do_3d:
         print('extracting meshes...')
         meshes = svg_mesh.read_paths(xml_et)
+        svg_mesh.text_squares = text_squares
         svg_mesh.postprocess(meshes)
 
         print('saving meshes...')
