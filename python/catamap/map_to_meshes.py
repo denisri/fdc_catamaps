@@ -5239,14 +5239,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             gltf_p_dicts = {}  # private
             gltf_lights = None
             gltf_p_lights = None
-            lights = getattr(self, 'lights', None)
+            lights = self.markers_maps.get('lights', None)
             gltf_by_layer = {}
             if lights:
                 gltf_lights = super().save_mesh_dict(
                     {}, dirname,  mesh_format=mesh_format, mesh_wf_format=None,
                     lights=lights)
-                # print('gltf_lights:', gltf_lights)
-            lights_p = getattr(self, 'lights_private', None)
+            lights_p = self.markers_maps.get('lights_private', None)
             if lights_p:
                 gltf_p_lights = super().save_mesh_dict(
                     {}, dirname,  mesh_format='gltf', mesh_wf_format=None,
@@ -5425,15 +5424,14 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     (lights, gltf_lights, '', gltf_dicts),
                     (lights_p, gltf_p_lights, '_private', gltf_p_dicts)):
                 if light_l:
-                    for light in light_l:
-                        glight = l_summary['gltf_scene']
-                        category = 'Lumières'
+                    category = 'Lumières'
+                    if category not in categories:
                         categories.append(category)
-                        layer = categories.index(category)
-                        used_layers.add(layer)
-                        gltf_d[layer] = glight
-
-                        # print('Light dict, layer', layer, ':', glight)
+                    layer = categories.index(category)
+                    used_layers.add(layer)
+                    glight = l_summary['gltf_scene']
+                    gltf_d[layer] = glight
+                    # print('Light dict, layer', layer, ':', glight)
 
             if self.parallel_nproc is not None:
                 self.parallel_save_gltf(
@@ -5485,13 +5483,20 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         t.append(time.time())
         print('GLTF:', t[-1] - t[-2])
 
-        new_nums = {l: i for i, l in enumerate(used_layers)}
+        new_nums = {l: i for i, l in enumerate(used_layers) if l >= 0}
         categories = [c for i, c in enumerate(categories) if i in used_layers]
+        # print('used_layers:', used_layers)
+        # print('categories:', categories)
+        # print('new_nums:', new_nums)
+        # print('jmeshes:', jmeshes)
+        # print('pmeshes:', pmeshes)
         # re-number all items
         for item in jmeshes:
-            item[0] = new_nums[item[0]]
+            if item[0] >= 0:
+                item[0] = new_nums[item[0]]
         for item in pmeshes:
-            item[0] = new_nums[item[0]]
+            if item[0] >= 0:
+                item[0] = new_nums[item[0]]
 
         json_obj['categories'] = categories
         if 'Couloirs' in categories:
@@ -5564,7 +5569,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         from soma import mpfork2
         import queue
 
-        # print('*** parallel_save_gltf ***')
+        print('*** parallel_save_gltf ***')
 
         q = queue.PriorityQueue()
         res = []
@@ -5674,10 +5679,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         mformat = self.mesh_format
         category = 'Lumières'
-        layer = self.categories.index[category]
+        layer = self.categories.index(category)
         use_draco = False
         private_str = '_private' if private else ''
-        gltf = self.gltf_lights[private]
+        gltf = self.gltf_lights[private]['gltf_scene']
 
         filename = osp.join(self.dirname, category + private_str + mformat)
         print('GLTF layer:', layer, ':', filename)
