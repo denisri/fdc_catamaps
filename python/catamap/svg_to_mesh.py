@@ -1045,6 +1045,17 @@ class SvgToMesh:
                         tmat[:3, 3] += (c.T - tc)[:3]
                         # print('center4, tmat:', tmat)
                         # print('c:', c)
+            elif ttype == 'quaternion' and as_3d:
+                # (axis.x, axis.y, axis.z, angle_degrees)
+                q = aims.Quaternion()
+                ax = aims.Point3df(tdef[0], tdef[1], tdef[2])
+                ax.normalize()
+                q.fromAxis(ax, tdef[3] * np.pi / 180.)
+                mat = aims.AffineTransformation3d(q).np
+                c = self.get_center(element, previous_2d)
+                m2 = np.matrix(np.eye(4))
+                m2[:3, 3] = c[:3]
+                mat = m2 * mat * np.linalg.inv(m2)
             else:
                 msg = f'unrecognized transform function: {ttype}'
                 if isinstance(element, str):

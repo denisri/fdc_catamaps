@@ -362,7 +362,12 @@ Properties list
     3D transformation, used to rotate an object in space. The spec is similar
     to SVG transformations specs, except that it has one more dimension, and
     the "matrix()" spec becomes "matrix4()", with 12 parameters (columns of the
-    matrix).
+    matrix). In addition, a few codes have been added for 3D transforms:
+
+    * center() or center4(): translate to the center of the element, canceling
+      any previous translations
+    * quaternion(axis_x, axis_y, axis_z, angle) with angle in degrees (as in
+      rotations)
 **upper_level:** str (**3D maps**)
     depth level for the top of elements. Only used for elements joining two
     levels (wells, arrows)
@@ -1688,8 +1693,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.main_group = self.item_props.main_group
 
         if xml_element.get('title') in ('true', 'True', '1', 'TRUE'):
-            title = [x.text for x in xml_element]
-            self.title = getattr(self, 'title', []) + title
+            if xml_element.get('date') is None:  # date is set another way
+                title = [x.text for x in xml_element]
+                self.title = getattr(self, 'title', []) + title
             return (self.noop, clean_return, True)
 
         label = item_props.label
