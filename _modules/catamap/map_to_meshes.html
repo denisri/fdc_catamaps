@@ -1643,6 +1643,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gpu_nproc</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpu_workers</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpu_start_commands</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_squares</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -4299,7 +4300,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">recolor_text_specs</span><span class="p">(</span><span class="n">tspec</span><span class="p">,</span> <span class="p">[</span><span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">.6</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
 
         <span class="c1"># move arrows in order to follow text in 3D</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attach_arrows_to_text</span><span class="p">(</span><span class="n">meshes</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">text_squares</span><span class="p">)</span>
 
         <span class="c1"># get ground altitude map</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_ground_altitude</span><span class="p">()</span>
@@ -8056,6 +8057,10 @@
         <span class="s1">&#39;limits by GPU and thus use several GPUs: in this case, use a &#39;</span>
         <span class="s1">&#39;dict-like syntax, ex: &quot;{0: 0, 1: 2}&quot; means: max 2 instances &#39;</span>
         <span class="s1">&#39;for GPU 1 and as many as CPU cores minus 2 for GPU 0&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--squares&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;materialize squares around text boxes in order to debug their &#39;</span>
+        <span class="s1">&#39;position and size.&#39;</span><span class="p">)</span>
 
     <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -8104,6 +8109,7 @@
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">MapId</span><span class="p">:</span>
         <span class="n">MapId</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">MapId</span>
     <span class="n">build_depth</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">nodepth</span>
+    <span class="n">text_squares</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">squares</span>
 
     <span class="c1"># print(options)</span>
 
@@ -8156,6 +8162,7 @@
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;extracting meshes...&#39;</span><span class="p">)</span>
         <span class="n">meshes</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_paths</span><span class="p">(</span><span class="n">xml_et</span><span class="p">)</span>
+        <span class="n">svg_mesh</span><span class="o">.</span><span class="n">text_squares</span> <span class="o">=</span> <span class="n">text_squares</span>
         <span class="n">svg_mesh</span><span class="o">.</span><span class="n">postprocess</span><span class="p">(</span><span class="n">meshes</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;saving meshes...&#39;</span><span class="p">)</span>
