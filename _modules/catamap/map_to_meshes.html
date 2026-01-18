@@ -5315,14 +5315,13 @@
             <span class="n">gltf_p_dicts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># private</span>
             <span class="n">gltf_lights</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">gltf_p_lights</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">lights</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">lights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">gltf_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">if</span> <span class="n">lights</span><span class="p">:</span>
                 <span class="n">gltf_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
                     <span class="p">{},</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="n">mesh_format</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">lights</span><span class="o">=</span><span class="n">lights</span><span class="p">)</span>
-                <span class="c1"># print(&#39;gltf_lights:&#39;, gltf_lights)</span>
-            <span class="n">lights_p</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lights_private&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">lights_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lights_private&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">lights_p</span><span class="p">:</span>
                 <span class="n">gltf_p_lights</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save_mesh_dict</span><span class="p">(</span>
                     <span class="p">{},</span> <span class="n">dirname</span><span class="p">,</span>  <span class="n">mesh_format</span><span class="o">=</span><span class="s1">&#39;gltf&#39;</span><span class="p">,</span> <span class="n">mesh_wf_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -5501,15 +5500,14 @@
                     <span class="p">(</span><span class="n">lights</span><span class="p">,</span> <span class="n">gltf_lights</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">gltf_dicts</span><span class="p">),</span>
                     <span class="p">(</span><span class="n">lights_p</span><span class="p">,</span> <span class="n">gltf_p_lights</span><span class="p">,</span> <span class="s1">&#39;_private&#39;</span><span class="p">,</span> <span class="n">gltf_p_dicts</span><span class="p">)):</span>
                 <span class="k">if</span> <span class="n">light_l</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">light</span> <span class="ow">in</span> <span class="n">light_l</span><span class="p">:</span>
-                        <span class="n">glight</span> <span class="o">=</span> <span class="n">l_summary</span><span class="p">[</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span>
-                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Lumières&#39;</span>
+                    <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Lumières&#39;</span>
+                    <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
                         <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
-                        <span class="n">layer</span> <span class="o">=</span> <span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
-                        <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-                        <span class="n">gltf_d</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">glight</span>
-
-                        <span class="c1"># print(&#39;Light dict, layer&#39;, layer, &#39;:&#39;, glight)</span>
+                    <span class="n">layer</span> <span class="o">=</span> <span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+                    <span class="n">used_layers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+                    <span class="n">glight</span> <span class="o">=</span> <span class="n">l_summary</span><span class="p">[</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span>
+                    <span class="n">gltf_d</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">glight</span>
+                    <span class="c1"># print(&#39;Light dict, layer&#39;, layer, &#39;:&#39;, glight)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">parallel_save_gltf</span><span class="p">(</span>
@@ -5561,13 +5559,20 @@
         <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GLTF:&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
 
-        <span class="n">new_nums</span> <span class="o">=</span> <span class="p">{</span><span class="n">l</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">used_layers</span><span class="p">)}</span>
+        <span class="n">new_nums</span> <span class="o">=</span> <span class="p">{</span><span class="n">l</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">used_layers</span><span class="p">)</span> <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">}</span>
         <span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">used_layers</span><span class="p">]</span>
+        <span class="c1"># print(&#39;used_layers:&#39;, used_layers)</span>
+        <span class="c1"># print(&#39;categories:&#39;, categories)</span>
+        <span class="c1"># print(&#39;new_nums:&#39;, new_nums)</span>
+        <span class="c1"># print(&#39;jmeshes:&#39;, jmeshes)</span>
+        <span class="c1"># print(&#39;pmeshes:&#39;, pmeshes)</span>
         <span class="c1"># re-number all items</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">jmeshes</span><span class="p">:</span>
-            <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_nums</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_nums</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">pmeshes</span><span class="p">:</span>
-            <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_nums</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_nums</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
 
         <span class="n">json_obj</span><span class="p">[</span><span class="s1">&#39;categories&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">categories</span>
         <span class="k">if</span> <span class="s1">&#39;Couloirs&#39;</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
@@ -5641,7 +5646,7 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">soma</span><span class="w"> </span><span class="kn">import</span> <span class="n">mpfork2</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
 
-        <span class="c1"># print(&#39;*** parallel_save_gltf ***&#39;)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*** parallel_save_gltf ***&#39;</span><span class="p">)</span>
 
         <span class="n">q</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">PriorityQueue</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
@@ -5751,10 +5756,10 @@
 
         <span class="n">mformat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh_format</span>
         <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;Lumières&#39;</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">category</span><span class="p">]</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
         <span class="n">use_draco</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">private_str</span> <span class="o">=</span> <span class="s1">&#39;_private&#39;</span> <span class="k">if</span> <span class="n">private</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">gltf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gltf_lights</span><span class="p">[</span><span class="n">private</span><span class="p">]</span>
+        <span class="n">gltf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gltf_lights</span><span class="p">[</span><span class="n">private</span><span class="p">][</span><span class="s1">&#39;gltf_scene&#39;</span><span class="p">]</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirname</span><span class="p">,</span> <span class="n">category</span> <span class="o">+</span> <span class="n">private_str</span> <span class="o">+</span> <span class="n">mformat</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GLTF layer:&#39;</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
