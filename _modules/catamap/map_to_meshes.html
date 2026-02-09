@@ -1055,7 +1055,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">non_visibility</span> <span class="o">=</span> <span class="n">non_visibility</span>
 
             <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;corridor&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="c1"># &#39;wireframe&#39;,</span>
-                         <span class="s1">&#39;well&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;well&#39;</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">,</span>
                          <span class="s1">&#39;catflap&#39;</span><span class="p">,</span> <span class="s1">&#39;hidden&#39;</span><span class="p">,</span> <span class="s1">&#39;depth_map&#39;</span><span class="p">,</span> <span class="s1">&#39;arrow&#39;</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">):</span>
                 <span class="c1"># + border ?</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_something</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">kind</span><span class="p">)</span>
@@ -1669,7 +1669,7 @@
             <span class="n">is_group</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">clean_return</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exit_group</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props_stack</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_layer</span><span class="p">(</span><span class="n">xml_element</span><span class="p">):</span>  <span class="c1"># len(self.props_stack) == 1:</span>
                 <span class="nb">print</span><span class="p">(</span>
                     <span class="s1">&#39;parse layer&#39;</span><span class="p">,</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span>
                     <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -1795,7 +1795,8 @@
         <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;etiage&#39;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_water_scale</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">item_props</span><span class="o">.</span><span class="n">symbol</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="c1"># elif item_props.symbol and label in (</span>
+            <span class="k">elif</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">(</span>
                     <span class="s1">&#39;fontis&#39;</span><span class="p">,</span> <span class="s1">&#39;fontis_inf&#39;</span><span class="p">,</span> <span class="s1">&#39;fontis private&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;fontis private_inf&#39;</span><span class="p">):</span>
                 <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_fontis</span><span class="p">,</span> <span class="n">clean_return</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
