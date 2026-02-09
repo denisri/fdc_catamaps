@@ -1014,7 +1014,7 @@ class ItemProperties(object):
                 self.non_visibility = non_visibility
 
             for kind in ('corridor', 'block', 'wall', # 'wireframe',
-                         'well',
+                         'well', 'symbol',
                          'catflap', 'hidden', 'depth_map', 'arrow', 'text'):
                 # + border ?
                 value = self.is_something(element, kind)
@@ -1617,7 +1617,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             is_group = True
             clean_return.append(self.exit_group)
 
-            if len(self.props_stack) == 1:
+            if self.is_layer(xml_element):  # len(self.props_stack) == 1:
                 print(
                     'parse layer', xml_element.get('id'),
                     xml_element.get(
@@ -1743,7 +1743,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if label is not None:
             if label == 'etiage':
                 return (self.read_water_scale, clean_return, True)
-            elif item_props.symbol and label in (
+            # elif item_props.symbol and label in (
+            elif label in (
                     'fontis', 'fontis_inf', 'fontis private',
                     'fontis private_inf'):
                 return (self.read_fontis, clean_return, True)

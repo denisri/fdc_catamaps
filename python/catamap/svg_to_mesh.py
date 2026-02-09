@@ -1589,6 +1589,7 @@ class SvgToMesh:
                         print('child mesh:', child_mesh)
                         print('meshes type:', type(meshes))
                         print('meshes:', meshes)
+                        print('parents:', [p.items() for p in parents])
                         raise
                     self.get_textures(meshes[0], child, parents)
                     try:
