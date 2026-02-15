@@ -177,6 +177,10 @@ class SvgToMesh:
         self.font_substitutions = {'LMSansUltraCond10': 'Univers LT Std'}
 
     @staticmethod
+    def is_true(value):
+        return value in ('1', 'True', 'true', 'TRUE', 1, True)
+
+    @staticmethod
     def get_style(xml_elem):
         style = xml_elem.get('style')
         if not style:
@@ -2099,6 +2103,8 @@ class SvgToMesh:
 
         while todo:
             element, trans, parent, current_id, current_label = todo.pop(0)
+            if self.is_true(element.get('legend')):
+                continue  # don't replace legend symbols
             element2 = self.replace_filter_element(element)
             if element2 is None:
                 parent.remove(element)
