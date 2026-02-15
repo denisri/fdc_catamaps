@@ -230,6 +230,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">font_substitutions</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LMSansUltraCond10&#39;</span><span class="p">:</span> <span class="s1">&#39;Univers LT Std&#39;</span><span class="p">}</span>
 
     <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_true</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;TRUE&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_style</span><span class="p">(</span><span class="n">xml_elem</span><span class="p">):</span>
         <span class="n">style</span> <span class="o">=</span> <span class="n">xml_elem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">style</span><span class="p">:</span>
@@ -2194,6 +2198,8 @@
 
         <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
             <span class="n">element</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">current_id</span><span class="p">,</span> <span class="n">current_label</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">)):</span>
+                <span class="k">continue</span>  <span class="c1"># don&#39;t replace legend symbols</span>
             <span class="n">element2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace_filter_element</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">element2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">parent</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
