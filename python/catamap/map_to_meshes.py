@@ -1622,26 +1622,26 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     'parse layer', xml_element.get('id'),
                     xml_element.get(
                         '{http://www.inkscape.org/namespaces/inkscape}label'))
-                if xml_element.tag.endswith('}metadata'):
-                    z_scale = xml_element.get('z_scale')
-                    if z_scale is not None:
-                        if z_scale in ('auto', 'Auto', 'AUTO'):
-                            self.lambert93_z_scaling = True
-                            print('z_scale: based on Lambert93.')
-                            if hasattr(self, 'lambert93_coords'):
-                                self.z_scale \
-                                    = 2. / (abs(self.lambert_coords.x.slope)
-                                            + abs(self.lambert_coords.y.slope))
-                                print('z_scale:', self.z_scale)
-                        else:
-                            z_scale = float(z_scale)
-                            self.z_scale = z_scale
-                    colorset_inheritance = xml_element.get(
-                        'colorset_inheritance')
-                    if colorset_inheritance:
-                        colorset_inheritance = json.loads(colorset_inheritance)
-                        self.colorset_inheritance = colorset_inheritance
-                        print('COLORSET INHERITANCE:', colorset_inheritance)
+            if xml_element.tag.endswith('}metadata'):
+                z_scale = xml_element.get('z_scale')
+                if z_scale is not None:
+                    if z_scale in ('auto', 'Auto', 'AUTO'):
+                        self.lambert93_z_scaling = True
+                        print('z_scale: based on Lambert93.')
+                        if hasattr(self, 'lambert93_coords'):
+                            self.z_scale \
+                                = 2. / (abs(self.lambert_coords.x.slope)
+                                        + abs(self.lambert_coords.y.slope))
+                            print('z_scale:', self.z_scale)
+                    else:
+                        z_scale = float(z_scale)
+                        self.z_scale = z_scale
+                colorset_inheritance = xml_element.get(
+                    'colorset_inheritance')
+                if colorset_inheritance:
+                    colorset_inheritance = json.loads(colorset_inheritance)
+                    self.colorset_inheritance = colorset_inheritance
+                    print('COLORSET INHERITANCE:', colorset_inheritance)
 
         item_props = ItemProperties()
         item_props.fill_properties(xml_element, self.props_stack, style=style)
@@ -2310,7 +2310,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         elif well_type == 'PS_sq':
             return self.make_ps_sq_well(center, radius, z, height, well_type,
                                         props)
-        if well_type in ('PSh', 'sans', 'PSh sans', 'PSh sans_sq'):
+        if well_type in ('PSh', 'sans', 'PSh sans', 'PSh sans_sq',
+                         'PSh_gtech', 'PSh gtech'):
             return self.make_psh_well(center, radius, z, height, props)
         elif well_type in ('PSh_sq', 'sans_sq'):
             return self.make_psh_sq_well(center, radius, z, height, props)
@@ -5028,12 +5029,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 'etiage_wall_tri': mesh,
                 'etiage_water_tri': water}
 
-    def extrude_fill_part(self, paths, trans):
+    def extrude_fill_part(self, paths, trans, height = 1.):
         lily_l = aims.AimsTimeSurface_2()
         for child in paths:
             aims.SurfaceManip.meshMerge(
                 lily_l, self.read_path(child, trans))
-        lily_up_l, lily_w = self.extrude(lily_l, 1.)
+        lily_up_l, lily_w = self.extrude(lily_l, height)
         lily_bk = self.tesselate(lily_l)
         lily_up = self.tesselate(lily_up_l)
         aims.SurfaceManip.invertSurfacePolygons(lily_w)
@@ -5096,11 +5097,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             print('No proto for rose')
             return
         self.main_group = 'rose'
-        scale = 0.25  # the sigh is too large
+        scale = 0.25  # the sign is too large
         trans = self.proto_scale * np.matrix(np.diag((scale, scale , 1.))) \
             * lproto['trans']
         quadrant, quadrant_c = self.extrude_fill_part(
-            lproto['element'][:2], trans)
+            lproto['element'][:2], trans, height=0.3)
 
         vert = quadrant_c.vertex().np
         bbmin = aims.Point3df(np.min(vert, axis=0))
@@ -5114,7 +5115,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         quadrant.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
 
         rose, rose_c = self.extrude_fill_part(
-            lproto['element'][6:], trans)
+            lproto['element'][6:], trans, height=0.4)
         rose.vertex().np[:] -= center
         rose.vertex().np[:] += [0., 0., 1.5 - bbmin[2]]
 
@@ -7938,9 +7939,9 @@ The program allows to produce:
         help='Copy GeoTIFF information from the given source file to a .tif '
         'export')
     parser.add_argument(
-        '--texture', action='store_true', default=None,
-        help='make textured meshes in 3D mode, if some are specified in the '
-        'SVG file. By default it is disabled for now.')
+        '--no-texture', action='store_true', default=None,
+        help='do not make textured meshes in 3D mode, if some are specified '
+        'in the SVG file. By default texturing is enabled.')
     parser.add_argument(
         '--MapId',
         help='insert hidden number to identy the map')
@@ -7985,7 +7986,7 @@ The program allows to produce:
         do_2d_maps = all_maps
 
     do_3d = options.do_3d
-    texturing = options.texture
+    texturing = not options.no_texture
     do_split = options.split
     do_join = options.join
     do_pdf = None
