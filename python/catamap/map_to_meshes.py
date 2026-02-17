@@ -4397,10 +4397,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     hshift = pos[2]
                     # radius = mpos[0][4]
                     level = pos[3]
+                    view = None
                     if self.build_depth:
-                        view = self.depth_wins[level].view()
-                    else:
-                        view = None
+                        win = self.depth_wins.get(level)
+                        if win is not None:
+                            view = win.view()
                     z = self.get_depth(pos[:2] + [0.], view, object_win_size)
                     if z is None:
                         print('failed to get depth for:', mtype, pos, level)
