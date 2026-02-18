@@ -266,7 +266,7 @@
 <span class="sd">**label:** str (**2D and 3D maps**)</span>
 <span class="sd">    name of the element type</span>
 <span class="sd">**label_alt_colors:** JSON dict (**2D and 3D maps**)</span>
-<span class="sd">    Like alt_colors, except that the dict has an upper-level which keys area</span>
+<span class="sd">    Like alt_colors, except that the dict has an upper-level which keys are</span>
 <span class="sd">    object labels. The dict can be applied hierarchically, thus put in a layer.</span>
 <span class="sd">    Ex::</span>
 
@@ -1440,11 +1440,11 @@
 
     <span class="n">street_labels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;plaques rues&#39;</span><span class="p">,</span> <span class="p">}</span>
 
-    <span class="n">symbol_labels</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;symboles&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;marches&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;stair_symbol&#39;</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="c1"># symbol_labels = {</span>
+    <span class="c1">#     &#39;symboles&#39;,</span>
+    <span class="c1">#     &#39;marches&#39;,</span>
+    <span class="c1">#     &#39;stair_symbol&#39;,</span>
+    <span class="c1"># }</span>
 
     <span class="n">depth_map_labels</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;profondeurs esc&#39;</span><span class="p">,</span>
@@ -1480,7 +1480,7 @@
     <span class="p">}</span>
 
     <span class="n">catflap_labels</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;chatieres v3&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;chatieres v3&#39;,</span>
         <span class="s1">&#39;chatieres private&#39;</span><span class="p">,</span>
         <span class="s1">&#39;bas&#39;</span><span class="p">,</span>
         <span class="sa">u</span><span class="s1">&#39;injecté&#39;</span><span class="p">,</span>
@@ -4459,7 +4459,7 @@
                     <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">hshift</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">mesh_proto</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="s1">&#39;proto:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_proto</span><span class="o">.</span><span class="n">vertex</span><span class="p">()))</span>
+                <span class="c1"># print(mtype, &#39;proto:&#39;, len(mesh_proto.vertex()))</span>
                 <span class="k">for</span> <span class="n">mpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="n">pos</span> <span class="o">=</span> <span class="n">mpos</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
                     <span class="n">hshift</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -5257,10 +5257,12 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">make_sounds_marker_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_scale</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="mf">1.5</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">icosphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
                                                <span class="mf">0.4</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
-        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
-                                          <span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">2.7</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+        <span class="n">cone</span> <span class="o">=</span> <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceGenerator</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="mf">1.3</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+                                           <span class="p">(</span><span class="n">height</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span>
                                           <span class="mf">0.4</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span>
                                           <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">aims</span><span class="o">.</span><span class="n">SurfaceManip</span><span class="o">.</span><span class="n">meshMerge</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cone</span><span class="p">)</span>
