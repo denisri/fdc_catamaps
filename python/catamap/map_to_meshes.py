@@ -227,7 +227,7 @@ Properties list
 **label:** str (**2D and 3D maps**)
     name of the element type
 **label_alt_colors:** JSON dict (**2D and 3D maps**)
-    Like alt_colors, except that the dict has an upper-level which keys area
+    Like alt_colors, except that the dict has an upper-level which keys are
     object labels. The dict can be applied hierarchically, thus put in a layer.
     Ex::
 
@@ -1393,11 +1393,11 @@ class DefaultItemProperties(object):
 
     street_labels = {'plaques rues', }
 
-    symbol_labels = {
-        'symboles',
-        'marches',
-        'stair_symbol',
-    }
+    # symbol_labels = {
+    #     'symboles',
+    #     'marches',
+    #     'stair_symbol',
+    # }
 
     depth_map_labels = {
         'profondeurs esc',
@@ -1433,7 +1433,7 @@ class DefaultItemProperties(object):
     }
 
     catflap_labels = {
-        'chatieres v3',
+        # 'chatieres v3',
         'chatieres private',
         'bas',
         u'injecté',
@@ -4391,7 +4391,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     mpos[0][2] = z + hshift
             else:
                 mesh_proto = getattr(self, proto)
-                print(mtype, 'proto:', len(mesh_proto.vertex()))
+                # print(mtype, 'proto:', len(mesh_proto.vertex()))
                 for mpos in self.markers_maps.get(mtype, []):
                     pos = mpos[0][:4]
                     hshift = pos[2]
@@ -5183,10 +5183,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def make_sounds_marker_model(self):
         scale = self.symbol_scale
-        mesh = aims.SurfaceGenerator.icosphere((0, 0, 2.5 * scale),
+        height = 1.5
+        mesh = aims.SurfaceGenerator.icosphere((0, 0, height * scale),
                                                0.4 * scale, 80)
-        cone = aims.SurfaceGenerator.cone((0, 0, 2.5 * scale),
-                                          (1.3 * scale, 0., 2.7 * scale),
+        cone = aims.SurfaceGenerator.cone((0, 0, height * scale),
+                                          (1.3 * scale, 0.,
+                                           (height + 0.2) * scale),
                                           0.4 * scale, 12,
                                           False, True)
         aims.SurfaceManip.meshMerge(mesh, cone)
