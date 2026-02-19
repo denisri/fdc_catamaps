@@ -1189,6 +1189,10 @@ class SvgToMesh:
                     iotrans = np.matrix(scipy.linalg.inv(c_otrans))
                     ptrans = iotrans * trans * c_trans
                     self.transform_rect(element, ptrans)
+                elif element.tag.endswith('}ellipse'):
+                    iotrans = np.matrix(scipy.linalg.inv(c_otrans))
+                    ptrans = iotrans * trans * c_trans
+                    self.transform_ellipse(element, ptrans)
 
     def style_to_str(self, style):
         return ';'.join(['%s:%s' % (k, str(v)) for k, v in style.items()])
@@ -1420,6 +1424,30 @@ class SvgToMesh:
             pos = trans.dot([[0.], [h], [1.]]) - trans.dot([[0.], [0.], [1.]])
             scale = np.sqrt(np.sum(np.array(pos) ** 2))
             xml_path.set('height', str(scale))
+
+        self.transform_style(xml_path, trans)
+
+    def transform_ellipse(self, xml_path, trans):
+        # additional stuff for ellipses
+        x = xml_path.get('cx')
+        y = xml_path.get('cy')
+        x = float(x)
+        y = float(y)
+        pos = trans.dot([[x], [y], [1.]])
+        xml_path.set('x', str(pos[0, 0]))
+        xml_path.set('y', str(pos[1, 0]))
+        w = xml_path.get('rx')
+        if w is not None:
+            w = float(w)
+            pos = trans.dot([[w], [0.], [1.]]) - trans.dot([[0.], [0.], [1.]])
+            scale = np.sqrt(np.sum(np.array(pos) ** 2))
+            xml_path.set('rx', str(scale))
+        h = xml_path.get('ry')
+        if h is not None:
+            h = float(h)
+            pos = trans.dot([[0.], [h], [1.]]) - trans.dot([[0.], [0.], [1.]])
+            scale = np.sqrt(np.sum(np.array(pos) ** 2))
+            xml_path.set('ry', str(scale))
 
         self.transform_style(xml_path, trans)
 
@@ -2099,7 +2127,7 @@ class SvgToMesh:
         rid = replace_dict.get('id', {})
         rlabel = replace_dict.get('label', {})
 
-        # print('replace_dict:', replace_dict)
+        print('replace_dict:', replace_dict)
 
         while todo:
             element, trans, parent, current_id, current_label = todo.pop(0)
@@ -2135,8 +2163,13 @@ class SvgToMesh:
                     elabel = relem.get('label')
                     if elabel is not None and elabel != label:
                         relem = None
-                else:
-                    relem = rlabel.get(label)
+                # else:
+                #     relem = rlabel.get(label)
+                lelem = rlabel.get(label)
+                if lelem is None:
+                    lelem = rid.get(label)
+                if lelem is not None:
+                    relem = lelem
 
             if relem is None and current_label:
                 relem = rlabel.get(current_label)
