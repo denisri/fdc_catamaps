@@ -5750,11 +5750,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     symbols.append(elem)
 
         labels = {}
-        ids = {}
         rep_child = []
-        repl_map = {'id': ids, 'label': labels}
-        # print('*** FIND PROTOS ***')
-        # print('layers:', [s.items() for s in symbols])
+        print('*** FIND PROTOS ***')
+        print('layers:', [s.items() for s in symbols])
         for symlay in symbols:
             trans = trans0
             trans2 = symlay.get('transform')
@@ -5768,9 +5766,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             trans = self.proto_scale * trans_org
 
             for child in symlay:
-                eid = child.get('id')
-                ptype = None
+                label = child.get('label')
                 exact = False
+                ptype = None
                 maps = child.get('maps')
                 if maps is not None:
                     maps = json.loads(maps)
@@ -5778,24 +5776,10 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     map_name = getattr(self, 'map_name', None)
                     if map_name is not None and map_name in maps:
                         exact = True
-                if eid and eid.endswith('_proto'):
-                    ptype = eid[:-6]
-                    if exact and '_' in eid:
-                        # alt symbol: remove last extension
-                        ptype = ptype[:ptype.rindex('_')]
-                    plabel = 'id'
-                    pmap = ids
-                    # exception case: if label is the same without _proto
-                    if child.get('label') == ptype:
-                        plabel = 'label'
-                        pmap = labels
-                else:
-                    label = child.get('label')
-                    if label and label.endswith('_proto'):
-                        ptype = label[:-6]
-                        plabel = 'label'
-                        pmap = labels
-                if ptype and (ptype not in pmap or exact):
+                if label and label.endswith('_proto'):
+                    ptype = label[:-6]
+                    print('PROTO:', ptype)
+                if ptype and (ptype not in labels or exact):
                     # TODO: we should manage "use" elements in a more
                     # general way
                     if child.tag == '{http://www.w3.org/2000/svg}use':
@@ -5805,7 +5789,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         new_child = self.find_element(xml, orig_id)
                         child = new_child[0]
                     element = copy.deepcopy(child)
-                    element.set(plabel, ptype)
+                    element.set('label', ptype)
                     item = {'element': element}
                     etrans = trans
                     pscale = element.get('proto_scale')
@@ -5834,9 +5818,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     if replace_children:
                         item['children'] = True
                     # print('add', ptype)
-                    pmap[ptype] = item
+                    labels[ptype] = item
 
-        return repl_map
+        return labels
 
     def transform_inf_level(self, xml):
         todo = [xml.getroot()]

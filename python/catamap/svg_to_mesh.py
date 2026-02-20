@@ -2115,22 +2115,18 @@ class SvgToMesh:
         return xml
 
     def replace_elements(self, xml, replace_dict):
-        # replace_dict: {'id': {eid: {label: label, element: xml,
-        #                              children: bool, center: (x, y)}},
-        #                'label': {label: {element: xml, children: bool,
-        #                                  center: (x, y)}}}
-        todo = [(xml.getroot(), np.matrix(np.eye(3)), None, None, None)]
+        # replace_dict: {element: xml, children: bool, center: (x, y)}
+        todo = [(xml.getroot(), np.matrix(np.eye(3)), None, None)]
         count = 0
         total = 0
         if replace_dict is None:
             replace_dict = {}
-        rid = replace_dict.get('id', {})
-        rlabel = replace_dict.get('label', {})
+        labels = replace_dict
 
         print('replace_dict:', replace_dict)
 
         while todo:
-            element, trans, parent, current_id, current_label = todo.pop(0)
+            element, trans, parent, current_label = todo.pop(0)
             if self.is_true(element.get('legend')):
                 continue  # don't replace legend symbols
             element2 = self.replace_filter_element(element)
@@ -2139,42 +2135,17 @@ class SvgToMesh:
                 continue
             element = element2
             total += 1
-            eid = element.get('id')
-            if eid is not None and eid.endswith('_proto'):
+            label = element.get('label')
+            if label is not None and label.endswith('_proto'):
                 continue  # replacement prototype: don't replace with itself
-            glabel = element.get('glabel')  # glabel can replace id
             relem = None
             replace_children = False
-            if eid in rid:
-                relem = rid[eid]
-            elif glabel in rid:
-                relem = rid[glabel]
-                eid = glabel
-            elif eid is not None and '-' in eid:
-                eid = '-'.join(eid.split('-')[:-1])
-                if eid in rid:
-                    relem = rid[eid]
+            relem = labels.get(label)
             if relem is not None:
-                current_id = eid
-            label = element.get('label')
-            if label is not None:
                 current_label = label
-                if relem is not None:
-                    elabel = relem.get('label')
-                    if elabel is not None and elabel != label:
-                        relem = None
-                # else:
-                #     relem = rlabel.get(label)
-                lelem = rlabel.get(label)
-                if lelem is None:
-                    lelem = rid.get(label)
-                if lelem is not None:
-                    relem = lelem
 
             if relem is None and current_label:
-                relem = rlabel.get(current_label)
-            if relem is None and current_id:
-                relem = rid.get(current_id)
+                relem = labels.get(current_label)
 
             if relem is not None:
                 item = relem['element']
@@ -2191,7 +2162,7 @@ class SvgToMesh:
                 if replace_children:
                     trans = self.get_transform(element, trans)
 
-                    added = [(child, trans, element, current_id, current_label)
+                    added = [(child, trans, element, current_label)
                              for child in element]
                     todo = added + todo
                 else:
@@ -2214,7 +2185,7 @@ class SvgToMesh:
                                            trans)
                     parent.append(new_item)
             else:
-                added = [(child, trans, element, current_id, current_label)
+                added = [(child, trans, element, current_label)
                          for child in element]
                 todo = added + todo
 
