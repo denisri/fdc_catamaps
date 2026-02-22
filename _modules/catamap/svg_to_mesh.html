@@ -2279,6 +2279,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">transform_subtree</span><span class="p">(</span><span class="n">new_item</span><span class="p">,</span> <span class="n">relem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;trans&#39;</span><span class="p">),</span> <span class="n">tr</span><span class="p">,</span>
                                            <span class="n">trans</span><span class="p">)</span>
                     <span class="n">parent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_item</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">added</span> <span class="o">=</span> <span class="p">[(</span><span class="n">child</span><span class="p">,</span> <span class="n">trans</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">current_label</span><span class="p">)</span>
                          <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
