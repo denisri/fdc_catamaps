@@ -1912,23 +1912,30 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             wells_spec = self.mesh_dict.setdefault(self.main_group, [])
             wells_spec.append((center, radius, z, height))
 
-    def read_bones(self, bones_xml, trans, style=None):
+    def read_symbol(self, symbol_xml, trans, mesh_proto, symbol_type):
         props = self.group_properties[self.main_group]
         props.symbol = True
 
-        bbox = self.boundingbox(bones_xml[0], trans)
+        bbox = self.boundingbox(symbol_xml[0], trans)
         mesh = self.mesh_dict.setdefault(self.main_group,
                                          aims.AimsTimeSurface(3))
         center = [(bbox[0][0] + bbox[1][0]) / 2,
                   (bbox[0][1] + bbox[1][1]) / 2,
                   0.]
+        height_shift = symbol_xml.get('height_shift')
+        if height_shift is not None:
+            height_shift = float(height_shift)
+        else:
+            height_shift = props.height_shift or 0.
+        # print('symbol:', symbol_type, ', height_shift:', height_shift, symbol_xml.get('height_shift'))
+        center[2] = height_shift
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
-        skull_mesh = aims.AimsTimeSurface(self.skull_mesh)
-        aims.SurfaceManip.meshTransform(skull_mesh, tr)
-        aims.SurfaceManip.meshMerge(mesh, skull_mesh)
+        symbol_mesh = aims.AimsTimeSurface(mesh_proto)
+        aims.SurfaceManip.meshTransform(symbol_mesh, tr)
+        aims.SurfaceManip.meshMerge(mesh, symbol_mesh)
         if 'material' not in mesh.header():
-            mesh.header().update(skull_mesh.header())
+            mesh.header().update(mesh_proto.header())
             if 'material' in mesh.header():
                 mat = mesh.header()['material']
             else:
@@ -1937,120 +1944,22 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mesh.header()['material'] = mat
 
         self.symbols.setdefault(self.main_group, []).append(
-            {'center': center, 'bbox': bbox, 'type': 'bones'})
+            {'center': center, 'bbox': bbox, 'type': symbol_type})
+
+    def read_bones(self, bones_xml, trans, style=None):
+        self.read_symbol(bones_xml, trans, self.skull_mesh, 'bones')
 
     def read_fontis(self, fontis_xml, trans, style=None):
-        props = self.group_properties[self.main_group]
-        props.symbol = True
-
-        bbox = self.boundingbox(fontis_xml[0], trans)
-        mesh = self.mesh_dict.setdefault(self.main_group,
-                                         aims.AimsTimeSurface(3))
-        center = [(bbox[0][0] + bbox[1][0]) / 2,
-                  (bbox[0][1] + bbox[1][1]) / 2,
-                  0.]
-        tr = aims.AffineTransformation3d()
-        tr.setTranslation(center)
-        fontis_mesh = aims.AimsTimeSurface(self.fontis_mesh)
-        aims.SurfaceManip.meshTransform(fontis_mesh, tr)
-        aims.SurfaceManip.meshMerge(mesh, fontis_mesh)
-        if 'material' not in mesh.header():
-            mesh.header().update(fontis_mesh.header())
-            if 'material' in mesh.header():
-                mat = mesh.header()['material']
-            else:
-                mat = {}
-            mat['face_culling'] = 0
-            mesh.header()['material'] = mat
-
-        self.symbols.setdefault(self.main_group, []).append(
-            {'center': center, 'bbox': bbox, 'type': 'fontis'})
+        self.read_symbol(fontis_xml, trans, self.fontis_mesh, 'fontis')
 
     def read_lily(self, lily_xml, trans, style=None):
-        props = self.group_properties[self.main_group]
-        props.symbol = True
-
-        bbox = self.boundingbox(lily_xml[0], trans)
-        mesh = self.mesh_dict.setdefault(self.main_group,
-                                         aims.AimsTimeSurface(3))
-        center = [(bbox[0][0] + bbox[1][0]) / 2,
-                  (bbox[0][1] + bbox[1][1]) / 2,
-                  0.]
-        tr = aims.AffineTransformation3d()
-        tr.setTranslation(center)
-        lily_mesh = aims.AimsTimeSurface(self.lily_mesh)
-        aims.SurfaceManip.meshTransform(lily_mesh, tr)
-        aims.SurfaceManip.meshMerge(mesh, lily_mesh)
-        if 'material' not in mesh.header():
-            mesh.header().update(lily_mesh.header())
-            if 'material' in mesh.header():
-                mat = mesh.header()['material']
-            else:
-                mat = {}
-            mat['face_culling'] = 0
-            mesh.header()['material'] = mat
-
-        self.symbols.setdefault(self.main_group, []).append(
-            {'center': center, 'bbox': bbox, 'type': 'lily'})
+        self.read_symbol(lily_xml, trans, self.lily_mesh, 'lily')
 
     def read_compass_rose(self, rose_xml, trans, style=None):
-        props = self.group_properties[self.main_group]
-        props.symbol = True
+        self.read_symbol(rose_xml, trans, self.rose_mesh, 'compass_rose')
 
-        bbox = self.boundingbox(rose_xml[0], trans)
-        mesh = self.mesh_dict.setdefault(self.main_group,
-                                         aims.AimsTimeSurface(3))
-        center = [(bbox[0][0] + bbox[1][0]) / 2,
-                  (bbox[0][1] + bbox[1][1]) / 2,
-                  0.]
-        tr = aims.AffineTransformation3d()
-        tr.setTranslation(center)
-        rose_mesh = aims.AimsTimeSurface(self.rose_mesh)
-        aims.SurfaceManip.meshTransform(rose_mesh, tr)
-        aims.SurfaceManip.meshMerge(mesh, rose_mesh)
-        if 'material' not in mesh.header():
-            mesh.header().update(rose_mesh.header())
-            if 'material' in mesh.header():
-                mat = mesh.header()['material']
-            else:
-                mat = {}
-            mat['face_culling'] = 0
-            mesh.header()['material'] = mat
-
-        self.symbols.setdefault(self.main_group, []).append(
-            {'center': center, 'bbox': bbox, 'type': 'compass_rose'})
-
-    def read_large_sign(self, lily_xml, trans, style=None):
-        props = self.group_properties[self.main_group]
-        props.symbol = True
-
-        bbox = self.boundingbox(lily_xml[0], trans)
-        mesh = self.mesh_dict.setdefault(self.main_group,
-                                         aims.AimsTimeSurface(3))
-        center = [(bbox[0][0] + bbox[1][0]) / 2,
-                  (bbox[0][1] + bbox[1][1]) / 2,
-                  0.]
-        tr = aims.AffineTransformation3d()
-        tr.setTranslation(center)
-        try:
-            lily_mesh = aims.AimsTimeSurface(self.large_sign_mesh)
-        except Exception:
-            print('Mesh error:', type(self.large_sign_mesh), 'in',
-                  self.item_props)
-            return
-        aims.SurfaceManip.meshTransform(lily_mesh, tr)
-        aims.SurfaceManip.meshMerge(mesh, lily_mesh)
-        if 'material' not in mesh.header():
-            mesh.header().update(lily_mesh.header())
-            if 'material' in mesh.header():
-                mat = mesh.header()['material']
-            else:
-                mat = {}
-            mat['face_culling'] = 0
-            mesh.header()['material'] = mat
-
-        self.symbols.setdefault(self.main_group, []).append(
-            {'center': center, 'bbox': bbox, 'type': 'large_sign'})
+    def read_large_sign(self, symbol_xml, trans, style=None):
+        self.read_symbol(symbol_xml, trans, self.large_sign_mesh, 'large_sign')
 
     def read_arch(self, arch_xml, trans, style=None):
         ## don't apply transform, we will do it later on the mesh
@@ -2087,6 +1996,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         center = [(bbox[0][0] + bbox[1][0]) / 2,
                   (bbox[0][1] + bbox[1][1]) / 2,
                   4.]
+        height_shift = ws_xml.get('height_shift')
+        if height_shift is not None:
+            height_shift = float(height_shift)
+        else:
+            height_shift = props.height_shift
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
         first = True
@@ -4896,10 +4810,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         protos = cm.find_protos(xml)
         if not protos:
             return
-        skproto = protos.get('label')
-        if not skproto:
-            return
-        skproto = skproto.get('ossuaire')
+        skproto = protos.get('ossuaire')
         if skproto is None:
             return
         self.main_group = 'ossuaire_model'
@@ -4940,7 +4851,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         protos = cm.find_protos(xml)
         if not protos:
             return
-        fproto = protos['label'].get('fontis')
+        fproto = protos.get('fontis')
         if fproto is None:
             return
         trans = self.get_transform(fproto['element'])
@@ -5053,7 +4964,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         protos = cm.find_protos(xml)
         if not protos:
             return
-        lproto = protos['label'].get('lys')
+        lproto = protos.get('lys')
         if lproto is None:
             print('No proto for lys')
             return
@@ -5093,7 +5004,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         protos = cm.find_protos(xml)
         if not protos:
             return
-        lproto = protos['label'].get('rose')
+        lproto = protos.get('rose')
         if lproto is None:
             print('No proto for rose')
             return
@@ -5793,6 +5704,11 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     item = {'element': element}
                     etrans = trans
                     pscale = element.get('proto_scale')
+                    ptrans = element.get('proto_translate')
+                    if ptrans is not None:
+                        ptrans = json.loads(ptrans)
+                    else:
+                        ptrans = [0., 0.]
                     if pscale:
                         pscale = float(pscale)
                         pscalem = np.matrix(np.eye(3))
@@ -5804,8 +5720,9 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         print('NO BBOX FOR:', child.tag, child.get('id'))
                         # will crash next but we'll know why.
                     item['boundingbox'] = bbox
-                    item['center'] = ((bbox[0][0] + bbox[1][0]) / 2,
-                                      (bbox[0][1] + bbox[1][1]) / 2)
+                    item['center'] = (
+                        (bbox[0][0] + bbox[1][0]) / 2 + ptrans[0],
+                        (bbox[0][1] + bbox[1][1]) / 2 + ptrans[1])
                     item['trans'] = etrans
                     replace_children = child.get('replace_children')
                     if replace_children:

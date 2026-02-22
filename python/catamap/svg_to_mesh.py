@@ -2184,6 +2184,7 @@ class SvgToMesh:
                     self.transform_subtree(new_item, relem.get('trans'), tr,
                                            trans)
                     parent.append(new_item)
+                    count += 1
             else:
                 added = [(child, trans, element, current_label)
                          for child in element]
