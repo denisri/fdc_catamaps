@@ -2123,7 +2123,7 @@ class SvgToMesh:
             replace_dict = {}
         labels = replace_dict
 
-        print('replace_dict:', replace_dict)
+        # print('replace_dict:', replace_dict)
 
         while todo:
             element, trans, parent, current_label = todo.pop(0)

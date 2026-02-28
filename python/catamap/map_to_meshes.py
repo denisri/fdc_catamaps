@@ -5662,8 +5662,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
         labels = {}
         rep_child = []
-        print('*** FIND PROTOS ***')
-        print('layers:', [s.items() for s in symbols])
+        # print('*** FIND PROTOS ***')
+        # print('layers:', [s.items() for s in symbols])
         for symlay in symbols:
             trans = trans0
             trans2 = symlay.get('transform')
@@ -5689,7 +5689,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                         exact = True
                 if label and label.endswith('_proto'):
                     ptype = label[:-6]
-                    print('PROTO:', ptype)
+                    # print('PROTO:', ptype)
                 if ptype and (ptype not in labels or exact):
                     # TODO: we should manage "use" elements in a more
                     # general way
