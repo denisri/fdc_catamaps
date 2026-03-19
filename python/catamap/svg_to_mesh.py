@@ -1434,8 +1434,8 @@ class SvgToMesh:
         x = float(x)
         y = float(y)
         pos = trans.dot([[x], [y], [1.]])
-        xml_path.set('x', str(pos[0, 0]))
-        xml_path.set('y', str(pos[1, 0]))
+        xml_path.set('cx', str(pos[0, 0]))
+        xml_path.set('cy', str(pos[1, 0]))
         w = xml_path.get('rx')
         if w is not None:
             w = float(w)
