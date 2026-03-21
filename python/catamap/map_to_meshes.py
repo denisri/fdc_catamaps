@@ -1463,7 +1463,7 @@ class DefaultItemProperties(object):
 
     height_shifts = {
         'aqueduc': 10.,
-        'fontis': 2.5,
+        'fontis': 0.,
         'lys': 5.,
         'grande_plaque': 5.,
         'chatieres v3': 0.5,
@@ -1927,7 +1927,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             height_shift = float(height_shift)
         else:
             height_shift = props.height_shift or 0.
-        # print('symbol:', symbol_type, ', height_shift:', height_shift, symbol_xml.get('height_shift'))
+        # if symbol_type == 'fontis':
+        #     print('symbol:', symbol_type, ', height_shift:', height_shift, symbol_xml.get('height_shift'))
         center[2] = height_shift
         tr = aims.AffineTransformation3d()
         tr.setTranslation(center)
@@ -4858,6 +4859,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.main_group = 'fontis'
         fmesh_l = aims.AimsTimeSurface_2()
         fmesh_l.header()['material'] = {'diffuse': [0.74, 0.33, 0., 1.]}
+        print('FONTIS prot_scale:', self.proto_scale, ', trans:', fproto['trans'])
         for child in fproto['element'][1:]:
             aims.SurfaceManip.meshMerge(
                 fmesh_l, self.read_path(child,
@@ -4879,12 +4881,16 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         fmesh_w.vertex().assign(vert)
         vert = np.asarray(fmesh_w.vertex())
         bbmin = aims.Point3df(np.min(vert, axis=0))
+        print('bbmin:', bbmin)
         vert += [0., 0., - bbmin[2]]
         trans3d = getattr(trans, 'transform_3d', None)
         if trans3d is not None:
+            print('3D3D3D!!', trans3d)
+            print('items:', fproto['element'].items())
             vert = (trans3d * np.hstack(
                 (vert, np.ones((vert.shape[0], 1)))).T).T[:, :3]
         fmesh_w.vertex().assign(vert)
+        print('fontis vertices:', vert)
         return fmesh_w
 
     def make_water_scale_model(self, pos, size):
@@ -5705,24 +5711,35 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     etrans = trans
                     pscale = element.get('proto_scale')
                     ptrans = element.get('proto_translate')
+                    pcenter = element.get('proto_center')
                     if ptrans is not None:
                         ptrans = json.loads(ptrans)
                     else:
                         ptrans = [0., 0.]
+                    if pcenter is not None:
+                        pcenter = json.loads(pcenter)
                     if pscale:
                         pscale = float(pscale)
                         pscalem = np.matrix(np.eye(3))
                         pscalem[0, 0] = pscale
                         pscalem[1, 1] = pscale
                         etrans = pscalem * trans_org
+                    else:
+                        pscale = self.proto_scale[0, 0]
                     bbox = self.boundingbox(child, etrans)
                     if bbox is None or bbox[0] is None:
                         print('NO BBOX FOR:', child.tag, child.get('id'))
                         # will crash next but we'll know why.
                     item['boundingbox'] = bbox
+                    if pcenter is None:
+                        pcenter = ((bbox[0][0] + bbox[1][0]) / 2,
+                                   (bbox[0][1] + bbox[1][1]) / 2)
+                    else:
+                        pcenter = (pcenter[0] * pscale + bbox[0][0],
+                                   pcenter[1] * pscale + bbox[0][1])
                     item['center'] = (
-                        (bbox[0][0] + bbox[1][0]) / 2 + ptrans[0],
-                        (bbox[0][1] + bbox[1][1]) / 2 + ptrans[1])
+                        pcenter[0] + ptrans[0],
+                        pcenter[1] + ptrans[1])
                     item['trans'] = etrans
                     replace_children = child.get('replace_children')
                     if replace_children:
