@@ -309,6 +309,16 @@ Properties list
     inverse of **visibility** (see below).
 **private:** bool (**2D and 3D maps**)
     private elements will only be visible if a code is provided
+**proto_center:** float (**2D maps**)
+    Only in the legend layers elements which are prototypes for symbols
+    replacements, this is the relative position (from the top left corner of
+    the prototype) of the scaling center to be applied when replacing. The
+    default is the relative actual prototype bounding box center.
+**proto_translate:** float (**2D maps**)
+    Only in the legend layers elements which are prototypes for symbols
+    replacements, this is an additional position translation (from the center
+    - see proto_center above) to the scaling center to be applied when
+    replacing.
 **proto_scale:** float (**2D maps**)
     Only in the legend layers elements which are prototypes for symbols
     replacements, this is the scale to be applied when replacing. The default
