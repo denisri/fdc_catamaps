@@ -327,6 +327,16 @@ inverse of <strong>visibility</strong> (see below).</p>
 </dd>
 <dt><strong>private:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>private elements will only be visible if a code is provided</p>
 </dd>
+<dt><strong>proto_center:</strong> float (<strong>2D maps</strong>)</dt><dd><p>Only in the legend layers elements which are prototypes for symbols
+replacements, this is the relative position (from the top left corner of
+the prototype) of the scaling center to be applied when replacing. The
+default is the relative actual prototype bounding box center.</p>
+</dd>
+<dt><strong>proto_translate:</strong> float (<strong>2D maps</strong>)</dt><dd><p>Only in the legend layers elements which are prototypes for symbols
+replacements, this is an additional position translation (from the center
+- see proto_center above) to the scaling center to be applied when
+replacing.</p>
+</dd>
 <dt><strong>proto_scale:</strong> float (<strong>2D maps</strong>)</dt><dd><p>Only in the legend layers elements which are prototypes for symbols
 replacements, this is the scale to be applied when replacing. The default
 scale is 0.5 (replaced elements will be half the size they have in the
