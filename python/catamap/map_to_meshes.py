@@ -2531,7 +2531,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if layer_radius is not None:
             layer_radius = float(layer_radius)
         else:
-            layer_radius = 10.
+            layer_radius = 3.   # default radius: 3m
         layer_hshift = xml.get('height_shift')
         if layer_hshift is not None:
             layer_hshift = float(layer_hshift) * self.z_scale
