@@ -217,6 +217,8 @@ Properties list
     ground, but above or below as specified.
 **hidden:** bool (**2D and 3D maps**)
     removed from 3D maps.
+**image_map:** bool (**3D maps**)
+    the layer is an image map layer, typically IGC maps layer. Images in this layer will be included in the 3D scene as the "IGC" category. See :ref:`flat_maps` for more details.
 **inaccessible:** bool (**3D maps**)
     inaccessible elements will be separated from others, and set in the
     ``Inaccessible`` display category.
@@ -263,6 +265,10 @@ Properties list
 
     so that, in this example, the ``private`` map gets a different field of
     view from the other ones.
+
+**map_dirs:** JSON list (**3D maps**)
+    set in an ``image_map`` layer, lists directories where the images will be found on the server, each directory for a given image resolution.
+    See :ref:`flat_maps` for more details.
 
 **map_transform:** SVG transformation spec (**2D maps**)
     additional transformation applied to elements, used for
@@ -735,6 +741,19 @@ sampler: JSON dict
         1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values...)
     wrapT: int
         2nd texture coord mapping. Same values as for ``wrapS``.
+
+.. _flat_maps:
+
+Flat images as textured rectangles
+----------------------------------
+
+Some layers may contain "flat maps" (IGC maps, typicaly) which may be loaded in 3D maps as a bitmap support under the 3D scene. To do so, the flat maps layer may indicate in its properties:
+
+* ``image_map``: ``true`` to say that this layer is an image map
+* ``map_dirs``: a list of ordered directories where the image files will be looked for on the web server side. Each image should be found in each of these directories. Each directory corresponds to a image map resolution, in increasing order. For instance, if ``map_dirs`` is ``["igc/01", "igc/02"]``, then the lowest resolution images are in ``igc/01`` and the highest ones are in ``igc/02``. Images of the lowest resolution will be loaded first, then they will be replaced on the fly with higher resolution ones according to the proximity of the camera in the 3D scene. This way high resolution maps will be represented near the camera, and lower resolution ones for far images.
+* ``level`` is the height level maps are aligned in 3D maps. Default is ``sup``, as for all other items.
+* ``height_shift`` may be used to shift the level of 3D maps, in order to make them appear under the corridors, for instance.
+
 
 map_to_meshes module
 ====================
