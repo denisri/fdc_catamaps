@@ -267,7 +267,7 @@
 
         <div id="explicit_controls" style="display: none; z-index: 20">
 <!--           <input type="range" id="elevation" min="-100" max="100" value="-20" orient="vertical" list="elevation_values"> -->
-          <input type="range" class="media_button" id="elevation" min="-100" max="100" value="-20" orient="vertical" style="z-index: 20; width: 70%">
+          <input type="range" class="media_button" id="elevation" min="-100" max="100" value="-20" orient="horizontal" style="z-index: 20; width: 70%">
           </input>
           <label for="elevation">Inclinaison</label>
 <!--          <datalist id="elevation_values">
@@ -1893,8 +1893,8 @@
 
       const sep = document.getElementById('categories_sep');
       menu.insertBefore(gitem, sep);
-      var br = document.createElement('br');
-      menu.insertBefore(br, sep);
+      // var br = document.createElement('br');
+      // menu.insertBefore(br, sep);
 
       inp.addEventListener('click', maps_clicked);
       sl.addEventListener('input', maps_opacity_changed, {capture: true});
@@ -1959,8 +1959,10 @@
 
     camera_changed(0.);
 
-    document.getElementById( 'elevation' ).addEventListener(
-        'input',  elevation_changed, {capture: true} );
+    document.getElementById('elevation').addEventListener(
+        'input', elevation_changed, {capture: true});
+    document.getElementById('elevation').addEventListener(
+        'mousedown', ignore_event);
     controls.addEventListener( 'change', camera_changed );
 
         </script>
