@@ -256,6 +256,8 @@
 <span class="sd">    ground, but above or below as specified.</span>
 <span class="sd">**hidden:** bool (**2D and 3D maps**)</span>
 <span class="sd">    removed from 3D maps.</span>
+<span class="sd">**image_map:** bool (**3D maps**)</span>
+<span class="sd">    the layer is an image map layer, typically IGC maps layer. Images in this layer will be included in the 3D scene as the &quot;IGC&quot; category. See :ref:`flat_maps` for more details.</span>
 <span class="sd">**inaccessible:** bool (**3D maps**)</span>
 <span class="sd">    inaccessible elements will be separated from others, and set in the</span>
 <span class="sd">    ``Inaccessible`` display category.</span>
@@ -302,6 +304,10 @@
 
 <span class="sd">    so that, in this example, the ``private`` map gets a different field of</span>
 <span class="sd">    view from the other ones.</span>
+
+<span class="sd">**map_dirs:** JSON list (**3D maps**)</span>
+<span class="sd">    set in an ``image_map`` layer, lists directories where the images will be found on the server, each directory for a given image resolution.</span>
+<span class="sd">    See :ref:`flat_maps` for more details.</span>
 
 <span class="sd">**map_transform:** SVG transformation spec (**2D maps**)</span>
 <span class="sd">    additional transformation applied to elements, used for</span>
@@ -774,6 +780,19 @@
 <span class="sd">        1st texture coord mapping. 10497 means REPEAT; 33071 means CLAMP_TO_EDGE; 33648 means MIRRORED_REPEAT. (I did not invent these funny values...)</span>
 <span class="sd">    wrapT: int</span>
 <span class="sd">        2nd texture coord mapping. Same values as for ``wrapS``.</span>
+
+<span class="sd">.. _flat_maps:</span>
+
+<span class="sd">Flat images as textured rectangles</span>
+<span class="sd">----------------------------------</span>
+
+<span class="sd">Some layers may contain &quot;flat maps&quot; (IGC maps, typicaly) which may be loaded in 3D maps as a bitmap support under the 3D scene. To do so, the flat maps layer may indicate in its properties:</span>
+
+<span class="sd">* ``image_map``: ``true`` to say that this layer is an image map</span>
+<span class="sd">* ``map_dirs``: a list of ordered directories where the image files will be looked for on the web server side. Each image should be found in each of these directories. Each directory corresponds to a image map resolution, in increasing order. For instance, if ``map_dirs`` is ``[&quot;igc/01&quot;, &quot;igc/02&quot;]``, then the lowest resolution images are in ``igc/01`` and the highest ones are in ``igc/02``. Images of the lowest resolution will be loaded first, then they will be replaced on the fly with higher resolution ones according to the proximity of the camera in the 3D scene. This way high resolution maps will be represented near the camera, and lower resolution ones for far images.</span>
+<span class="sd">* ``level`` is the height level maps are aligned in 3D maps. Default is ``sup``, as for all other items.</span>
+<span class="sd">* ``height_shift`` may be used to shift the level of 3D maps, in order to make them appear under the corridors, for instance.</span>
+
 
 <span class="sd">map_to_meshes module</span>
 <span class="sd">====================</span>

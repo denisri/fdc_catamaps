@@ -243,6 +243,8 @@ ground, but above or below as specified.</p>
 </dd>
 <dt><strong>hidden:</strong> bool (<strong>2D and 3D maps</strong>)</dt><dd><p>removed from 3D maps.</p>
 </dd>
+<dt><strong>image_map:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>the layer is an image map layer, typically IGC maps layer. Images in this layer will be included in the 3D scene as the “IGC” category. See <a class="reference internal" href="#flat-maps"><span class="std std-ref">Flat images as textured rectangles</span></a> for more details.</p>
+</dd>
 <dt><strong>inaccessible:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>inaccessible elements will be separated from others, and set in the
 <code class="docutils literal notranslate"><span class="pre">Inaccessible</span></code> display category.</p>
 </dd>
@@ -287,6 +289,9 @@ given under the key <code class="docutils literal notranslate"><span class="pre"
 </div>
 <p>so that, in this example, the <code class="docutils literal notranslate"><span class="pre">private</span></code> map gets a different field of
 view from the other ones.</p>
+</dd>
+<dt><strong>map_dirs:</strong> JSON list (<strong>3D maps</strong>)</dt><dd><p>set in an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer, lists directories where the images will be found on the server, each directory for a given image resolution.
+See <a class="reference internal" href="#flat-maps"><span class="std std-ref">Flat images as textured rectangles</span></a> for more details.</p>
 </dd>
 <dt><strong>map_transform:</strong> SVG transformation spec (<strong>2D maps</strong>)</dt><dd><p>additional transformation applied to elements, used for
 instance to shift lower level parts when they are superimposed under an
@@ -693,6 +698,16 @@ At the moment, only limited support for properties is implemented, and such prop
 </dd>
 </dl>
 </section>
+</section>
+<section id="flat-images-as-textured-rectangles">
+<span id="flat-maps"></span><h3>Flat images as textured rectangles<a class="headerlink" href="#flat-images-as-textured-rectangles" title="Link to this heading">¶</a></h3>
+<p>Some layers may contain “flat maps” (IGC maps, typicaly) which may be loaded in 3D maps as a bitmap support under the 3D scene. To do so, the flat maps layer may indicate in its properties:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image_map</span></code>: <code class="docutils literal notranslate"><span class="pre">true</span></code> to say that this layer is an image map</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">map_dirs</span></code>: a list of ordered directories where the image files will be looked for on the web server side. Each image should be found in each of these directories. Each directory corresponds to a image map resolution, in increasing order. For instance, if <code class="docutils literal notranslate"><span class="pre">map_dirs</span></code> is <code class="docutils literal notranslate"><span class="pre">[&quot;igc/01&quot;,</span> <span class="pre">&quot;igc/02&quot;]</span></code>, then the lowest resolution images are in <code class="docutils literal notranslate"><span class="pre">igc/01</span></code> and the highest ones are in <code class="docutils literal notranslate"><span class="pre">igc/02</span></code>. Images of the lowest resolution will be loaded first, then they will be replaced on the fly with higher resolution ones according to the proximity of the camera in the 3D scene. This way high resolution maps will be represented near the camera, and lower resolution ones for far images.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code> is the height level maps are aligned in 3D maps. Default is <code class="docutils literal notranslate"><span class="pre">sup</span></code>, as for all other items.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">height_shift</span></code> may be used to shift the level of 3D maps, in order to make them appear under the corridors, for instance.</p></li>
+</ul>
 </section>
 </section>
 <section id="map-to-meshes-module">
@@ -1191,6 +1206,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#texturing-properties">Texturing properties</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#flat-images-as-textured-rectangles">Flat images as textured rectangles</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#map-to-meshes-module">map_to_meshes module</a><ul>
