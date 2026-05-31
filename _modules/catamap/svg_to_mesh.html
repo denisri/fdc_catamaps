@@ -974,7 +974,9 @@
 <span class="sd">        previous: np array or None</span>
 <span class="sd">            parent transform to be composed with</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="c1"># print(&#39;transform:&#39;, trans_str)</span>
+        <span class="c1"># if getattr(self, &#39;_debug&#39;, False):</span>
+        <span class="c1">#     print(&#39;get_transform, previous:&#39;, previous)</span>
+        <span class="c1">#     print(&#39;transform:&#39;, trans)</span>
         <span class="n">mat3d</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">tmat3d</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">no_3d</span><span class="p">:</span>
