@@ -898,7 +898,9 @@ class SvgToMesh:
         previous: np array or None
             parent transform to be composed with
         '''
-        # print('transform:', trans_str)
+        # if getattr(self, '_debug', False):
+        #     print('get_transform, previous:', previous)
+        #     print('transform:', trans)
         mat3d = None
         tmat3d = None
         if not no_3d:

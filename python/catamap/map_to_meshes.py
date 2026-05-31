@@ -2477,6 +2477,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         rep = re.compile(pattern)
         mmap = {}
 
+        if not osp.isdir(base_url):
+            print('No markers map dir:', base_url)
+            return mmap
+
         for p in os.listdir(base_url):
             skip = False
             for i in ignored:
@@ -4355,6 +4359,63 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     print('NO MARKER MESH:', mtype)
 
+        self.record_image_maps()
+
+    def record_image_maps(self):
+        maps = {}
+        self.image_map = {'map_dirs': ["../igc/01", "../igc/02"],
+                          'maps': maps}
+        for layer in self.svg.getroot():
+            if ItemProperties.is_true(layer.get('image_map')):
+                height_map = layer.get('level')
+                if height_map is None:
+                    height_map = 'sup'
+                height_shift = layer.get('height_shift')
+                if height_shift is not None:
+                    height_shift = float(height_shift)
+                else:
+                    height_shift = 0.
+                if self.build_depth:
+                    win = self.depth_wins.get(height_map)
+                    view = win.view()
+                else:
+                    view = None
+                object_win_size = (2., 2.)
+
+                map_dirs = layer.get('map_dirs')
+                if map_dirs is not None:
+                    self.image_map['map_dirs'] = json.loads(map_dirs)
+
+                print('building image map.')
+
+                lt = self.get_transform(layer)
+                for im_xml in layer:
+                    self._debug = True
+                    tr = self.get_transform(im_xml, previous=lt, no_3d=True)
+                    self._debug = False
+                    x = float(im_xml.get('x'))
+                    y = float(im_xml.get('y'))
+                    w = float(im_xml.get('width'))
+                    h = float(im_xml.get('height'))
+                    c1 = tr.dot([x, y, 1.0]).tolist()[0]
+                    c2 = tr.dot([x + w, y, 1.0]).tolist()[0]
+                    c3 = tr.dot([x + w, y + h, 1.0]).tolist()[0]
+                    c4 = tr.dot([x, y + h, 1.0]).tolist()[0]
+                    p1 = self.get_depth(c1, view, object_win_size)
+                    p2 = self.get_depth(c2, view, object_win_size)
+                    p3 = self.get_depth(c3, view, object_win_size)
+                    p4 = self.get_depth(c4, view, object_win_size)
+                    filename = urllib.parse.unquote(im_xml.get(
+                        '{http://www.w3.org/1999/xlink}href'))
+                    filename = filename.rsplit('\\', 1)[-1]
+                    filename = osp.basename(filename)
+                    maps[filename] = [
+                        c1[:2] + [p1 + height_shift if p1 is not None else 0.],
+                        c2[:2] + [p2 + height_shift if p2 is not None else 0.],
+                        c3[:2] + [p3 + height_shift if p3 is not None else 0.],
+                        c4[:2] + [p4 + height_shift if p4 is not None else 0.],
+                    ]
+
     def setup_travel_speed(self):
         '''
         '''
@@ -5485,6 +5546,9 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
         t.append(time.time())
         print('texts/sounds:', t[-1] - t[-2])
+
+        if getattr(self, 'image_map', None):
+            json_obj['igc_maps'] = self.image_map
 
         if json_filename is not None:
             with open(json_filename, 'w') as f:

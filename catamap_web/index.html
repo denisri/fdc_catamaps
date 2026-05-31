@@ -736,6 +736,8 @@
 //     compass.scale.z = 10.;
 //     scene.add( compass );
 
+    var maps_opacity = 1.0;
+
     function read_compass( url, filenames )
     {
         var i = 0;
@@ -1816,6 +1818,144 @@
           elem.value = angle;
     }
 
+
+    function load_igc_maps( map_objects )
+    {
+      var maps = {};
+
+      if(map_objects.igc_maps)
+      {
+        // console.log('igc_maps', map_objects.igc_maps);
+        var resolution = 0;
+        for(const [k, v] of Object.entries(map_objects.igc_maps.maps))
+        {
+          // console.log(k, v, map_objects.igc_maps.map_dirs[resolution]);
+          const vert = new Float32Array(
+          v[0].concat(v[1]).concat(v[2]).concat(v[3]));
+          const geom = new THREE.BufferGeometry();
+          geom.setAttribute('position', new THREE.BufferAttribute(vert, 3));
+          const indices = new Uint32Array([0, 1, 2, 2, 3, 0]);
+          geom.setIndex(new THREE.BufferAttribute(indices, 1));
+          const uv = new Float32Array([
+            0.0, 1.0,  1.0, 1.0,  1.0, 0.0,  0.0, 0.0]);
+          geom.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+
+          const mat = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: maps_opacity});
+          const rect = new THREE.Mesh(geom, mat);
+          rect.scale.set( -1., 1., 1. );
+
+          // Load the texture asynchronously
+          var textureLoader = new THREE.TextureLoader();
+          const texname = map_objects.igc_maps.map_dirs[resolution] + '/' + k;
+          textureLoader.load(texname, function(texture) {
+            // console.log('texture loaded');
+
+            const mat = new THREE.MeshBasicMaterial({
+              map: texture, side: THREE.DoubleSide, opacity: maps_opacity, transparent: true
+            });
+            rect.material = mat;
+          })
+
+          maps[k] = rect;
+          // scene.add(rect);
+          // console.log('rect:', rect);
+        }
+      }
+
+      return maps;
+    }
+
+
+    function display_maps_controls()
+    {
+      var menu = document.getElementById('mesh_buttons');
+      var gitem = document.createElement('div');
+      gitem.id = 'map_controls';
+      var label = document.createElement('label');
+      var inp = document.createElement('input');
+      inp.id = 'map_controls_btn';
+      inp.type = 'checkbox';
+      label.appendChild(inp);
+      var text = document.createTextNode( ' IGC' );
+      label.appendChild(text);
+      gitem.appendChild(label);
+
+      var sl = document.createElement('input');
+      sl.type = 'range';
+      sl.class = 'media_button';
+      sl.id = 'maps_opacity';
+      sl.min = '0';
+      sl.max = '100';
+      sl.value = maps_opacity * 100;
+      sl.orient = 'horizontal';
+      sl.style = 'z-index: 20';
+      label.appendChild(sl);
+
+      const sep = document.getElementById('categories_sep');
+      menu.insertBefore(gitem, sep);
+      var br = document.createElement('br');
+      menu.insertBefore(br, sep);
+
+      inp.addEventListener('click', maps_clicked);
+      sl.addEventListener('input', maps_opacity_changed, {capture: true});
+      // prevent rotating the scene while using the slider
+      sl.addEventListener('mousedown', ignore_event);
+    }
+
+
+    function display_maps(display)
+    {
+      for(const [k, v] of Object.entries(igc_maps))
+      {
+        if(display)
+          scene.add(v);
+        else
+          scene.remove(v);
+      }
+      render();
+    }
+
+
+    function maps_clicked(event)
+    {
+      console.log('maps_clicked');
+      if( event != null && event != undefined )
+          event.stopPropagation();
+
+      var display = this.checked;
+      if( display == undefined )
+          display = event.checked;
+      console.log('laps_clicked:', display);
+      display_maps(display);
+    }
+
+
+    function ignore_event(event)
+    {
+      event.stopPropagation();
+    }
+
+
+    function maps_opacity_changed(event)
+    {
+      console.log('maps_opacity_changed');
+      event.stopPropagation();
+      maps_opacity = this.value / 100.;
+
+      for(const [k, v] of Object.entries(igc_maps))
+      {
+        v.material.opacity = maps_opacity;
+      }
+      render();
+    }
+
+
+    var igc_maps = load_igc_maps(map_objects);
+    // console.log('igc_maps:', igc_maps);
+    if(igc_maps)
+    {
+      display_maps_controls();
+    }
 
     camera_changed(0.);
 
