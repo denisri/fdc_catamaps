@@ -1824,8 +1824,6 @@
 
     function load_igc_maps( map_objects )
     {
-      var maps = {};
-
       if(map_objects.igc_maps)
       {
         // console.log('igc_maps', map_objects.igc_maps);
@@ -1846,29 +1844,29 @@
           const mat = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: maps_opacity});
           const rect = new THREE.Mesh(geom, mat);
           rect.scale.set( -1., 1., 1. );
-          rect.load_state = 0; // loading
+          rect.load_state = 0; // not loaded
           rect.resolution = resolution;
 
-          // Load the texture asynchronously
-          var textureLoader = new THREE.TextureLoader();
-          const texname = map_objects.igc_maps.map_dirs[resolution] + '/' + k;
-          // console.log('loading texture', texname);
-          textureLoader.load(texname, function(texture) {
-            // console.log('texture ', texname, ' loaded');
+          // // Load the texture asynchronously
+          // var textureLoader = new THREE.TextureLoader();
+          // const texname = map_objects.igc_maps.map_dirs[resolution] + '/' + k;
+          // // console.log('loading texture', texname);
+          // textureLoader.load(texname, function(texture) {
+          //   // console.log('texture ', texname, ' loaded');
+          //
+          //   // if a new, different res has been requested, do nothing.
+          //   if(resolution == rect.resolution)
+          //   {
+          //     const mat = new THREE.MeshBasicMaterial({
+          //       map: texture, side: THREE.DoubleSide, opacity: maps_opacity, transparent: true
+          //     });
+          //     rect.material = mat;
+          //     rect.load_state = 2; // loaded
+          //   }
+          // })
+          // // console.log('load ', texname, ' started.')
 
-            // if a new, different res has been requested, do nothing.
-            if(resolution == rect.resolution)
-            {
-              const mat = new THREE.MeshBasicMaterial({
-                map: texture, side: THREE.DoubleSide, opacity: maps_opacity, transparent: true
-              });
-              rect.material = mat;
-              rect.load_state = 1; // loaded
-            }
-          })
-          // console.log('load ', texname, ' started.')
-
-          maps[k] = rect;
+          igc_maps[k] = rect;
           geom.computeBoundingBox();
           // scene.add(rect);
           // console.log('rect:', rect);
@@ -1876,8 +1874,6 @@
             render();
         }
       }
-
-      return maps;
     }
 
 
@@ -1998,19 +1994,35 @@
       // console.log('load_nearest_maps do it');
       const order = nearest_maps();
       const n_per_res = 4;
+      const max_n_loading = 4;
+      var n_loading = 0;
       const nres = map_objects.igc_maps.map_dirs.length;
       for(let i=order.length - 1; i>=0; i--)
+      {
+        var mesh = igc_maps[order[i][0]];
+        if(mesh.load_state == 1)
+        {
+          n_loading++;
+        }
+      }
+      // console.log('n_loading:', n_loading);
+
+      if(n_loading >= max_n_loading)
+        return;
+
+      for(let i=order.length - 1; i>=0 && n_loading<max_n_loading; i--)
       {
         var res = nres - 1 - Math.floor(i / n_per_res);
         if(res < 0)
           res = 0;
         var mesh = igc_maps[order[i][0]];
-        if(mesh.resolution != res)
+        if((mesh.resolution != res || mesh.load_state == 0)
+           && mesh.load_state != 1)
         {
           // console.log(order[i][0], ':', mesh.resolution, ' -> ', res, mesh.load_state);
 
           mesh.resolution = res;
-          mesh.load_state = 0; // loading
+          mesh.load_state = 1; // loading
 
           // Load the texture asynchronously
           var textureLoader = new THREE.TextureLoader();
@@ -2028,17 +2040,23 @@
               map: texture, side: THREE.DoubleSide, opacity: maps_opacity, transparent: true
             });
             mesh.material = mat;
-            mesh.load_state = 1; // loaded
+            mesh.load_state = 2; // loaded
             render();
+
+            // maybe load next textures
+            load_nearest_maps();
             // }
           })
+
+          n_loading++;
         }
       }
     }
 
 
     var igc_maps_visible = false;
-    var igc_maps = load_igc_maps(map_objects);
+    var igc_maps = {};
+    load_igc_maps(map_objects);
     // console.log('igc_maps:', igc_maps);
     if(igc_maps)
     {
