@@ -7436,7 +7436,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 'zooms', 'remove_non_printable2', 'remove_igc',
                 'layer_opacity=["XIII masses", "0.31"]',
                 'map_layers_opacity','MapId'],
-            'igc': ['remove_private', 'remove_non_printable1_pub',
+            'igc': ['remove_non_printable1_pub',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
                     'remove_other=["raccords plan 2D", "parcelles", '
