@@ -446,7 +446,7 @@ Ex::
     {
         "igcportail": {
             "name": "igcportail",
-            "filters": ["igc_private"],
+            "filters": ["igc_FdC"],
             "shadows": false,
             "do_pdf": false,
             "do_jpg": false,
@@ -6504,7 +6504,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             else:
                 if visibility == 'private':  # old style
                     # exception, here 'private' is not a map type name but a
-                    # variant (used in private, igc_private maps etc). It is
+                    # variant (used in private, igc_FdC maps etc). It is
                     # filtered by remove_private(), and it is better to specify
                     # the tag private: true.
                     print(label, 'is private')
@@ -6659,7 +6659,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
              'masque plage'])
         self.do_remove_layers(xml)
 
-    def remove_non_printable_igc_private(self, xml):
+    def remove_non_printable_igc_FdC(self, xml):
         self.removed_labels.update(
             ['masque bg', 'masques v1', u'd\xe9coupage',
              'chatieres old', 'photos',
@@ -7034,22 +7034,22 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                 'shadows': True,
                 'do_pdf': False,
             },
-            'igc_private': {
-                'name': 'igc_private',
-                'filters': col_filter + ['igc_private'],
+            'igc_FdC': {
+                'name': 'igc_FdC',
+                'filters': col_filter + ['igc_FdC'],
                 'shadows': True,
                 'do_pdf': False,
             },
             'igcportail': {
                 'name': 'igcportail',
-                'filters': col_filter + ['igc_private', 'remove_igc'],
+                'filters': col_filter + ['igc_FdC', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
             },
             'igcportail_txt': {
                 'name': 'igcportail_txt',
-                'filters': col_filter + ['igc_private', 'remove_igc',
+                'filters': col_filter + ['igc_FdC', 'remove_igc',
                                          'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
@@ -7057,7 +7057,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
             'igcportail_legend': {
                 'name': 'igcportail_legend',
-                'filters': col_filter + ['igc_private', 'remove_igc',
+                'filters': col_filter + ['igc_FdC', 'remove_igc',
                                          'shadow_text'],
                 'shadows': False,
                 'do_pdf': False,
@@ -7065,7 +7065,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             },
             'igcportail_tech': {
                 'name': 'igcportail_tech',
-                'filters': col_filter + ['igc_private', 'remove_igc'],
+                'filters': col_filter + ['igc_FdC', 'remove_igc'],
                 'shadows': False,
                 'do_pdf': False,
                 'do_jpg': False,
@@ -7392,8 +7392,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'remove_non_printable2': self.remove_non_printable2,
             'remove_non_printable1_pub': self.remove_non_printable1_pub,
             'remove_non_printable1_main': self.remove_non_printable1_main,
-            'remove_non_printable_igc_private':
-                self.remove_non_printable_igc_private,
+            'remove_non_printable_igc_FdC':
+                self.remove_non_printable_igc_FdC,
             'remove_non_printable': ['remove_non_printable1',
                                      'remove_non_printable2'],
             'remove_wip': self.remove_wip,
@@ -7445,8 +7445,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                     # 'recolor="%s"' % igc_colorset,
                     # 'layer_opacity=["planches IGC", "0.44"]',
                     'map_layers_opacity','MapId'],
-            'igc_private': [
-                'remove_wip', 'remove_non_printable_igc_private',
+            'igc_FdC': [
+                'remove_wip', 'remove_non_printable_igc_FdC',
                 'remove_non_printable2',
                 'remove_background', 'remove_limestone', 'remove_zooms',
                 'remove_other=["raccords plan 2D", "parcelles", '
@@ -7828,7 +7828,7 @@ def main():
     do_2d = False
     do_3d = False
     do_igc = False
-    do_igc_private = False
+    do_igc_FdC = False
     do_split = False
     do_join = False
     do_recolor = False
@@ -7842,13 +7842,13 @@ def main():
         'poster': '360',
         'poster_private': '720',
         'igc': '180',
-        'igc_private': '360',
+        'igc_FdC': '360',
         'igcportail': '720',
         'igcportail_txt': '720',
         'igcportail_legend': '720',
         'igcportail_tech': '720',
     }
-    all_maps = 'public,private,wip,poster,igc,igc_private,aqueduc,No_Gtech'
+    all_maps = 'public,private,wip,poster,igc,igc_FdC,aqueduc,No_Gtech'
 
     class MultilineFormatter(argparse.HelpFormatter):
         def _fill_text(self, text, width, indent):
@@ -7884,7 +7884,7 @@ The program allows to produce:
         '-m', '--maps', dest='do_2d_maps',
         help='specify which 2d maps should be built, ex: '
         '"public,private,igc". Values are in ("public", "private", "wip", '
-        '"poster", "poster_private", "igc", "igc_private", "aqueduc", '
+        '"poster", "poster_private", "igc", "igc_FdC", "aqueduc", '
         '"No_GTech", "igcportail", '
         '"igcportail_txt", "igcportail_legend", "igcportail_tech"). Default: '
         'all if --2d is used. If this option is specified, --2d is implied '
