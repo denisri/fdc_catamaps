@@ -485,7 +485,7 @@
 <span class="sd">    {</span>
 <span class="sd">        &quot;igcportail&quot;: {</span>
 <span class="sd">            &quot;name&quot;: &quot;igcportail&quot;,</span>
-<span class="sd">            &quot;filters&quot;: [&quot;igc_private&quot;],</span>
+<span class="sd">            &quot;filters&quot;: [&quot;igc_FdC&quot;],</span>
 <span class="sd">            &quot;shadows&quot;: false,</span>
 <span class="sd">            &quot;do_pdf&quot;: false,</span>
 <span class="sd">            &quot;do_jpg&quot;: false,</span>
@@ -6590,7 +6590,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">visibility</span> <span class="o">==</span> <span class="s1">&#39;private&#39;</span><span class="p">:</span>  <span class="c1"># old style</span>
                     <span class="c1"># exception, here &#39;private&#39; is not a map type name but a</span>
-                    <span class="c1"># variant (used in private, igc_private maps etc). It is</span>
+                    <span class="c1"># variant (used in private, igc_FdC maps etc). It is</span>
                     <span class="c1"># filtered by remove_private(), and it is better to specify</span>
                     <span class="c1"># the tag private: true.</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s1">&#39;is private&#39;</span><span class="p">)</span>
@@ -6745,7 +6745,7 @@
              <span class="s1">&#39;masque plage&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">remove_non_printable_igc_private</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_non_printable_igc_FdC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="p">[</span><span class="s1">&#39;masque bg&#39;</span><span class="p">,</span> <span class="s1">&#39;masques v1&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d</span><span class="se">\xe9</span><span class="s1">coupage&#39;</span><span class="p">,</span>
              <span class="s1">&#39;chatieres old&#39;</span><span class="p">,</span> <span class="s1">&#39;photos&#39;</span><span class="p">,</span>
@@ -7120,22 +7120,22 @@
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc_private&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;igc_FdC&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igc_FdC&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_FdC&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_FdC&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">},</span>
             <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_FdC&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
                                          <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -7143,7 +7143,7 @@
             <span class="p">},</span>
             <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_FdC&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">,</span>
                                          <span class="s1">&#39;shadow_text&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -7151,7 +7151,7 @@
             <span class="p">},</span>
             <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_private&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="n">col_filter</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;igc_FdC&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_igc&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;shadows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_pdf&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                 <span class="s1">&#39;do_jpg&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -7481,8 +7481,8 @@
             <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable2</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable1_pub&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable1_pub</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable1_main&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable1_main</span><span class="p">,</span>
-            <span class="s1">&#39;remove_non_printable_igc_private&#39;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable_igc_private</span><span class="p">,</span>
+            <span class="s1">&#39;remove_non_printable_igc_FdC&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove_non_printable_igc_FdC</span><span class="p">,</span>
             <span class="s1">&#39;remove_non_printable&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;remove_non_printable1&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">],</span>
             <span class="s1">&#39;remove_wip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_wip</span><span class="p">,</span>
@@ -7534,8 +7534,8 @@
                     <span class="c1"># &#39;recolor=&quot;%s&quot;&#39; % igc_colorset,</span>
                     <span class="c1"># &#39;layer_opacity=[&quot;planches IGC&quot;, &quot;0.44&quot;]&#39;,</span>
                     <span class="s1">&#39;map_layers_opacity&#39;</span><span class="p">,</span><span class="s1">&#39;MapId&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable_igc_private&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;igc_FdC&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s1">&#39;remove_wip&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_non_printable_igc_FdC&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;remove_non_printable2&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;remove_background&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_limestone&#39;</span><span class="p">,</span> <span class="s1">&#39;remove_zooms&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;remove_other=[&quot;raccords plan 2D&quot;, &quot;parcelles&quot;, &#39;</span>
@@ -7921,7 +7921,7 @@
     <span class="n">do_2d</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">do_3d</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">do_igc</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">do_igc_private</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">do_igc_FdC</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">do_split</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">do_join</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">do_recolor</span> <span class="o">=</span> <span class="kc">False</span>
@@ -7935,13 +7935,13 @@
         <span class="s1">&#39;poster&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
         <span class="s1">&#39;poster_private&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igc&#39;</span><span class="p">:</span> <span class="s1">&#39;180&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;igc_private&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;igc_FdC&#39;</span><span class="p">:</span> <span class="s1">&#39;360&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igcportail&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igcportail_txt&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igcportail_legend&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
         <span class="s1">&#39;igcportail_tech&#39;</span><span class="p">:</span> <span class="s1">&#39;720&#39;</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_private,aqueduc,No_Gtech&#39;</span>
+    <span class="n">all_maps</span> <span class="o">=</span> <span class="s1">&#39;public,private,wip,poster,igc,igc_FdC,aqueduc,No_Gtech&#39;</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">MultilineFormatter</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">HelpFormatter</span><span class="p">):</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_fill_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
@@ -7977,7 +7977,7 @@
         <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--maps&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;do_2d_maps&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;specify which 2d maps should be built, ex: &#39;</span>
         <span class="s1">&#39;&quot;public,private,igc&quot;. Values are in (&quot;public&quot;, &quot;private&quot;, &quot;wip&quot;, &#39;</span>
-        <span class="s1">&#39;&quot;poster&quot;, &quot;poster_private&quot;, &quot;igc&quot;, &quot;igc_private&quot;, &quot;aqueduc&quot;, &#39;</span>
+        <span class="s1">&#39;&quot;poster&quot;, &quot;poster_private&quot;, &quot;igc&quot;, &quot;igc_FdC&quot;, &quot;aqueduc&quot;, &#39;</span>
         <span class="s1">&#39;&quot;No_GTech&quot;, &quot;igcportail&quot;, &#39;</span>
         <span class="s1">&#39;&quot;igcportail_txt&quot;, &quot;igcportail_legend&quot;, &quot;igcportail_tech&quot;). Default: &#39;</span>
         <span class="s1">&#39;all if --2d is used. If this option is specified, --2d is implied &#39;</span>
