@@ -848,6 +848,12 @@
     var texts = map_objects.texts;
     var sounds = [];
     var photos = [];
+    var cursor_pos = null;
+    var cursor = null;
+    var cursor_gltf = null;
+    var timer = new THREE.Clock(true);
+    // timer.connect(document);
+
     for( const [mtype, markers] of Object.entries( map_objects.markers ) )
     {
       if( !mtype.endsWith( '_private' ) )
@@ -1597,8 +1603,8 @@
               north_up();
             else
             {
-              check_sounds( intersects[0].point );
-              check_photos( intersects[0].point );
+              check_sounds( intersects );
+              check_photos( intersects );
             }
           }
         }
@@ -1618,7 +1624,7 @@
     }
 
 
-    function check_sounds( point )
+    function check_sounds( intersects )
     {
       if( ! sounds )
         return;
@@ -1626,25 +1632,38 @@
       var max_dist = 10;
       var min_dist = 11;
       var snd_filename = '';
-      for( i=0; i<sounds.length; i++ )
+      var snd_point = null;
+      var p;
+
+      for( p=0; p<intersects.length; p++ )
       {
-        var spos = sounds[i][0];
-        // TODO: x is inverted, check why is it not in the mesh coords ?
-        var x = -spos[0];
-        var y = spos[1];
-        var z = spos[2];
-        max_dist = spos[4];
-        var fname = sounds[i][1][0];
-        // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
-        var snd_pos = new THREE.Vector3( x, y, z );
-        var dist = point.distanceTo( snd_pos );
-        // console.log( 'distance:', dist, ', min:', min_dist );
-        if( i == 0 )
-          min_dist = dist;
-        if( dist <= min_dist && dist < max_dist )
+        var name = intersects[p].object.name;
+        if( name == "sphere_0" )
+          continue;
+
+        const point = intersects[p].point;
+
+        for( i=0; i<sounds.length; i++ )
         {
-          min_dist = dist;
-          snd_filename = fname;
+          var spos = sounds[i][0];
+          // TODO: x is inverted, check why is it not in the mesh coords ?
+          var x = -spos[0];
+          var y = spos[1];
+          var z = spos[2];
+          max_dist = spos[4];
+          var fname = sounds[i][1][0];
+          // console.log( 'sound:', x, y, z, fname, ', radius:', max_dist );
+          var snd_pos = new THREE.Vector3( x, y, z );
+          var dist = point.distanceTo( snd_pos );
+          // console.log( 'distance:', dist, ', min:', min_dist );
+          if( i == 0 )
+            min_dist = dist;
+          if( dist <= min_dist && dist < max_dist )
+          {
+            min_dist = dist;
+            snd_filename = fname;
+            snd_point = point;
+          }
         }
       }
 
@@ -1658,11 +1677,12 @@
         mediaElement.src = snd_filename;
         mediaElement.play();
         mediaElement.style.display = 'block';
+        move_cursor(snd_point);
       }
     }
 
 
-    function check_photos( point )
+    function check_photos( intersects )
     {
       if( ! photos )
         return;
@@ -1670,36 +1690,145 @@
       var max_dist = 10;
       var min_dist = 11;
       var photo_filenames = [];
-      for( i=0; i<photos.length; i++ )
-      {
-        var spos = photos[i][0];
+      var sel_photo_pos = null;
+      var p;
 
-        // TODO: x is inverted, check why is it not in the mesh coords ?
-        var x = -spos[0];
-        var y = spos[1];
-        var z = point.z;
-        // var z = spos[2];
-        max_dist = spos[4];
-        var fnames = photos[i][1];
-        // console.log( 'photo:', x, y, z, fnames, ', radius:', max_dist );
-        var photo_pos = new THREE.Vector3( x, y, z );
-        var dist = point.distanceTo( photo_pos );
-        // console.log( 'distance:', dist );
-        if( i == 0 )
-          min_dist = dist;
-        if( dist <= min_dist && dist < max_dist )
+      for( p=0; p<intersects.length; p++ )
+      {
+        var name = intersects[p].object.name;
+        if( name == "sphere_0" )
+          continue;
+
+        const point = intersects[p].point;
+
+        for( i=0; i<photos.length; i++ )
         {
-          min_dist = dist;
-          photo_filenames = fnames;
+          var spos = photos[i][0];
+
+          // TODO: x is inverted, check why is it not in the mesh coords ?
+          var x = -spos[0];
+          var y = spos[1];
+          var z = point.z;
+          // var z = spos[2];
+          max_dist = spos[4];
+          var fnames = photos[i][1];
+          // console.log( 'photo:', x, y, z, fnames, ', radius:', max_dist );
+          var photo_pos = new THREE.Vector3( x, y, z );
+          var dist = point.distanceTo( photo_pos );
+          // console.log( 'distance:', dist );
+          if( i == 0 )
+            min_dist = dist;
+          if( dist <= min_dist && dist < max_dist )
+          {
+            min_dist = dist;
+            photo_filenames = fnames;
+            sel_photo_pos = new THREE.Vector3( x, y, spos[2] );
+          }
         }
       }
 
       if( photo_filenames.length != 0 )
       {
         console.log( 'display photos:', x, y, z, photo_filenames, ', radius:', min_dist );
-        display_photos( photo_filenames );
+        display_photos(photo_filenames);
+        move_cursor(sel_photo_pos);
       }
 
+    }
+
+
+    function load_cursor()
+    {
+        var loader = new GLTFLoader();
+        var dracoLoader = new DRACOLoader();
+        const gltfname = 'cursor/cursor.glb';
+
+        dracoLoader.setDecoderPath( 'three/examples/jsm/libs/draco/' );
+        loader.setDRACOLoader( dracoLoader );
+
+        function loadedFunction(url) {
+            return function (gltf) {
+                console.log('loaded cursor:', url);
+
+                gltf.scene.traverse( function ( child )
+                {
+                    if ( child instanceof THREE.Mesh )
+                    {
+                        if( child.material.opacity < 1. )
+                        {
+                            child.material.transparent = true;
+                            // force depth write to be correct.
+                            child.material.depthWrite = true;
+                        }
+                        else
+                        {
+                            child.material.transparent = false;
+                        }
+                        child.material.side = THREE.DoubleSide;
+                        child.scale.copy( new THREE.Vector3(0.5, 0.5, 0.5));
+                        cursor = child;
+                        if(cursor_pos != null)
+                          cursor.position.copy(cursor_pos);
+                    }
+                    if ( child instanceof THREE.LineSegments )
+                    {
+                        child.material.lights = false;
+                        child.material.linewidth = 2.;
+                    }
+                })
+
+                cursor_gltf = gltf;
+                scene.add( gltf.scene );
+                // cursor = gltf.scene;
+                if(cursor_pos != null )
+                  render();
+                renderer.setAnimationLoop(animate_cursor);
+            }
+        }
+
+        loader.load(gltfname, loadedFunction(gltfname));
+    }
+
+
+    function move_cursor(pos)
+    {
+        console.log('cursor pos:', pos);
+        if( cursor_pos == null )
+        {
+            cursor_pos = pos;
+            load_cursor();
+        }
+        cursor_pos = pos;
+        if(cursor != null)
+        {
+            cursor.position.copy(pos);
+            scene.add(cursor_gltf.scene);
+            renderer.setAnimationLoop(animate_cursor);
+            render();
+        }
+    }
+
+
+    function animate_cursor()
+    {
+        // timer.update();
+        // const delta = timer.getDelta();
+        const delta = timer.getElapsedTime() * 2;
+        const scl = Math.abs(Math.cos(delta)) * 0.5;
+        cursor.scale.copy( new THREE.Vector3(scl, scl, scl));
+        render();
+    }
+
+
+    function remove_cursor()
+    {
+      console.log('remove cursor');
+      renderer.setAnimationLoop(null);
+      if(cursor_gltf != null)
+      {
+        scene.remove(cursor_gltf.scene);
+        render();
+      }
     }
 
 
@@ -2054,6 +2183,196 @@
     }
 
 
+    function close_media_clicked( event )
+    {
+      if( event != null )
+          event.stopPropagation();
+      document.getElementById( 'media_player' ).style.display = 'none';
+      var media = document.getElementById( 'photo_frame' );
+      if( media )
+        media.parentNode.removeChild( media );
+      remove_cursor();
+    }
+
+    function open_media( photo_files )
+    {
+      close_media_clicked();
+
+      document.getElementById( 'media_player' ).style.display = 'block';
+      var media = document.getElementById( 'media_frame' );
+      media.large = false;
+      media.photos = photo_files;
+      display_photo( 0 );
+    }
+
+    function fetchLastModified(url, callback)
+    {
+      fetch(url, {method: "HEAD"})
+        .then(r => {
+          callback(new Date(r.headers.get('Last-Modified')))});
+    }
+
+    function display_photo_date(date)
+    {
+      console.log('photo date:', date);
+      document.getElementById( 'media_date' ).innerHTML = date.toLocaleDateString();
+      document.getElementById( 'media_date' ).style.display = 'inline';
+    }
+
+    function display_photo( num )
+    {
+      var photo = document.getElementById( 'photo_frame' );
+      var parent = document.getElementById( 'media_frame' );
+      var photo_files = parent.photos;
+      var player = document.getElementById( 'media_player' );
+      if( photo )
+        parent.removeChild( photo );
+      var tag = photo_files[num][1];
+      photo = document.createElement( tag );
+      parent.num = num;
+      parent.style.width = "100%";
+      parent.style.height = "100%";
+      photo.id = 'photo_frame';
+      photo.style.textAlign = 'center';
+      photo.style.align = 'center';
+      photo.style.display = 'block';
+      photo.style.margin = '0px auto 0px';
+      photo.style.maxWidth = '100%';
+      photo.style.maxHeight = '100%';
+
+      if( num == 0 )
+        document.getElementById( 'media_prev' ).style.display = 'none';
+      else
+        document.getElementById( 'media_prev' ).style.display = 'inline';
+      if( num == photo_files.length - 1 )
+        document.getElementById( 'media_next' ).style.display = 'none';
+      else
+        document.getElementById( 'media_next' ).style.display = 'inline';
+
+      if( parent.large )
+      {
+        player.style.maxWidth = '94%';
+        player.style.maxHeight = '94%';
+        player.style.width = '94%';
+        player.style.height = '94%';
+      }
+      else
+      {
+        player.style.maxWidth = '30%';
+        player.style.maxHeight = '40%';
+        player.style.width = '30%';
+        player.style.height = '40%';
+      }
+
+      photo.src = photo_files[num][0];
+      if( tag == 'video' )
+      {
+        // stop_sound();  // avoid sound + video at the same time
+        // curiously the above line now causes
+        // "stop_sound is not defined" error. Why ?
+        var mediaElement = document.getElementById( 'audio_player' );
+        mediaElement.pause();
+
+        photo.controls = 'true';
+        photo.style.maxHeight = '90%';
+        var src = document.createElement( 'source' );
+        src.src = photo_files[num][0];
+      }
+      else
+      {
+        photo.src = photo_files[num][0];
+        photo.onclick = display_large_photo;
+      }
+      parent.appendChild( photo );
+
+      document.getElementById( 'media_text' ).innerHTML = (num + 1) + ' / ' + photo_files.length;
+
+      document.getElementById( 'media_date' ).style.display = 'none';
+      fetchLastModified( photo_files[num][0], display_photo_date );
+    }
+
+    function prev_media_clicked()
+    {
+      event.stopPropagation();
+      var media = document.getElementById( 'media_frame' );
+      var photo_files = media.photos;
+      var num = media.num;
+      if( num > 0 )
+        display_photo( num - 1 );
+    }
+
+
+    function next_media_clicked(event)
+    {
+      event.stopPropagation();
+      var media = document.getElementById( 'media_frame' );
+      var photo_files = media.photos;
+      var num = media.num;
+      if( num < photo_files.length - 1 )
+        display_photo( num + 1 );
+    }
+
+    function enlarge_media_clicked(event)
+    {
+      event.stopPropagation();
+      var media = document.getElementById( 'media_frame' );
+      var large = media.large;
+      large = !large;
+      media.large = large;
+      var photo = document.getElementById( 'photo_frame' );
+      var player = document.getElementById( 'media_player' )
+      if( large )
+      {
+        player.style.maxWidth = '94%';
+        player.style.maxHeight = '94%';
+        player.style.width = '94%';
+        player.style.height = '94%';
+      }
+      else
+      {
+        player.style.maxWidth = '30%';
+        player.style.maxHeight = '40%';
+        player.style.width = '30%';
+        player.style.height = '40%';
+      }
+    }
+
+
+    function display_large_photo()
+    {
+      var media = document.getElementById( 'media_frame' );
+      var photo_files = media.photos;
+      var num = media.num;
+      window.open( photo_files[num][0] ).focus();
+    }
+
+
+    function toggle_show_controls()
+    {
+      console.log('toggle_show_controls');
+      if( document.getElementById( 'explicit_controls' ).style.display == 'none' )
+      {
+        console.log('show');
+        document.getElementById( 'explicit_controls' ).style.display = 'block';
+        document.getElementById( 'controls_show' ).innerHTML = '-';
+      }
+      else
+      {
+        console.log('hide');
+        document.getElementById( 'explicit_controls' ).style.display = 'none';
+        document.getElementById( 'controls_show' ).innerHTML = '+';
+      }
+    }
+
+
+    document.getElementById( 'close_media' ).addEventListener( 'click', close_media_clicked, {capture: true} );
+    document.getElementById( 'enlarge_media' ).addEventListener( 'click', enlarge_media_clicked,  {capture: true});
+    document.getElementById( 'media_prev' ).addEventListener( 'click', prev_media_clicked, {capture: true} );
+    document.getElementById( 'media_next' ).addEventListener( 'click', next_media_clicked, {capture: true} );
+
+    document.getElementById( 'controls_show' ).addEventListener( 'click', toggle_show_controls, {capture: true} );
+
+
     var igc_maps_visible = false;
     var igc_maps = {};
     load_igc_maps(map_objects);
@@ -2177,194 +2496,6 @@
         </fieldset>
 
         <script>
-
-            function close_media_clicked( event )
-            {
-              if( event != null )
-                  event.stopPropagation();
-              document.getElementById( 'media_player' ).style.display = 'none';
-              var media = document.getElementById( 'photo_frame' );
-              if( media )
-                media.parentNode.removeChild( media );
-            }
-
-            function open_media( photo_files )
-            {
-              close_media_clicked();
-
-              document.getElementById( 'media_player' ).style.display = 'block';
-              var media = document.getElementById( 'media_frame' );
-              media.large = false;
-              media.photos = photo_files;
-              display_photo( 0 );
-            }
-
-            function fetchLastModified(url, callback)
-            {
-              fetch(url, {method: "HEAD"})
-                .then(r => {
-                  callback(new Date(r.headers.get('Last-Modified')))});
-            }
-
-            function display_photo_date(date)
-            {
-              console.log('photo date:', date);
-              document.getElementById( 'media_date' ).innerHTML = date.toLocaleDateString();
-              document.getElementById( 'media_date' ).style.display = 'inline';
-            }
-
-            function display_photo( num )
-            {
-              var photo = document.getElementById( 'photo_frame' );
-              var parent = document.getElementById( 'media_frame' );
-              var photo_files = parent.photos;
-              var player = document.getElementById( 'media_player' );
-              if( photo )
-                parent.removeChild( photo );
-              var tag = photo_files[num][1];
-              photo = document.createElement( tag );
-              parent.num = num;
-              parent.style.width = "100%";
-              parent.style.height = "100%";
-              photo.id = 'photo_frame';
-              photo.style.textAlign = 'center';
-              photo.style.align = 'center';
-              photo.style.display = 'block';
-              photo.style.margin = '0px auto 0px';
-              photo.style.maxWidth = '100%';
-              photo.style.maxHeight = '100%';
-
-              if( num == 0 )
-                document.getElementById( 'media_prev' ).style.display = 'none';
-              else
-                document.getElementById( 'media_prev' ).style.display = 'inline';
-              if( num == photo_files.length - 1 )
-                document.getElementById( 'media_next' ).style.display = 'none';
-              else
-                document.getElementById( 'media_next' ).style.display = 'inline';
-
-              if( parent.large )
-              {
-                player.style.maxWidth = '94%';
-                player.style.maxHeight = '94%';
-                player.style.width = '94%';
-                player.style.height = '94%';
-              }
-              else
-              {
-                player.style.maxWidth = '30%';
-                player.style.maxHeight = '40%';
-                player.style.width = '30%';
-                player.style.height = '40%';
-              }
-
-              photo.src = photo_files[num][0];
-              if( tag == 'video' )
-              {
-                // stop_sound();  // avoid sound + video at the same time
-                // curiously the above line now causes
-                // "stop_sound is not defined" error. Why ?
-                var mediaElement = document.getElementById( 'audio_player' );
-                mediaElement.pause();
-
-                photo.controls = 'true';
-                photo.style.maxHeight = '90%';
-                var src = document.createElement( 'source' );
-                src.src = photo_files[num][0];
-              }
-              else
-              {
-                photo.src = photo_files[num][0];
-                photo.onclick = display_large_photo;
-              }
-              parent.appendChild( photo );
-
-              document.getElementById( 'media_text' ).innerHTML = (num + 1) + ' / ' + photo_files.length;
-
-              document.getElementById( 'media_date' ).style.display = 'none';
-              fetchLastModified( photo_files[num][0], display_photo_date );
-            }
-
-            function prev_media_clicked()
-            {
-              event.stopPropagation();
-              var media = document.getElementById( 'media_frame' );
-              var photo_files = media.photos;
-              var num = media.num;
-              if( num > 0 )
-                display_photo( num - 1 );
-            }
-
-
-            function next_media_clicked(event)
-            {
-              event.stopPropagation();
-              var media = document.getElementById( 'media_frame' );
-              var photo_files = media.photos;
-              var num = media.num;
-              if( num < photo_files.length - 1 )
-                display_photo( num + 1 );
-            }
-
-            function enlarge_media_clicked(event)
-            {
-              event.stopPropagation();
-              var media = document.getElementById( 'media_frame' );
-              var large = media.large;
-              large = !large;
-              media.large = large;
-              var photo = document.getElementById( 'photo_frame' );
-              var player = document.getElementById( 'media_player' )
-              if( large )
-              {
-                player.style.maxWidth = '94%';
-                player.style.maxHeight = '94%';
-                player.style.width = '94%';
-                player.style.height = '94%';
-              }
-              else
-              {
-                player.style.maxWidth = '30%';
-                player.style.maxHeight = '40%';
-                player.style.width = '30%';
-                player.style.height = '40%';
-              }
-            }
-
-
-            function display_large_photo()
-            {
-              var media = document.getElementById( 'media_frame' );
-              var photo_files = media.photos;
-              var num = media.num;
-              window.open( photo_files[num][0] ).focus();
-            }
-
-
-            function toggle_show_controls()
-            {
-              console.log('toggle_show_controls');
-              if( document.getElementById( 'explicit_controls' ).style.display == 'none' )
-              {
-                console.log('show');
-                document.getElementById( 'explicit_controls' ).style.display = 'block';
-                document.getElementById( 'controls_show' ).innerHTML = '-';
-              }
-              else
-              {
-                console.log('hide');
-                document.getElementById( 'explicit_controls' ).style.display = 'none';
-                document.getElementById( 'controls_show' ).innerHTML = '+';
-              }
-            }
-
-
-            document.getElementById( 'close_media' ).addEventListener( 'click', close_media_clicked, {capture: true} );
-            document.getElementById( 'enlarge_media' ).addEventListener( 'click', enlarge_media_clicked,  {capture: true});
-            document.getElementById( 'media_prev' ).addEventListener( 'click', prev_media_clicked, {capture: true} );
-            document.getElementById( 'media_next' ).addEventListener( 'click', next_media_clicked, {capture: true} );
-
-            document.getElementById( 'controls_show' ).addEventListener( 'click', toggle_show_controls, {capture: true} );
 
         </script>
 
