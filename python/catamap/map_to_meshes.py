@@ -7838,7 +7838,7 @@ def main():
         'default': '180',
         'public': '360',
         'private': '720',
-        'private_wip': '180',
+        'wip': '720',
         'poster': '360',
         'poster_private': '720',
         'igc': '180',
