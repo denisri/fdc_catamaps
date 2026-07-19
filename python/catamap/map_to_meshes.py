@@ -2501,6 +2501,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             return mmap
 
         for p in os.listdir(base_url):
+            if p.startswith('photo_errors'):
+                continue  # skip the errors report file
             skip = False
             for i in ignored:
                 if p.endswith(i):
@@ -2549,6 +2551,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     markers_map_file[8:], base_url)
             else:
                 markers_map = self.read_markers_map(markers_map_file)
+        # print('markers_map:')
+        # print(markers_map)
 
         layer_radius = xml.get('radius')
         if layer_radius is not None:
