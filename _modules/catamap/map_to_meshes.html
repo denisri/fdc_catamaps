@@ -2563,6 +2563,8 @@
             <span class="k">return</span> <span class="n">mmap</span>
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">base_url</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;photo_errors&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>  <span class="c1"># skip the errors report file</span>
             <span class="n">skip</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ignored</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
@@ -2611,6 +2613,8 @@
                     <span class="n">markers_map_file</span><span class="p">[</span><span class="mi">8</span><span class="p">:],</span> <span class="n">base_url</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">markers_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_markers_map</span><span class="p">(</span><span class="n">markers_map_file</span><span class="p">)</span>
+        <span class="c1"># print(&#39;markers_map:&#39;)</span>
+        <span class="c1"># print(markers_map)</span>
 
         <span class="n">layer_radius</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">layer_radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
