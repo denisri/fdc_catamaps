@@ -2472,10 +2472,23 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             mmap = {}
             if os.stat(filename).st_size != 0:
                 with open(filename) as f:
-                    dialect = csv.Sniffer().sniff(f.read(1024))
-                    f.seek(0)
-                    reader = csv.reader(f, dialect=dialect)
-                    for row in reader:
+                    # don't use a CSV reader since the file is edited
+                    # in curious ways and we find various separators, mixed in
+                    # the same file...
+                    # dialect = csv.Sniffer().sniff(f.read(1024))
+                    # f.seek(0)
+                    # reader = csv.reader(f, dialect=dialect)
+                    # for row in reader:
+                    sep = ',;\t'
+                    for line in f.readlines():
+                        row = []
+                        ic0 = 0
+                        for ic, c in enumerate(line):
+                            if c in sep:
+                                row.append(line[ic0:ic])
+                                ic0 = ic + 1
+                        if ic != ic0:
+                            row.append(line[ic0:ic])
                         if row:
                             if len(row) == 1:  # no \t separtator
                                 row = [x.strip() for x in row[0].split()]
@@ -4975,16 +4988,12 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         fmesh_w.vertex().assign(vert)
         vert = np.asarray(fmesh_w.vertex())
         bbmin = aims.Point3df(np.min(vert, axis=0))
-        print('bbmin:', bbmin)
         vert += [0., 0., - bbmin[2]]
         trans3d = getattr(trans, 'transform_3d', None)
         if trans3d is not None:
-            print('3D3D3D!!', trans3d)
-            print('items:', fproto['element'].items())
             vert = (trans3d * np.hstack(
                 (vert, np.ones((vert.shape[0], 1)))).T).T[:, :3]
         fmesh_w.vertex().assign(vert)
-        print('fontis vertices:', vert)
         return fmesh_w
 
     def make_water_scale_model(self, pos, size):
