@@ -349,6 +349,14 @@
 <span class="sd">    file) for markers text. Alternatively it may be a pattern for filenames as</span>
 <span class="sd">    a regular expression.</span>
 <span class="sd">    See :ref:`markers` for more details.</span>
+<span class="sd">**merge_with:** str (**3D maps**)</span>
+<span class="sd">    In a photo marker item, this property tells that the photos (or videos or</span>
+<span class="sd">    sounds) will be appended to those of another marker (normally nearby) in a</span>
+<span class="sd">    different markers layer, but in the same markers series. The value tells</span>
+<span class="sd">    both the destination layer and marker ID, ex: ``photos salles/121`` will</span>
+<span class="sd">    append the photos to those of the marker noted ``121`` in the layer</span>
+<span class="sd">    ``photos salles``. It is advised not to mix different markers types (with</span>
+<span class="sd">    different ``marker`` proterties).</span>
 <span class="sd">**non_visibility:** str (**2D maps**)</span>
 <span class="sd">    list of maps types (json-like), for which this layer is removed. The</span>
 <span class="sd">    inverse of **visibility** (see below).</span>
@@ -646,6 +654,8 @@
 <span class="sd">If an item text has no file extension, ``.jpg`` will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, ``123`` will be replaced with ``photos/123.jpg``.</span>
 
 <span class="sd">On the web server side, photos and sounds directory have to be created and contain the referenced files.</span>
+
+<span class="sd">In some maps, several contributors will maintain distinct markers layers (for their own photos). To avoid creating too many markers, it is possible to merge markers of the same at the same location across layers. For this, use the ``merge_with`` property in a marker item, in order not to create a new marker, but to add photos etc to another one in a different layer.</span>
 
 <span class="sd">Markers text syntax</span>
 <span class="sd">+++++++++++++++++++</span>
@@ -2607,6 +2617,13 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">):</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mtype</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">mtype</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;markers_maps_keys&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps_keys</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">markers_layers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">layer_label</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
+        <span class="n">markers_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps_keys</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">layer_label</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">markers_layers</span><span class="p">[</span><span class="n">layer_label</span><span class="p">]</span> <span class="o">=</span> <span class="n">mtype</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2758,6 +2775,8 @@
                             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
                                 <span class="n">missing_files</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">text</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
                         <span class="n">used_texts</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+                    <span class="n">merged_marker</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;merge_with&#39;</span><span class="p">)</span>
+                    <span class="n">markers_keys</span><span class="p">[</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">markers</span><span class="p">),</span> <span class="n">merged_marker</span><span class="p">]</span>
                     <span class="n">markers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pos</span> <span class="o">+</span> <span class="p">[</span><span class="n">hshift</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">radius</span><span class="p">],</span>
                                     <span class="p">[</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">image</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]])</span>
                 <span class="c1"># print(&#39;%s:&#39; % mtype, markers[-1])</span>
@@ -4403,6 +4422,7 @@
         <span class="n">object_win_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
 
         <span class="n">protos</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;marker_types&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merge_markers</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">mtype</span><span class="p">,</span> <span class="n">proto</span> <span class="ow">in</span> <span class="n">protos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
@@ -4464,6 +4484,26 @@
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NO MARKER MESH:&#39;</span><span class="p">,</span> <span class="n">mtype</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">record_image_maps</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge_markers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;merge markers layers when requested.&#39;</span><span class="p">)</span>
+        <span class="n">to_remove</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">mlayer</span><span class="p">,</span> <span class="n">markers_keys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">smarkers_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_layers</span><span class="p">[</span><span class="n">mlayer</span><span class="p">]</span>
+            <span class="n">smarkers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="p">[</span><span class="n">smarkers_name</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">mid</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">merged_marker</span><span class="p">)</span> <span class="ow">in</span> <span class="n">markers_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">merged_marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">merge_layer</span><span class="p">,</span> <span class="n">merge_id</span> <span class="o">=</span> <span class="n">merged_marker</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">dest_mark_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_layers</span><span class="p">[</span><span class="n">merge_layer</span><span class="p">]</span>
+                    <span class="n">dest_mark</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps_keys</span><span class="p">[</span><span class="n">merge_layer</span><span class="p">][</span><span class="n">merge_id</span><span class="p">]</span>
+                    <span class="n">merge_index</span> <span class="o">=</span> <span class="n">dest_mark</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="p">[</span><span class="n">dest_mark_set</span><span class="p">]</span>
+                    <span class="n">markers</span><span class="p">[</span><span class="n">merge_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">smarkers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">to_remove</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">smarkers_name</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">mark_set</span><span class="p">,</span> <span class="n">rem_list</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers_maps</span><span class="p">[</span><span class="n">mark_set</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rem_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">del</span> <span class="n">markers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">record_image_maps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">maps</span> <span class="o">=</span> <span class="p">{}</span>

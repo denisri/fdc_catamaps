@@ -327,6 +327,14 @@ file) for markers text. Alternatively it may be a pattern for filenames as
 a regular expression.
 See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
+<dt><strong>merge_with:</strong> str (<strong>3D maps</strong>)</dt><dd><p>In a photo marker item, this property tells that the photos (or videos or
+sounds) will be appended to those of another marker (normally nearby) in a
+different markers layer, but in the same markers series. The value tells
+both the destination layer and marker ID, ex: <code class="docutils literal notranslate"><span class="pre">photos</span> <span class="pre">salles/121</span></code> will
+append the photos to those of the marker noted <code class="docutils literal notranslate"><span class="pre">121</span></code> in the layer
+<code class="docutils literal notranslate"><span class="pre">photos</span> <span class="pre">salles</span></code>. It is advised not to mix different markers types (with
+different <code class="docutils literal notranslate"><span class="pre">marker</span></code> proterties).</p>
+</dd>
 <dt><strong>non_visibility:</strong> str (<strong>2D maps</strong>)</dt><dd><p>list of maps types (json-like), for which this layer is removed. The
 inverse of <strong>visibility</strong> (see below).</p>
 </dd>
@@ -581,6 +589,7 @@ The result in 2D is (left: original map, right: result):</p>
 <p>Each item may get a specific <code class="docutils literal notranslate"><span class="pre">radius</span></code> property, which may overload the layer radius. If no radius is specified, a default is used (10., which would correspond to 10 m radisu, depending on the map scale).</p>
 <p>If an item text has no file extension, <code class="docutils literal notranslate"><span class="pre">.jpg</span></code> will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, <code class="docutils literal notranslate"><span class="pre">123</span></code> will be replaced with <code class="docutils literal notranslate"><span class="pre">photos/123.jpg</span></code>.</p>
 <p>On the web server side, photos and sounds directory have to be created and contain the referenced files.</p>
+<p>In some maps, several contributors will maintain distinct markers layers (for their own photos). To avoid creating too many markers, it is possible to merge markers of the same at the same location across layers. For this, use the <code class="docutils literal notranslate"><span class="pre">merge_with</span></code> property in a marker item, in order not to create a new marker, but to add photos etc to another one in a different layer.</p>
 <section id="markers-text-syntax">
 <h4>Markers text syntax<a class="headerlink" href="#markers-text-syntax" title="Link to this heading">¶</a></h4>
 <p>Markers text may be a filename (which will be prefixed with the contents of the <code class="docutils literal notranslate"><span class="pre">markers_base_url</span></code> property, and possibly suffixed with <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>), or a list of such filenames:</p>
