@@ -310,6 +310,14 @@ Properties list
     file) for markers text. Alternatively it may be a pattern for filenames as
     a regular expression.
     See :ref:`markers` for more details.
+**merge_with:** str (**3D maps**)
+    In a photo marker item, this property tells that the photos (or videos or
+    sounds) will be appended to those of another marker (normally nearby) in a
+    different markers layer, but in the same markers series. The value tells
+    both the destination layer and marker ID, ex: ``photos salles/121`` will
+    append the photos to those of the marker noted ``121`` in the layer
+    ``photos salles``. It is advised not to mix different markers types (with
+    different ``marker`` proterties).
 **non_visibility:** str (**2D maps**)
     list of maps types (json-like), for which this layer is removed. The
     inverse of **visibility** (see below).
@@ -607,6 +615,8 @@ Each item may get a specific ``radius`` property, which may overload the layer r
 If an item text has no file extension, ``.jpg`` will be appended by the server in a photos markers layer. This way the map source, in Inkscape, may display a very short, readable, indication, such as a single number: for instance, ``123`` will be replaced with ``photos/123.jpg``.
 
 On the web server side, photos and sounds directory have to be created and contain the referenced files.
+
+In some maps, several contributors will maintain distinct markers layers (for their own photos). To avoid creating too many markers, it is possible to merge markers of the same at the same location across layers. For this, use the ``merge_with`` property in a marker item, in order not to create a new marker, but to add photos etc to another one in a different layer.
 
 Markers text syntax
 +++++++++++++++++++
@@ -2545,6 +2555,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if not hasattr(self, mtype):
             setattr(self, mtype, [])
         markers = self.markers_maps.setdefault(mtype, [])
+        if not hasattr(self, 'markers_maps_keys'):
+            self.markers_maps_keys = {}
+            self.markers_layers = {}
+        layer_label = xml.get(
+            '{http://www.inkscape.org/namespaces/inkscape}label')
+        markers_keys = self.markers_maps_keys.setdefault(layer_label, {})
+        self.markers_layers[layer_label] = mtype
         if trans is None:
             trans = self.get_transform(xml)
         if trans is None:
@@ -2696,6 +2713,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                             if not os.path.exists(url):
                                 missing_files.append((text, pos, url))
                         used_texts.setdefault(text, []).append(pos)
+                    merged_marker = xml_element.get('merge_with')
+                    markers_keys[texts[0]] = [len(markers), merged_marker]
                     markers.append([pos + [hshift, level, radius],
                                     [base_url + image for image in images]])
                 # print('%s:' % mtype, markers[-1])
@@ -4335,6 +4354,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         object_win_size = [8, 8]
 
         protos = getattr(self, 'marker_types', {})
+        self.merge_markers()
 
         for mtype, proto in protos.items():
             mesh = None
@@ -4396,6 +4416,26 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                     print('NO MARKER MESH:', mtype)
 
         self.record_image_maps()
+
+    def merge_markers(self):
+        print('merge markers layers when requested.')
+        to_remove = {}
+        for mlayer, markers_keys in self.markers_maps_keys.items():
+            smarkers_name = self.markers_layers[mlayer]
+            smarkers = self.markers_maps[smarkers_name]
+            for mid, (index, merged_marker) in markers_keys.items():
+                if merged_marker is not None:
+                    merge_layer, merge_id = merged_marker.split('/', 1)
+                    dest_mark_set = self.markers_layers[merge_layer]
+                    dest_mark = self.markers_maps_keys[merge_layer][merge_id]
+                    merge_index = dest_mark[0]
+                    markers = self.markers_maps[dest_mark_set]
+                    markers[merge_index][1] += smarkers[index][1]
+                    to_remove.setdefault(smarkers_name, []).append(index)
+        for mark_set, rem_list in to_remove.items():
+            markers = self.markers_maps[mark_set]
+            for index in sorted(rem_list, reverse=True):
+                del markers[index]
 
     def record_image_maps(self):
         maps = {}
