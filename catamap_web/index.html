@@ -736,7 +736,7 @@
 //     compass.scale.z = 10.;
 //     scene.add( compass );
 
-    var maps_opacity = 1.0;
+    var maps_opacity = {};
 
     function read_compass( url, filenames )
     {
@@ -1951,15 +1951,19 @@
     }
 
 
-    function load_igc_maps( map_objects )
+    function load_image_maps( map_objects )
     {
-      if(map_objects.igc_maps)
+      // console.log('image_maps', map_objects.image_maps);
+      for(const [cat, image_map] of Object.entries(map_objects.image_maps))
       {
-        // console.log('igc_maps', map_objects.igc_maps);
-        var resolution = 0;
-        for(const [k, v] of Object.entries(map_objects.igc_maps.maps))
+        image_maps[cat] = {};
+        var image_map_m = image_maps[cat];
+        for(const [k, v] of Object.entries(image_map.maps))
         {
-          // console.log(k, v, map_objects.igc_maps.map_dirs[resolution]);
+          if(maps_opacity[cat] == null)
+            maps_opacity[cat] = 1.;
+          var resolution = 0;
+          // console.log(k, v, map_objects.image_maps[cat].map_dirs[resolution]);
           const vert = new Float32Array(
           v[0].concat(v[1]).concat(v[2]).concat(v[3]));
           const geom = new THREE.BufferGeometry();
@@ -1978,7 +1982,7 @@
 
           // // Load the texture asynchronously
           // var textureLoader = new THREE.TextureLoader();
-          // const texname = map_objects.igc_maps.map_dirs[resolution] + '/' + k;
+          // const texname = map_objects.mage_maps[cat].map_dirs[resolution] + '/' + k;
           // // console.log('loading texture', texname);
           // textureLoader.load(texname, function(texture) {
           //   // console.log('texture ', texname, ' loaded');
@@ -1995,11 +1999,11 @@
           // })
           // // console.log('load ', texname, ' started.')
 
-          igc_maps[k] = rect;
+          image_map_m[k] = rect;
           geom.computeBoundingBox();
           // scene.add(rect);
           // console.log('rect:', rect);
-          if(igc_maps_visible)
+          if(image_maps_visible[cat])
             render();
         }
       }
@@ -2009,43 +2013,50 @@
     function display_maps_controls()
     {
       var menu = document.getElementById('mesh_buttons');
-      var gitem = document.createElement('div');
-      gitem.id = 'map_controls';
-      var label = document.createElement('label');
-      var inp = document.createElement('input');
-      inp.id = 'map_controls_btn';
-      inp.type = 'checkbox';
-      label.appendChild(inp);
-      var text = document.createTextNode( ' IGC' );
-      label.appendChild(text);
-      gitem.appendChild(label);
+      for(const cat in image_maps)
+      {
+        var gitem = document.createElement('div');
+        var cat_id = cat.replace(/\b \b/g, '_');
+        gitem.id = 'map_controls_' + cat_id;
+        var label = document.createElement('label');
+        var inp = document.createElement('input');
+        inp.id = 'map_controls_' + cat_id + '_btn';
+        inp.type = 'checkbox';
+        inp.category = cat;
+        label.appendChild(inp);
+        var text = document.createTextNode( ' ' + cat );
+        label.appendChild(text);
+        gitem.appendChild(label);
 
-      var sl = document.createElement('input');
-      sl.type = 'range';
-      sl.class = 'media_button';
-      sl.id = 'maps_opacity';
-      sl.min = '0';
-      sl.max = '100';
-      sl.value = maps_opacity * 100;
-      sl.orient = 'horizontal';
-      sl.style = 'z-index: 20';
-      label.appendChild(sl);
+        var sl = document.createElement('input');
+        sl.type = 'range';
+        sl.class = 'media_button';
+        sl.id = 'maps_opacity_' + cat_id;
+        sl.min = '0';
+        sl.max = '100';
+        sl.value = maps_opacity[cat] * 100;
+        sl.orient = 'horizontal';
+        sl.style = 'z-index: 20';
+        sl.category = cat;
+        label.appendChild(sl);
 
-      const sep = document.getElementById('categories_sep');
-      menu.insertBefore(gitem, sep);
-      // var br = document.createElement('br');
-      // menu.insertBefore(br, sep);
+        const sep = document.getElementById('categories_sep');
+        menu.insertBefore(gitem, sep);
+        // var br = document.createElement('br');
+        // menu.insertBefore(br, sep);
 
-      inp.addEventListener('click', maps_clicked);
-      sl.addEventListener('input', maps_opacity_changed, {capture: true});
-      // prevent rotating the scene while using the slider
-      sl.addEventListener('mousedown', ignore_event);
+        inp.addEventListener('click', maps_clicked);
+        sl.addEventListener('input', maps_opacity_changed, {capture: true});
+        // prevent rotating the scene while using the slider
+        sl.addEventListener('mousedown', ignore_event);
+      }
     }
 
 
-    function display_maps(display)
+    function display_maps(cat, display)
     {
-      for(const [k, v] of Object.entries(igc_maps))
+      console.log('display_maps', cat, ':', display);
+      for(const [k, v] of Object.entries(image_maps[cat]))
       {
         if(display)
           scene.add(v);
@@ -2058,15 +2069,16 @@
 
     function maps_clicked(event)
     {
-      // console.log('maps_clicked');
+      const cat = this.category;
+      console.log('maps_clicked', cat);
       if( event != null && event != undefined )
           event.stopPropagation();
 
       var display = this.checked;
       if( display == undefined )
           display = event.checked;
-      igc_maps_visible = display;
-      display_maps(display);
+      image_maps_visible[cat] = display;
+      display_maps(cat, display);
     }
 
 
@@ -2078,22 +2090,23 @@
 
     function maps_opacity_changed(event)
     {
+      const cat = this.category;
       // console.log('maps_opacity_changed');
       event.stopPropagation();
-      maps_opacity = this.value / 100.;
+      maps_opacity[cat] = this.value / 100.;
 
-      for(const [k, v] of Object.entries(igc_maps))
+      for(const [k, v] of Object.entries(image_maps[cat]))
       {
-        v.material.opacity = maps_opacity;
+        v.material.opacity = maps_opacity[cat];
       }
       render();
     }
 
 
-    function nearest_maps()
+    function nearest_maps(cat)
     {
       var dist = {};
-      for(const [k, v] of Object.entries(igc_maps))
+      for(const [k, v] of Object.entries(image_maps[cat]))
       {
         var p = new THREE.Vector3().copy(v.geometry.boundingBox.min);
         p.add(v.geometry.boundingBox.max);
@@ -2117,18 +2130,25 @@
 
     function load_nearest_maps()
     {
-      if(!igc_maps_visible)
+      for(const cat in image_maps)
+        load_nearest_maps_cat(cat);
+    }
+
+
+    function load_nearest_maps_cat(cat)
+    {
+      if(!image_maps_visible[cat])
         return;
 
       // console.log('load_nearest_maps do it');
-      const order = nearest_maps();
+      const order = nearest_maps(cat);
       const n_per_res = 4;
       const max_n_loading = 4;
       var n_loading = 0;
-      const nres = map_objects.igc_maps.map_dirs.length;
+      const nres = map_objects.image_maps[cat].map_dirs.length;
       for(let i=order.length - 1; i>=0; i--)
       {
-        var mesh = igc_maps[order[i][0]];
+        var mesh = image_maps[cat][order[i][0]];
         if(mesh.load_state == 1)
         {
           n_loading++;
@@ -2144,9 +2164,9 @@
         var res = nres - 1 - Math.floor(i / n_per_res);
         if(res < 0)
           res = 0;
-        var mesh = igc_maps[order[i][0]];
+        var mesh = image_maps[cat][order[i][0]];
         if((mesh.resolution != res || mesh.load_state == 0)
-           && mesh.load_state != 1)
+          && mesh.load_state != 1)
         {
           // console.log(order[i][0], ':', mesh.resolution, ' -> ', res, mesh.load_state);
 
@@ -2155,25 +2175,26 @@
 
           // Load the texture asynchronously
           var textureLoader = new THREE.TextureLoader();
-          const texname = map_objects.igc_maps.map_dirs[res] + '/' + order[i][0];
+          const texname = map_objects.image_maps[cat].map_dirs[res] + '/' + order[i][0];
           console.log('loading texture', texname);
           textureLoader.load(texname, function(texture) {
             console.log('texture ', texname, ' loaded');
 
             const mapname = texname.split('/').reverse()[0];
-            var mesh = igc_maps[mapname];
+            var mesh = image_maps[cat][mapname];
             // if a new, different res has been requested, do nothing.
             // if(res == mesh.resolution)
             // {
             const mat = new THREE.MeshBasicMaterial({
-              map: texture, side: THREE.DoubleSide, opacity: maps_opacity, transparent: true
+              map: texture, side: THREE.DoubleSide,
+              opacity: maps_opacity[cat], transparent: true
             });
             mesh.material = mat;
             mesh.load_state = 2; // loaded
             render();
 
             // maybe load next textures
-            load_nearest_maps();
+            load_nearest_maps_cat(cat);
             // }
           })
 
@@ -2373,11 +2394,11 @@
     document.getElementById( 'controls_show' ).addEventListener( 'click', toggle_show_controls, {capture: true} );
 
 
-    var igc_maps_visible = false;
-    var igc_maps = {};
-    load_igc_maps(map_objects);
-    // console.log('igc_maps:', igc_maps);
-    if(igc_maps)
+    var image_maps_visible = {};
+    var image_maps = {};
+    load_image_maps(map_objects);
+    // console.log('image_maps:', image_maps);
+    if(image_maps.length != 0)
     {
       display_maps_controls();
     }

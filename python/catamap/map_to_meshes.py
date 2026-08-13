@@ -218,7 +218,9 @@ Properties list
 **hidden:** bool (**2D and 3D maps**)
     removed from 3D maps.
 **image_map:** bool (**3D maps**)
-    the layer is an image map layer, typically IGC maps layer. Images in this layer will be included in the 3D scene as the "IGC" category. See :ref:`flat_maps` for more details.
+    the layer is an image map layer, typically IGC maps layer. Images in this
+    layer will be included in the 3D scene as the "IGC" category. See
+    :ref:`flat_maps` for more details.
 **inaccessible:** bool (**3D maps**)
     inaccessible elements will be separated from others, and set in the
     ``Inaccessible`` display category.
@@ -267,7 +269,8 @@ Properties list
     view from the other ones.
 
 **map_dirs:** JSON list (**3D maps**)
-    set in an ``image_map`` layer, lists directories where the images will be found on the server, each directory for a given image resolution.
+    set in an ``image_map`` layer, lists directories where the images will be
+    found on the server, each directory for a given image resolution.
     See :ref:`flat_maps` for more details.
 
 **map_transform:** SVG transformation spec (**2D maps**)
@@ -4438,9 +4441,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 del markers[index]
 
     def record_image_maps(self):
-        maps = {}
-        self.image_map = {'map_dirs': ["../igc/01", "../igc/02"],
-                          'maps': maps}
+        self.image_maps = {}
         for layer in self.svg.getroot():
             if ItemProperties.is_true(layer.get('image_map')):
                 height_map = layer.get('level')
@@ -4457,40 +4458,101 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 else:
                     view = None
                 object_win_size = (2., 2.)
+                category = layer.get('category', 'IGC')
+
+                image_map = self.image_maps.setdefault(category, {})
+                maps = {}
+                image_map['maps'] = maps
 
                 map_dirs = layer.get('map_dirs')
                 if map_dirs is not None:
-                    self.image_map['map_dirs'] = json.loads(map_dirs)
+                    image_map['map_dirs'] = json.loads(map_dirs)
+                elif not image_map.get('map_dirs'):
+                    image_map['map_dirs'] = ["../igc/01", "../igc/02"]
 
-                print('building image map.')
+                print('building image map', category)
+                reg_grid = layer.get('regular_grid_size')
 
                 lt = self.get_transform(layer)
-                for im_xml in layer:
-                    self._debug = True
-                    tr = self.get_transform(im_xml, previous=lt, no_3d=True)
-                    self._debug = False
+
+                if not reg_grid:
+                    for im_xml in layer:
+                        self._debug = True
+                        tr = self.get_transform(im_xml, previous=lt,
+                                                no_3d=True)
+                        self._debug = False
+                        x = float(im_xml.get('x'))
+                        y = float(im_xml.get('y'))
+                        w = float(im_xml.get('width'))
+                        h = float(im_xml.get('height'))
+                        c1 = tr.dot([x, y, 1.0]).tolist()[0]
+                        c2 = tr.dot([x + w, y, 1.0]).tolist()[0]
+                        c3 = tr.dot([x + w, y + h, 1.0]).tolist()[0]
+                        c4 = tr.dot([x, y + h, 1.0]).tolist()[0]
+                        p1 = self.get_depth(c1, view, object_win_size)
+                        p2 = self.get_depth(c2, view, object_win_size)
+                        p3 = self.get_depth(c3, view, object_win_size)
+                        p4 = self.get_depth(c4, view, object_win_size)
+                        filename = urllib.parse.unquote(im_xml.get(
+                            '{http://www.w3.org/1999/xlink}href'))
+                        filename = filename.rsplit('\\', 1)[-1]
+                        filename = osp.basename(filename)
+                        maps[filename] = [
+                            c1[:2] + [p1 + height_shift
+                                      if p1 is not None else 0.],
+                            c2[:2] + [p2 + height_shift
+                                      if p2 is not None else 0.],
+                            c3[:2] + [p3 + height_shift
+                                      if p3 is not None else 0.],
+                            c4[:2] + [p4 + height_shift
+                                      if p4 is not None else 0.],
+                        ]
+                else:  # regular grid
+                    reg_grid = json.loads(reg_grid)
+                    if isinstance(reg_grid, int):
+                        reg_grid = [reg_grid, reg_grid]
+                    im_xml = layer[0]
+                    tr = self.get_transform(im_xml, previous=lt,
+                                            no_3d=True)
                     x = float(im_xml.get('x'))
                     y = float(im_xml.get('y'))
                     w = float(im_xml.get('width'))
                     h = float(im_xml.get('height'))
-                    c1 = tr.dot([x, y, 1.0]).tolist()[0]
-                    c2 = tr.dot([x + w, y, 1.0]).tolist()[0]
-                    c3 = tr.dot([x + w, y + h, 1.0]).tolist()[0]
-                    c4 = tr.dot([x, y + h, 1.0]).tolist()[0]
-                    p1 = self.get_depth(c1, view, object_win_size)
-                    p2 = self.get_depth(c2, view, object_win_size)
-                    p3 = self.get_depth(c3, view, object_win_size)
-                    p4 = self.get_depth(c4, view, object_win_size)
-                    filename = urllib.parse.unquote(im_xml.get(
-                        '{http://www.w3.org/1999/xlink}href'))
-                    filename = filename.rsplit('\\', 1)[-1]
-                    filename = osp.basename(filename)
-                    maps[filename] = [
-                        c1[:2] + [p1 + height_shift if p1 is not None else 0.],
-                        c2[:2] + [p2 + height_shift if p2 is not None else 0.],
-                        c3[:2] + [p3 + height_shift if p3 is not None else 0.],
-                        c4[:2] + [p4 + height_shift if p4 is not None else 0.],
-                    ]
+                    rc1 = tr.dot([x, y, 1.0])
+                    rc2 = tr.dot([x + w, y, 1.0])
+                    rc3 = tr.dot([x, y + h, 1.0])
+                    # rc4 = tr.dot([x, y + h, 1.0])
+                    filename_base, ext = im_xml.get(
+                        'image_map_filename').rsplit('.', 1)
+                    for y in range(reg_grid[1]):
+                        for x in range(reg_grid[0]):
+                            c1 = rc1 + (rc2 - rc1) * x / reg_grid[0] \
+                                + (rc3 - rc1) * y / reg_grid[1]
+                            c2 = rc1 \
+                                + (rc2 - rc1) * (x + 1) / reg_grid[0] \
+                                + (rc3 - rc1) * y / reg_grid[1]
+                            c3 = c2 + (rc3 - rc1) * 1 / reg_grid[1]
+                            c4 = c1 + (rc3 - rc1) * 1 / reg_grid[1]
+                            c1 = c1.tolist()[0]
+                            c2 = c2.tolist()[0]
+                            c3 = c3.tolist()[0]
+                            c4 = c4.tolist()[0]
+                            p1 = self.get_depth(c1, view, object_win_size)
+                            p2 = self.get_depth(c2, view, object_win_size)
+                            p3 = self.get_depth(c3, view, object_win_size)
+                            p4 = self.get_depth(c4, view, object_win_size)
+                            filename \
+                                = f'{filename_base}_{x:02d}_{y:02d}.{ext}'
+                            maps[filename] = [
+                                c1[:2] + [p1 + height_shift
+                                          if p1 is not None else 0.],
+                                c2[:2] + [p2 + height_shift
+                                          if p2 is not None else 0.],
+                                c3[:2] + [p3 + height_shift
+                                          if p3 is not None else 0.],
+                                c4[:2] + [p4 + height_shift
+                                          if p4 is not None else 0.],
+                            ]
 
     def setup_travel_speed(self):
         '''
@@ -5619,8 +5681,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         t.append(time.time())
         print('texts/sounds:', t[-1] - t[-2])
 
-        if getattr(self, 'image_map', None):
-            json_obj['igc_maps'] = self.image_map
+        if getattr(self, 'image_maps', None):
+            json_obj['image_maps'] = self.image_maps
 
         if json_filename is not None:
             with open(json_filename, 'w') as f:
