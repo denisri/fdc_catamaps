@@ -260,6 +260,15 @@
 <span class="sd">    the layer is an image map layer, typically IGC maps layer. Images in this</span>
 <span class="sd">    layer will be included in the 3D scene as the &quot;IGC&quot; category. See</span>
 <span class="sd">    :ref:`flat_maps` for more details.</span>
+<span class="sd">**image_map_filename:** str (**3D maps**)</span>
+<span class="sd">    This should be set on the single rectangle child of an ``image_map`` layer</span>
+<span class="sd">    on which the ``regular_grid_size`` property is set. Then the rectangle</span>
+<span class="sd">    corresponds to a large image which is subdivided. This property tells the</span>
+<span class="sd">    filename and extension base for the images. This filename will be appended</span>
+<span class="sd">    x, y coordinates.</span>
+
+<span class="sd">    Use the command ``python -m catamap.build_multiscale_map`` to generate the</span>
+<span class="sd">    :ref:`multiscale sub-images &lt;build_multiscale_map&gt;`.</span>
 <span class="sd">**inaccessible:** bool (**3D maps**)</span>
 <span class="sd">    inaccessible elements will be separated from others, and set in the</span>
 <span class="sd">    ``Inaccessible`` display category.</span>
@@ -387,6 +396,18 @@
 
 <span class="sd">    See :ref:`markers` for more details.</span>
 
+<span class="sd">**regular_grid_size:** JSON int or list (**3D maps**)</span>
+<span class="sd">    When set on an ``image_map`` layer, tells that there is only one large</span>
+<span class="sd">    image in the layer, and that this image needs to be cut into a grid of</span>
+<span class="sd">    smaller ones. This is the number of subdivisions, either as a single int</span>
+<span class="sd">    number (same subdivisions in x and y axes) or a list of 2 elements ([x, y]</span>
+<span class="sd">    subdivisions).</span>
+
+<span class="sd">    When this is used, the only (first) child of the layer should be a</span>
+<span class="sd">    rectangle, on which the property ``image_map_filename`` should be set.</span>
+
+<span class="sd">    Use the command ``python -m catamap.build_multiscale_map`` to generate the</span>
+<span class="sd">   :ref:`multiscale sub-images &lt;build_multiscale_map&gt;`s.</span>
 <span class="sd">**relative_to:** str (**3D maps**)</span>
 <span class="sd">    for height maps or depth maps layers, specify to which depth map the height</span>
 <span class="sd">    is relative to. The default is surface depth (which means 0 or the ground</span>
@@ -400,6 +421,16 @@
 <span class="sd">**shadow_scale:** float (2D maps)</span>
 <span class="sd">    in the metadata layer, sets a global shadow scale applied to all shadow</span>
 <span class="sd">    operations.</span>
+<span class="sd">**subdivide_images:** int (**3D maps**)</span>
+<span class="sd">    When set on an ``image_map`` layer, tells that each image in the layer is</span>
+<span class="sd">    subdiveided in this number of smaller images in each direction. Sub_images</span>
+<span class="sd">    are suffixed with x,y position.</span>
+
+<span class="sd">    Use the command ``python -m catamap.build_multiscale_map`` to generate the</span>
+<span class="sd">    :ref:`multiscale sub-images &lt;build_multiscale_map&gt;`.</span>
+<span class="sd">**subdivide_ext:** str (**3D maps**)</span>
+<span class="sd">    On an ``image_map`` layer, and when ``subdivide_images`` is used, tell the</span>
+<span class="sd">    files extension used for sub-images (like ``webp``, ``jpg`` etc).</span>
 <span class="sd">**symbol:** bool (**3D maps**)</span>
 <span class="sd">    not sure it is used, after all...</span>
 <span class="sd">**symbol_scale:** float (**3D maps**)</span>
@@ -805,6 +836,46 @@
 <span class="sd">* ``map_dirs``: a list of ordered directories where the image files will be looked for on the web server side. Each image should be found in each of these directories. Each directory corresponds to a image map resolution, in increasing order. For instance, if ``map_dirs`` is ``[&quot;igc/01&quot;, &quot;igc/02&quot;]``, then the lowest resolution images are in ``igc/01`` and the highest ones are in ``igc/02``. Images of the lowest resolution will be loaded first, then they will be replaced on the fly with higher resolution ones according to the proximity of the camera in the 3D scene. This way high resolution maps will be represented near the camera, and lower resolution ones for far images.</span>
 <span class="sd">* ``level`` is the height level maps are aligned in 3D maps. Default is ``sup``, as for all other items.</span>
 <span class="sd">* ``height_shift`` may be used to shift the level of 3D maps, in order to make them appear under the corridors, for instance.</span>
+<span class="sd">* ``category`` is used to assign the images map to a categry with a button and opacity cursor.</span>
+
+<span class="sd">An image map may be a set of images (like IGC maps), or a single large rectangle which represents a large image which will be subdivided into a set of smaller images.</span>
+
+<span class="sd">Individual images</span>
+<span class="sd">+++++++++++++++++</span>
+
+<span class="sd">Each child of the image map layer is an image element, with a filename/URL. By default it is used as is. But it is also possible to subdivide each of these images into smaller ones. For this, use the ``subdivide_images`` and possibly the ``subdivide_ext`` properties on the layer item.</span>
+
+<span class="sd">Sub images with different scale levels can be generated by the `build_multiscale_map tool`_.</span>
+
+<span class="sd">Subdivided large rectangle</span>
+<span class="sd">++++++++++++++++++++++++++</span>
+
+<span class="sd">In this situation, the image map layer should use the ``regular_grid_size`` proprety, and have a single child, a rectangle (rather than a big image). This rectangle has howeer to indicate the base filename for sub_images, using the ``image_map_filename`` property.</span>
+
+<span class="sd">Sub images with different scale levels can be also generated by the `build_multiscale_map tool`_.</span>
+
+<span class="sd">.. _build_multiscale_map:</span>
+
+<span class="sd">build_multiscale_map tool</span>
+<span class="sd">+++++++++++++++++++++++++</span>
+
+<span class="sd">This tool allows to subdivide one or several images and to generate multiscale texture images.</span>
+
+<span class="sd">Run::</span>
+
+<span class="sd">    python -m catamap.build_multiscale_map -h</span>
+
+<span class="sd">to get some help.</span>
+
+<span class="sd">It can be used both to process a single large image (when ising ``regular_grid_size`` in an ``image_map`` layer) (use the mage full filename for the ``-i`` option of the commandline), or to process a complete directory of images, like in the ``image_map`` with a set of child images. Note that in the latter case, the ``-b`` parameter should not be used.</span>
+
+<span class="sd">.. note:: alternative maps</span>
+
+<span class="sd">    In the specific case when an image map category is ``Carte 2D``, the web code allows to pass an alternative image map directory to be used instead of the regular ones. This allows to display variants of 2D maps in the same web application. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the ``build_multiscale_map`` tool -always suffix the directory with ``_map``, and then call the web app using the URL query string ``alt_map=...`.</span>
+
+<span class="sd">    For instance if you generate the alternative images in ``bator_map/``, then call the web app as ``index.html?alt_map=bator``.</span>
+
+<span class="sd">    Remember that the file names inside the images map alternative directory should be the same as in the regular one. Use the ``-b`` option th ensure it.</span>
 
 
 <span class="sd">map_to_meshes module</span>

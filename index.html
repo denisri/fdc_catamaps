@@ -247,6 +247,14 @@ ground, but above or below as specified.</p>
 layer will be included in the 3D scene as the “IGC” category. See
 <a class="reference internal" href="#flat-maps"><span class="std std-ref">Flat images as textured rectangles</span></a> for more details.</p>
 </dd>
+<dt><strong>image_map_filename:</strong> str (<strong>3D maps</strong>)</dt><dd><p>This should be set on the single rectangle child of an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer
+on which the <code class="docutils literal notranslate"><span class="pre">regular_grid_size</span></code> property is set. Then the rectangle
+corresponds to a large image which is subdivided. This property tells the
+filename and extension base for the images. This filename will be appended
+x, y coordinates.</p>
+<p>Use the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">catamap.build_multiscale_map</span></code> to generate the
+<a class="reference internal" href="#build-multiscale-map"><span class="std std-ref">multiscale sub-images</span></a>.</p>
+</dd>
 <dt><strong>inaccessible:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>inaccessible elements will be separated from others, and set in the
 <code class="docutils literal notranslate"><span class="pre">Inaccessible</span></code> display category.</p>
 </dd>
@@ -363,6 +371,18 @@ and the marker position for it to be triggered. It can be set on the marker
 layer itself, or on any marker item inside.</p>
 <p>See <a class="reference internal" href="#markers"><span class="std std-ref">Markers</span></a> for more details.</p>
 </dd>
+<dt><strong>regular_grid_size:</strong> JSON int or list (<strong>3D maps</strong>)</dt><dd><blockquote>
+<div><p>When set on an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer, tells that there is only one large
+image in the layer, and that this image needs to be cut into a grid of
+smaller ones. This is the number of subdivisions, either as a single int
+number (same subdivisions in x and y axes) or a list of 2 elements ([x, y]
+subdivisions).</p>
+<p>When this is used, the only (first) child of the layer should be a
+rectangle, on which the property <code class="docutils literal notranslate"><span class="pre">image_map_filename</span></code> should be set.</p>
+<p>Use the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">catamap.build_multiscale_map</span></code> to generate the</p>
+</div></blockquote>
+<p>:ref:<a href="#id3"><span class="problematic" id="id4">`</span></a>multiscale sub-images &lt;build_multiscale_map&gt;`s.</p>
+</dd>
 <dt><strong>relative_to:</strong> str (<strong>3D maps</strong>)</dt><dd><p>for height maps or depth maps layers, specify to which depth map the height
 is relative to. The default is surface depth (which means 0 or the ground
 altitude map).</p>
@@ -375,6 +395,15 @@ recursively and their children may be replaced also.</p>
 </dd>
 <dt><strong>shadow_scale:</strong> float (2D maps)</dt><dd><p>in the metadata layer, sets a global shadow scale applied to all shadow
 operations.</p>
+</dd>
+<dt><strong>subdivide_images:</strong> int (<strong>3D maps</strong>)</dt><dd><p>When set on an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer, tells that each image in the layer is
+subdiveided in this number of smaller images in each direction. Sub_images
+are suffixed with x,y position.</p>
+<p>Use the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">catamap.build_multiscale_map</span></code> to generate the
+<a class="reference internal" href="#build-multiscale-map"><span class="std std-ref">multiscale sub-images</span></a>.</p>
+</dd>
+<dt><strong>subdivide_ext:</strong> str (<strong>3D maps</strong>)</dt><dd><p>On an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer, and when <code class="docutils literal notranslate"><span class="pre">subdivide_images</span></code> is used, tell the
+files extension used for sub-images (like <code class="docutils literal notranslate"><span class="pre">webp</span></code>, <code class="docutils literal notranslate"><span class="pre">jpg</span></code> etc).</p>
 </dd>
 <dt><strong>symbol:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>not sure it is used, after all…</p>
 </dd>
@@ -437,7 +466,7 @@ or layers) shoud specify the level and upper_level.</p>
 element (a circle for instance), or a group (a grop containing a circle,
 and additional lines). Thus allowed values are <code class="docutils literal notranslate"><span class="pre">path</span></code> or <code class="docutils literal notranslate"><span class="pre">group</span></code>.</p>
 </dd>
-<dt><strong>z_scale:</strong> float or “auto” (<a href="#id3"><span class="problematic" id="id4">**</span></a>3D maps)</dt><dd><p>Can be set <strong>in the SVG metadtadata layer</strong>. This scale factor applies to
+<dt><strong>z_scale:</strong> float or “auto” (<a href="#id5"><span class="problematic" id="id6">**</span></a>3D maps)</dt><dd><p>Can be set <strong>in the SVG metadtadata layer</strong>. This scale factor applies to
 depths and heights in order to match x, y scalings which may be arbitraty.
 The default is 0.5 and is also arbitrary. If it is set to “auto”, then if
 <strong>lambert93</strong> coordinates are provied in the appropriate layer, the scale
@@ -460,7 +489,7 @@ See also <a class="reference internal" href="#zoomed-regions"><span class="std s
 </dl>
 </section>
 <section id="maps-types">
-<span id="id5"></span><h3>Maps types<a class="headerlink" href="#maps-types" title="Link to this heading">¶</a></h3>
+<span id="id7"></span><h3>Maps types<a class="headerlink" href="#maps-types" title="Link to this heading">¶</a></h3>
 <p>Most common types, such as “public”, “private” are (for now at least) builtin
 in the program, but the <code class="docutils literal notranslate"><span class="pre">maps_def</span></code> property dict in the metadata layer allows
 to define new maps types associated with specific filters. Each map type is a
@@ -494,7 +523,7 @@ option of the commandline.</p>
 </dl>
 </section>
 <section id="depth-maps">
-<span id="id6"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Link to this heading">¶</a></h3>
+<span id="id8"></span><h3>Depth maps<a class="headerlink" href="#depth-maps" title="Link to this heading">¶</a></h3>
 <p>Depth maps are layers containing depth information, <strong>and nothing else</strong>.</p>
 <p>Each depth information specifies the depth of a specifi point in the map. They can be specified in several ways:</p>
 <ul class="simple">
@@ -504,7 +533,7 @@ option of the commandline.</p>
 </ul>
 </section>
 <section id="altitude-maps">
-<span id="id7"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Link to this heading">¶</a></h3>
+<span id="id9"></span><h3>Altitude maps<a class="headerlink" href="#altitude-maps" title="Link to this heading">¶</a></h3>
 <p>Altitude maps can be built and used to shift all other depth maps, which are supposed to be relative to the surface ground altitude map (for now at least: we may change this later using an <code class="docutils literal notranslate"><span class="pre">upper_level</span></code> property in depth maps which could be any other map).</p>
 <p>To work we require more information, because we need actual altitude maps, and a geolocalisation of the inkscape SVG file.</p>
 <section id="geolocalisation-of-the-svg-file">
@@ -522,8 +551,8 @@ option of the commandline.</p>
 </ul>
 <p>Lambert 93 positions can be found using <a class="reference external" href="https://www.geoportail.gouv.fr/carte">https://www.geoportail.gouv.fr/carte</a>: on the map, select “tools” on the right, and enable “display coordinates”. Then select for “reference system” the “Lambert 93” mode.</p>
 </section>
-<section id="id8">
-<h4>Altitude maps<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h4>
+<section id="id10">
+<h4>Altitude maps<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h4>
 <p>Altitude maps can be retreived from BDAlti: <a class="reference external" href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti">https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#bd-alti</a></p>
 <p>Then maps have to be converted using tools in <a class="reference internal" href="#module-catamap.altitude.bdalti" title="catamap.altitude.bdalti"><code class="xref py py-mod docutils literal notranslate"><span class="pre">catamap.altitude.bdalti</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">altitude</span></code> directory should be located in the same directory as the SVG map file.</p>
@@ -539,7 +568,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="colorsets">
-<span id="id9"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Link to this heading">¶</a></h3>
+<span id="id11"></span><h3>Colorsets<a class="headerlink" href="#colorsets" title="Link to this heading">¶</a></h3>
 <p>Both 2D and 3D maps, while processed, may assign different colorsets to elements, if specified via the <code class="docutils literal notranslate"><span class="pre">--color</span></code> option. A colorset is a defined by a name. Each element, group, layer, or labelled element can be assigned a different color for each colorset. Colorsets are defined dynamically in the map SVG source file. XML elements having a <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> property can both define colorsets and assign colors.</p>
 <p>A few “hard-coded” colorsets are expected to exist (even it it is not mandatory) and are used by default:</p>
 <ul class="simple">
@@ -582,7 +611,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="markers">
-<span id="id10"></span><h3>Markers<a class="headerlink" href="#markers" title="Link to this heading">¶</a></h3>
+<span id="id12"></span><h3>Markers<a class="headerlink" href="#markers" title="Link to this heading">¶</a></h3>
 <p><strong>Markers</strong> are small marker objects pointing to external links, such as photographs, or sounds. When the user clicks on a marker, or sufficiently close to it in a given radius, it triggers a link to an external resource (an web URL).</p>
 <p>Markers are recorded in dedicated layers in the SVG file. Such layer must have a <code class="docutils literal notranslate"><span class="pre">marker</span></code> property, which value is the type of markers in the layer. Currently two types of markers are handled: <code class="docutils literal notranslate"><span class="pre">photos</span></code> (links to photographs URLS) or <code class="docutils literal notranslate"><span class="pre">sounds</span></code>.</p>
 <p>Sounds are handled specificly using a media player inside the 3D map, whereas photographs are just web links, and may actually point to any web resource or page (web page, photo file, video, or anything).</p>
@@ -640,7 +669,7 @@ The result in 2D is (left: original map, right: result):</p>
 </section>
 </section>
 <section id="zoomed-regions">
-<span id="id11"></span><h3>Zoomed regions<a class="headerlink" href="#zoomed-regions" title="Link to this heading">¶</a></h3>
+<span id="id13"></span><h3>Zoomed regions<a class="headerlink" href="#zoomed-regions" title="Link to this heading">¶</a></h3>
 <p>Zoomed regions may be displayed to represent en enlarged duplicated portion of the original map. To do so we need 3 components, in 3 different layers:</p>
 <ul class="simple">
 <li><p>a source zoomed region definition. This is done in a layer containing a <code class="docutils literal notranslate"><span class="pre">zoom_area_id</span></code> property, this layer should contain a single closed and connected polygon, which traces the region to be zoomed. The <cite>zoom_area_id`</cite> identifier will be matched to a target zoom region.</p></li>
@@ -667,7 +696,7 @@ The result in 2D is (left: original map, right: result):</p>
 <p>Other properties may be specified (like the spot cone angle) as in <a class="reference external" href="https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md">https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md</a></p>
 </section>
 <section id="texturing">
-<span id="id12"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Link to this heading">¶</a></h3>
+<span id="id14"></span><h3>Texturing<a class="headerlink" href="#texturing" title="Link to this heading">¶</a></h3>
 <p>In 3D mode, elements are transformed into meshes. By default meshes have a color but no texture (images mapped on the meshes). It is possible to specify texturing, by using images loaded in a hidden layer of the SVG file, and telling which texture image is associated with given elements, and how it is mapped.</p>
 <p>Texturing involves 3 parts: texture images, mesh-image mapping, and texturing properties.</p>
 <section id="texture-images">
@@ -719,7 +748,36 @@ At the moment, only limited support for properties is implemented, and such prop
 <li><p><code class="docutils literal notranslate"><span class="pre">map_dirs</span></code>: a list of ordered directories where the image files will be looked for on the web server side. Each image should be found in each of these directories. Each directory corresponds to a image map resolution, in increasing order. For instance, if <code class="docutils literal notranslate"><span class="pre">map_dirs</span></code> is <code class="docutils literal notranslate"><span class="pre">[&quot;igc/01&quot;,</span> <span class="pre">&quot;igc/02&quot;]</span></code>, then the lowest resolution images are in <code class="docutils literal notranslate"><span class="pre">igc/01</span></code> and the highest ones are in <code class="docutils literal notranslate"><span class="pre">igc/02</span></code>. Images of the lowest resolution will be loaded first, then they will be replaced on the fly with higher resolution ones according to the proximity of the camera in the 3D scene. This way high resolution maps will be represented near the camera, and lower resolution ones for far images.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code> is the height level maps are aligned in 3D maps. Default is <code class="docutils literal notranslate"><span class="pre">sup</span></code>, as for all other items.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">height_shift</span></code> may be used to shift the level of 3D maps, in order to make them appear under the corridors, for instance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">category</span></code> is used to assign the images map to a categry with a button and opacity cursor.</p></li>
 </ul>
+<p>An image map may be a set of images (like IGC maps), or a single large rectangle which represents a large image which will be subdivided into a set of smaller images.</p>
+<section id="individual-images">
+<h4>Individual images<a class="headerlink" href="#individual-images" title="Link to this heading">¶</a></h4>
+<p>Each child of the image map layer is an image element, with a filename/URL. By default it is used as is. But it is also possible to subdivide each of these images into smaller ones. For this, use the <code class="docutils literal notranslate"><span class="pre">subdivide_images</span></code> and possibly the <code class="docutils literal notranslate"><span class="pre">subdivide_ext</span></code> properties on the layer item.</p>
+<p>Sub images with different scale levels can be generated by the <a class="reference internal" href="#build-multiscale-map-tool">build_multiscale_map tool</a>.</p>
+</section>
+<section id="subdivided-large-rectangle">
+<h4>Subdivided large rectangle<a class="headerlink" href="#subdivided-large-rectangle" title="Link to this heading">¶</a></h4>
+<p>In this situation, the image map layer should use the <code class="docutils literal notranslate"><span class="pre">regular_grid_size</span></code> proprety, and have a single child, a rectangle (rather than a big image). This rectangle has howeer to indicate the base filename for sub_images, using the <code class="docutils literal notranslate"><span class="pre">image_map_filename</span></code> property.</p>
+<p>Sub images with different scale levels can be also generated by the <a class="reference internal" href="#build-multiscale-map-tool">build_multiscale_map tool</a>.</p>
+</section>
+<section id="build-multiscale-map-tool">
+<span id="build-multiscale-map"></span><h4>build_multiscale_map tool<a class="headerlink" href="#build-multiscale-map-tool" title="Link to this heading">¶</a></h4>
+<p>This tool allows to subdivide one or several images and to generate multiscale texture images.</p>
+<p>Run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">catamap</span><span class="o">.</span><span class="n">build_multiscale_map</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>to get some help.</p>
+<p>It can be used both to process a single large image (when ising <code class="docutils literal notranslate"><span class="pre">regular_grid_size</span></code> in an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer) (use the mage full filename for the <code class="docutils literal notranslate"><span class="pre">-i</span></code> option of the commandline), or to process a complete directory of images, like in the <code class="docutils literal notranslate"><span class="pre">image_map</span></code> with a set of child images. Note that in the latter case, the <code class="docutils literal notranslate"><span class="pre">-b</span></code> parameter should not be used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>alternative maps</p>
+<p>In the specific case when an image map category is <code class="docutils literal notranslate"><span class="pre">Carte</span> <span class="pre">2D</span></code>, the web code allows to pass an alternative image map directory to be used instead of the regular ones. This allows to display variants of 2D maps in the same web application. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the <code class="docutils literal notranslate"><span class="pre">build_multiscale_map</span></code> tool -always suffix the directory with <code class="docutils literal notranslate"><span class="pre">_map</span></code>, and then call the web app using the URL query string <a href="#id15"><span class="problematic" id="id16">``</span></a>alt_map=…`.</p>
+<p>For instance if you generate the alternative images in <code class="docutils literal notranslate"><span class="pre">bator_map/</span></code>, then call the web app as <code class="docutils literal notranslate"><span class="pre">index.html?alt_map=bator</span></code>.</p>
+<p>Remember that the file names inside the images map alternative directory should be the same as in the regular one. Use the <code class="docutils literal notranslate"><span class="pre">-b</span></code> option th ensure it.</p>
+</div>
+</section>
 </section>
 </section>
 <section id="map-to-meshes-module">
@@ -1197,7 +1255,7 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#depth-maps">Depth maps</a></li>
 <li><a class="reference internal" href="#altitude-maps">Altitude maps</a><ul>
 <li><a class="reference internal" href="#geolocalisation-of-the-svg-file">Geolocalisation of the SVG file</a></li>
-<li><a class="reference internal" href="#id8">Altitude maps</a></li>
+<li><a class="reference internal" href="#id10">Altitude maps</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#colorsets">Colorsets</a><ul>
@@ -1218,7 +1276,12 @@ children in a readable dictionary.</p>
 <li><a class="reference internal" href="#texturing-properties">Texturing properties</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#flat-images-as-textured-rectangles">Flat images as textured rectangles</a></li>
+<li><a class="reference internal" href="#flat-images-as-textured-rectangles">Flat images as textured rectangles</a><ul>
+<li><a class="reference internal" href="#individual-images">Individual images</a></li>
+<li><a class="reference internal" href="#subdivided-large-rectangle">Subdivided large rectangle</a></li>
+<li><a class="reference internal" href="#build-multiscale-map-tool">build_multiscale_map tool</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#map-to-meshes-module">map_to_meshes module</a><ul>
