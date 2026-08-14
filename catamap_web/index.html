@@ -689,6 +689,11 @@
       });
     }
 
+    // 2D map dir or alternative
+    var image_maps_directory = {};
+    if(query['alt_map'])
+      image_maps_directory['Carte 2D'] = query['alt_map'] + '_map';
+
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -2142,7 +2147,7 @@
 
       // console.log('load_nearest_maps do it');
       const order = nearest_maps(cat);
-      const n_per_res = 4;
+      const n_per_res = [8, 32, 64];
       const max_n_loading = 4;
       var n_loading = 0;
       const nres = map_objects.image_maps[cat].map_dirs.length;
@@ -2159,9 +2164,27 @@
       if(n_loading >= max_n_loading)
         return;
 
-      for(let i=order.length - 1; i>=0 && n_loading<max_n_loading; i--)
+      // for(let i=order.length - 1; i>=0 && n_loading<max_n_loading; i--)
+      for(let i=0; i<order.length && n_loading<max_n_loading; i++)
       {
-        var res = nres - 1 - Math.floor(i / n_per_res);
+        var dres = 0;
+        var x = 0, n = 0, x0 = 0;
+        while(x <= i)
+        {
+          if(n_per_res.length <= dres)
+            n = n_per_res[n_per_res.length - 1];
+          else
+            n = n_per_res[dres];
+          if(i - x0 >= n)
+          {
+            dres++;
+            x += n;
+            x0 = x;
+          }
+          else
+            break;
+        }
+        var res = nres - 1 - dres;
         if(res < 0)
           res = 0;
         var mesh = image_maps[cat][order[i][0]];
@@ -2175,9 +2198,13 @@
 
           // Load the texture asynchronously
           var textureLoader = new THREE.TextureLoader();
-          const texname = map_objects.image_maps[cat].map_dirs[res] + '/' + order[i][0];
+          var map_dir = map_objects.image_maps[cat].map_dirs[res];
+          if(image_maps_directory[cat])
+            map_dir = image_maps_directory[cat] + '/' + map_dir.replace(/.*\//, '');
+          const texname = map_dir + '/' + order[i][0];
           console.log('loading texture', texname);
-          textureLoader.load(texname, function(texture) {
+          textureLoader.load(texname,
+          function(texture) {
             console.log('texture ', texname, ' loaded');
 
             const mapname = texname.split('/').reverse()[0];
@@ -2190,13 +2217,21 @@
               opacity: maps_opacity[cat], transparent: true
             });
             mesh.material = mat;
-            mesh.load_state = 2; // loaded
+            mesh.load_state = 2;  // loaded
             render();
 
             // maybe load next textures
             load_nearest_maps_cat(cat);
             // }
-          })
+          },
+          null,
+          function(texture) {
+            const mapname = texname.split('/').reverse()[0];
+            var mesh = image_maps[cat][mapname];
+            console.log('texture ', texname, ' load failed.');
+            mesh.load_state = 2;  // loaded (but failed)
+          }
+          )
 
           n_loading++;
         }

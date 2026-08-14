@@ -4476,6 +4476,13 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 lt = self.get_transform(layer)
 
                 if not reg_grid:
+                    subdiv = layer.get('subdivide_images')
+                    sext = layer.get('subdivide_ext')
+                    if subdiv is None:
+                        subdiv = 1
+                    else:
+                        subdiv = int(subdiv)
+
                     for im_xml in layer:
                         self._debug = True
                         tr = self.get_transform(im_xml, previous=lt,
@@ -4485,28 +4492,51 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                         y = float(im_xml.get('y'))
                         w = float(im_xml.get('width'))
                         h = float(im_xml.get('height'))
-                        c1 = tr.dot([x, y, 1.0]).tolist()[0]
-                        c2 = tr.dot([x + w, y, 1.0]).tolist()[0]
-                        c3 = tr.dot([x + w, y + h, 1.0]).tolist()[0]
-                        c4 = tr.dot([x, y + h, 1.0]).tolist()[0]
-                        p1 = self.get_depth(c1, view, object_win_size)
-                        p2 = self.get_depth(c2, view, object_win_size)
-                        p3 = self.get_depth(c3, view, object_win_size)
-                        p4 = self.get_depth(c4, view, object_win_size)
-                        filename = urllib.parse.unquote(im_xml.get(
-                            '{http://www.w3.org/1999/xlink}href'))
-                        filename = filename.rsplit('\\', 1)[-1]
-                        filename = osp.basename(filename)
-                        maps[filename] = [
-                            c1[:2] + [p1 + height_shift
-                                      if p1 is not None else 0.],
-                            c2[:2] + [p2 + height_shift
-                                      if p2 is not None else 0.],
-                            c3[:2] + [p3 + height_shift
-                                      if p3 is not None else 0.],
-                            c4[:2] + [p4 + height_shift
-                                      if p4 is not None else 0.],
-                        ]
+                        rc1 = tr.dot([x, y, 1.0])
+                        rc2 = tr.dot([x + w, y, 1.0])
+                        rc3 = tr.dot([x, y + h, 1.0])
+                        for y in range(subdiv):
+                            for x in range(subdiv):
+                                c1 = tr.dot([x, y, 1.0]).tolist()[0]
+                                c2 = tr.dot([x + w, y, 1.0]).tolist()[0]
+                                c3 = tr.dot([x + w, y + h, 1.0]).tolist()[0]
+                                c4 = tr.dot([x, y + h, 1.0]).tolist()[0]
+                                c1 = rc1 + (rc2 - rc1) * x / subdiv \
+                                    + (rc3 - rc1) * y / subdiv
+                                c2 = rc1 \
+                                    + (rc2 - rc1) * (x + 1) / subdiv \
+                                    + (rc3 - rc1) * y / subdiv
+                                c3 = c2 + (rc3 - rc1) * 1 / subdiv
+                                c4 = c1 + (rc3 - rc1) * 1 / subdiv
+                                c1 = c1.tolist()[0]
+                                c2 = c2.tolist()[0]
+                                c3 = c3.tolist()[0]
+                                c4 = c4.tolist()[0]
+                                p1 = self.get_depth(c1, view, object_win_size)
+                                p2 = self.get_depth(c2, view, object_win_size)
+                                p3 = self.get_depth(c3, view, object_win_size)
+                                p4 = self.get_depth(c4, view, object_win_size)
+
+                                filename = urllib.parse.unquote(im_xml.get(
+                                    '{http://www.w3.org/1999/xlink}href'))
+                                filename = filename.rsplit('\\', 1)[-1]
+                                filename = osp.basename(filename)
+                                if subdiv != 1:
+                                    basename, ext = filename.rsplit('.', 1)
+                                    if sext is not None:
+                                        ext = sext
+                                    filename \
+                                        = f'{basename}_{x:02d}_{y:02d}.{ext}'
+                                maps[filename] = [
+                                    c1[:2] + [p1 + height_shift
+                                              if p1 is not None else 0.],
+                                    c2[:2] + [p2 + height_shift
+                                              if p2 is not None else 0.],
+                                    c3[:2] + [p3 + height_shift
+                                              if p3 is not None else 0.],
+                                    c4[:2] + [p4 + height_shift
+                                              if p4 is not None else 0.],
+                                ]
                 else:  # regular grid
                     reg_grid = json.loads(reg_grid)
                     if isinstance(reg_grid, int):
