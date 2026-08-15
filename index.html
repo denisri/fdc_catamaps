@@ -153,6 +153,11 @@ Ex:</p>
 </div>
 <p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
 </dd>
+<dt><strong>alt_maps:</strong> JSON list (<strong>3D maps</strong>)</dt><dd><p>if set on an <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer, it will tell that alternative variants
+(or versions) of the same 2D maps can be used instead of the default one,
+and will be found in directories named after the alternative names, plus
+the <code class="docutils literal notranslate"><span class="pre">_map</span></code> suffix.</p>
+</dd>
 <dt><strong>arrow:</strong> bool (<strong>3D maps</strong>)</dt><dd><p>arrows join a text label to a location on map. They are filar meshes. Most
 of them are just a segment (2 points) but they may contain more points.
 Points orientation is important as the arrow goes from the text (above the
@@ -773,8 +778,8 @@ At the moment, only limited support for properties is implemented, and such prop
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>alternative maps</p>
-<p>In the specific case when an image map category is <code class="docutils literal notranslate"><span class="pre">Carte</span> <span class="pre">2D</span></code>, the web code allows to pass an alternative image map directory to be used instead of the regular ones. This allows to display variants of 2D maps in the same web application. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the <code class="docutils literal notranslate"><span class="pre">build_multiscale_map</span></code> tool -always suffix the directory with <code class="docutils literal notranslate"><span class="pre">_map</span></code>, and then call the web app using the URL query string <a href="#id15"><span class="problematic" id="id16">``</span></a>alt_map=…`.</p>
-<p>For instance if you generate the alternative images in <code class="docutils literal notranslate"><span class="pre">bator_map/</span></code>, then call the web app as <code class="docutils literal notranslate"><span class="pre">index.html?alt_map=bator</span></code>.</p>
+<p>It is possible to provide several variants of 2D maps. Alternative image map directories can be set in the <code class="docutils literal notranslate"><span class="pre">alt_maps</span></code> property of the <code class="docutils literal notranslate"><span class="pre">image_map</span></code> layer. The web interface will then present a choice that the user can change. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the <code class="docutils literal notranslate"><span class="pre">build_multiscale_map</span></code> tool -always suffix the directory with <code class="docutils literal notranslate"><span class="pre">_map</span></code>.</p>
+<p>For instance if you generate the alternative images in <code class="docutils literal notranslate"><span class="pre">bator_map/</span></code>, then call set the <code class="docutils literal notranslate"><span class="pre">alt_maps</span></code> property to <code class="docutils literal notranslate"><span class="pre">[&quot;bator&quot;]</span></code>.</p>
 <p>Remember that the file names inside the images map alternative directory should be the same as in the regular one. Use the <code class="docutils literal notranslate"><span class="pre">-b</span></code> option th ensure it.</p>
 </div>
 </section>

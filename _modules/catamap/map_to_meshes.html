@@ -160,6 +160,12 @@
 
 <span class="sd">    see also: :ref:`colorsets`</span>
 
+<span class="sd">**alt_maps:** JSON list (**3D maps**)</span>
+<span class="sd">    if set on an ``image_map`` layer, it will tell that alternative variants</span>
+<span class="sd">    (or versions) of the same 2D maps can be used instead of the default one,</span>
+<span class="sd">    and will be found in directories named after the alternative names, plus</span>
+<span class="sd">    the ``_map`` suffix.</span>
+
 <span class="sd">**arrow:** bool (**3D maps**)</span>
 <span class="sd">    arrows join a text label to a location on map. They are filar meshes. Most</span>
 <span class="sd">    of them are just a segment (2 points) but they may contain more points.</span>
@@ -871,9 +877,9 @@
 
 <span class="sd">.. note:: alternative maps</span>
 
-<span class="sd">    In the specific case when an image map category is ``Carte 2D``, the web code allows to pass an alternative image map directory to be used instead of the regular ones. This allows to display variants of 2D maps in the same web application. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the ``build_multiscale_map`` tool -always suffix the directory with ``_map``, and then call the web app using the URL query string ``alt_map=...`.</span>
+<span class="sd">    It is possible to provide several variants of 2D maps. Alternative image map directories can be set in the ``alt_maps`` property of the ``image_map`` layer. The web interface will then present a choice that the user can change. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the ``build_multiscale_map`` tool -always suffix the directory with ``_map``.</span>
 
-<span class="sd">    For instance if you generate the alternative images in ``bator_map/``, then call the web app as ``index.html?alt_map=bator``.</span>
+<span class="sd">    For instance if you generate the alternative images in ``bator_map/``, then call set the ``alt_maps`` property to ``[&quot;bator&quot;]``.</span>
 
 <span class="sd">    Remember that the file names inside the images map alternative directory should be the same as in the regular one. Use the ``-b`` option th ensure it.</span>
 
@@ -4609,6 +4615,11 @@
                 <span class="k">elif</span> <span class="ow">not</span> <span class="n">image_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;map_dirs&#39;</span><span class="p">):</span>
                     <span class="n">image_map</span><span class="p">[</span><span class="s1">&#39;map_dirs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;../igc/01&quot;</span><span class="p">,</span> <span class="s2">&quot;../igc/02&quot;</span><span class="p">]</span>
 
+                <span class="n">alt_maps</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt_maps&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">alt_maps</span><span class="p">:</span>
+                    <span class="n">alt_maps</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">alt_maps</span><span class="p">)</span>
+                    <span class="n">image_map</span><span class="p">[</span><span class="s1">&#39;alt_maps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_maps</span>
+
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;building image map&#39;</span><span class="p">,</span> <span class="n">category</span><span class="p">)</span>
                 <span class="n">reg_grid</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regular_grid_size&#39;</span><span class="p">)</span>
 
@@ -6835,6 +6846,12 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_background</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="s1">&#39;couleur_fond&#39;</span><span class="p">,</span> <span class="s1">&#39;couleur_fond sud&#39;</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">ItemProperties</span><span class="o">.</span><span class="n">is_true</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;background&#39;</span><span class="p">)):</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}label&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removed_labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">do_remove_layers</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_private</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
@@ -7682,10 +7699,13 @@
                   <span class="s1">&#39;clip_border&#39;</span><span class="p">)</span>
         <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;{http://www.inkscape.org/namespaces/inkscape}groupmode&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;layer&#39;</span><span class="p">)</span>
-        <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;display:none&#39;</span><span class="p">)</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="s1">&#39;display:none;&#39;</span><span class="p">)</span>
         <span class="n">layer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;clip_border&#39;</span><span class="p">)</span>
         <span class="n">layer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rect</span><span class="p">))</span>
         <span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">rect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>  <span class="c1"># copy same id</span>
+        <span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="s1">&#39;style&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;display: inline; fill: none; stroke: #505050; stroke-width: 1&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">trans</span><span class="p">)</span></div>
 
@@ -8222,6 +8242,9 @@
         <span class="s1">&#39;--list-filters&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list available filters in 2D maps&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;--filter&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;use additional filter(s)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;--split&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;split the SVG file into 4 smaller ones, each containing a &#39;</span>
         <span class="s1">&#39;subset of the layers&#39;</span><span class="p">)</span>
@@ -8365,6 +8388,7 @@
             <span class="n">gpu_nproc</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">gpu_nproc</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">gpu_nproc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gpu_nproc</span><span class="p">)</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">filter</span>
 
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="p">()</span>
@@ -8422,6 +8446,10 @@
             <span class="n">svg_mesh</span><span class="o">.</span><span class="n">map_name</span> <span class="o">=</span> <span class="n">map_type</span>
             <span class="n">maps_def</span> <span class="o">=</span> <span class="n">svg_mesh</span><span class="o">.</span><span class="n">read_maps_def</span><span class="p">(</span><span class="n">xml_et</span><span class="p">,</span> <span class="n">colorset</span><span class="p">)</span>
             <span class="n">map_def</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">maps_def</span><span class="p">[</span><span class="n">map_type</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
+                <span class="n">filt</span> <span class="o">=</span> <span class="n">map_def</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;filters&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="n">filt</span> <span class="o">+=</span> <span class="n">filters</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FILTERS:&#39;</span><span class="p">,</span> <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">&#39;clip_rect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">clip_rect</span>
             <span class="k">if</span> <span class="n">do_pdf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
