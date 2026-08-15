@@ -121,6 +121,12 @@ Properties list
 
     see also: :ref:`colorsets`
 
+**alt_maps:** JSON list (**3D maps**)
+    if set on an ``image_map`` layer, it will tell that alternative variants
+    (or versions) of the same 2D maps can be used instead of the default one,
+    and will be found in directories named after the alternative names, plus
+    the ``_map`` suffix.
+
 **arrow:** bool (**3D maps**)
     arrows join a text label to a location on map. They are filar meshes. Most
     of them are just a segment (2 points) but they may contain more points.
@@ -832,9 +838,9 @@ It can be used both to process a single large image (when ising ``regular_grid_s
 
 .. note:: alternative maps
 
-    In the specific case when an image map category is ``Carte 2D``, the web code allows to pass an alternative image map directory to be used instead of the regular ones. This allows to display variants of 2D maps in the same web application. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the ``build_multiscale_map`` tool -always suffix the directory with ``_map``, and then call the web app using the URL query string ``alt_map=...`.
+    It is possible to provide several variants of 2D maps. Alternative image map directories can be set in the ``alt_maps`` property of the ``image_map`` layer. The web interface will then present a choice that the user can change. For instance a black map could be replaced with a white map. To do so, just generate alternative multiscale image map directory using the ``build_multiscale_map`` tool -always suffix the directory with ``_map``.
 
-    For instance if you generate the alternative images in ``bator_map/``, then call the web app as ``index.html?alt_map=bator``.
+    For instance if you generate the alternative images in ``bator_map/``, then call set the ``alt_maps`` property to ``["bator"]``.
 
     Remember that the file names inside the images map alternative directory should be the same as in the regular one. Use the ``-b`` option th ensure it.
 
@@ -4541,6 +4547,11 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 elif not image_map.get('map_dirs'):
                     image_map['map_dirs'] = ["../igc/01", "../igc/02"]
 
+                alt_maps = layer.get('alt_maps')
+                if alt_maps:
+                    alt_maps = json.loads(alt_maps)
+                    image_map['alt_maps'] = alt_maps
+
                 print('building image map', category)
                 reg_grid = layer.get('regular_grid_size')
 
@@ -6749,6 +6760,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
     def remove_background(self, xml):
         self.removed_labels.update(('couleur_fond', 'couleur_fond sud',))
+        for layer in self.get_layers(xml, recursive=False, parent=False):
+            if ItemProperties.is_true(layer.get('background')):
+                label = layer.get(
+                    '{http://www.inkscape.org/namespaces/inkscape}label')
+                self.removed_labels.add(label)
+
         self.do_remove_layers(xml)
 
     def remove_private(self, xml):
@@ -7594,10 +7611,13 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
                   'clip_border')
         layer.set('{http://www.inkscape.org/namespaces/inkscape}groupmode',
                   'layer')
-        layer.set('style', 'display:none')
+        layer.set('style', 'display:none;')
         layer.set('id', 'clip_border')
         layer.append(copy.deepcopy(rect))
         layer[0].set('id', rect.get('id'))  # copy same id
+        layer[0].set(
+            'style',
+            'display: inline; fill: none; stroke: #505050; stroke-width: 1')
         if trans is not None:
             self.set_transform(layer, trans)
 
@@ -8129,6 +8149,9 @@ The program allows to produce:
         '--list-filters', action='store_true',
         help='list available filters in 2D maps')
     parser.add_argument(
+        '-f', '--filter', nargs='*', default=[],
+        help='use additional filter(s)')
+    parser.add_argument(
         '--split', action='store_true',
         help='split the SVG file into 4 smaller ones, each containing a '
         'subset of the layers')
@@ -8272,6 +8295,7 @@ The program allows to produce:
             gpu_nproc = eval(gpu_nproc)
         else:
             gpu_nproc = int(gpu_nproc)
+    filters = options.filter
 
     if do_3d:
         svg_mesh = CataSvgToMesh()
@@ -8329,6 +8353,10 @@ The program allows to produce:
             svg_mesh.map_name = map_type
             maps_def = svg_mesh.read_maps_def(xml_et, colorset)
             map_def = dict(maps_def[map_type])
+            if filters:
+                filt = map_def.setdefault('filters', [])
+                filt += filters
+                print('FILTERS:', map_def['filters'])
             if clip_rect:
                 map_def['clip_rect'] = clip_rect
             if do_pdf is not None:

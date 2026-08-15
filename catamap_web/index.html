@@ -191,6 +191,7 @@
                 left: 20%;
                 display: block;
             }
+            select { font-size: 32px;}
             @media(resolution >= 200dpi)
             {
               .button_bar {
@@ -219,6 +220,9 @@
               }
               audio {
                 font-size: 48px;
+              }
+              select {
+                font_size: 40px;
               }
             }
         </style>
@@ -688,11 +692,6 @@
         $.ajaxSetup({ cache: false });
       });
     }
-
-    // 2D map dir or alternative
-    var image_maps_directory = {};
-    if(query['alt_map'])
-      image_maps_directory['Carte 2D'] = query['alt_map'] + '_map';
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -2020,6 +2019,7 @@
       var menu = document.getElementById('mesh_buttons');
       for(const cat in image_maps)
       {
+        const alt = map_objects.image_maps[cat].alt_maps;
         var gitem = document.createElement('div');
         var cat_id = cat.replace(/\b \b/g, '_');
         gitem.id = 'map_controls_' + cat_id;
@@ -2045,6 +2045,27 @@
         sl.category = cat;
         label.appendChild(sl);
 
+        if(alt)
+        {
+          var alt_sel = document.createElement('select');
+          alt_sel.id = 'maps_select_' + cat_id;
+          alt_sel.name = cat;
+          var sel_opt = document.createElement('option');
+          sel_opt.value = 'default';
+          sel_opt.innerHTML = 'default';
+          alt_sel.appendChild(sel_opt);
+          for(const alt_map_i in alt)
+          {
+            const alt_map = alt[alt_map_i];
+            sel_opt = document.createElement('option');
+            sel_opt.value = alt_map;
+            sel_opt.innerHTML = alt_map;
+            alt_sel.appendChild(sel_opt);
+          }
+          label.appendChild(alt_sel);
+          alt_sel.addEventListener('change', alt_map_selected);
+        }
+
         const sep = document.getElementById('categories_sep');
         menu.insertBefore(gitem, sep);
         // var br = document.createElement('br');
@@ -2055,6 +2076,20 @@
         // prevent rotating the scene while using the slider
         sl.addEventListener('mousedown', ignore_event);
       }
+    }
+
+
+    function alt_map_selected(event)
+    {
+      const cat = event.target.name;
+      console.log('alt_map_selected:', cat);
+      console.log('value:', this.value);
+      selected_alt_image_maps[cat] = this.value;
+      for(var [mesh_id, mesh] of Object.entries(image_maps[cat]))
+      {
+        mesh.load_state = 0;
+      }
+      render();
     }
 
 
@@ -2199,13 +2234,14 @@
           // Load the texture asynchronously
           var textureLoader = new THREE.TextureLoader();
           var map_dir = map_objects.image_maps[cat].map_dirs[res];
-          if(image_maps_directory[cat])
-            map_dir = image_maps_directory[cat] + '/' + map_dir.replace(/.*\//, '');
+          const alt_map = selected_alt_image_maps[cat];
+          if(alt_map != null && alt_map != 'default')
+            map_dir = alt_map + '_map/' + map_dir.replace(/.*\//, '');
           const texname = map_dir + '/' + order[i][0];
-          console.log('loading texture', texname);
+          // console.log('loading texture', texname);
           textureLoader.load(texname,
           function(texture) {
-            console.log('texture ', texname, ' loaded');
+            // console.log('texture ', texname, ' loaded');
 
             const mapname = texname.split('/').reverse()[0];
             var mesh = image_maps[cat][mapname];
@@ -2431,6 +2467,7 @@
 
     var image_maps_visible = {};
     var image_maps = {};
+    var selected_alt_image_maps = {};
     load_image_maps(map_objects);
     // console.log('image_maps:', image_maps);
     if(image_maps.length != 0)
