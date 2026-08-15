@@ -1510,9 +1510,22 @@
     document.addEventListener('mousedown', on_press_scene);
 //     document.addEventListener('mouseup', on_release_scene);
     document.addEventListener('click', on_release_scene);
+    var last_render = 0;
+    var n_objects_loading = {};
+    const max_objects_loading = 4;
+
+
+    function num_objects_loading()
+    {
+      var num  = 0;
+      for(const [cat, n] of Object.entries(n_objects_loading))
+        num += n;
+      return num;
+    }
 
 
     function render() {
+        // console.log('render!');
         var dir = new THREE.Vector3(0, 0, 0);
         dir = camera.getWorldDirection(dir);
         light.position.x = -dir.x;
@@ -1524,6 +1537,16 @@
         load_nearest_maps();
 
         renderer.render(scene, camera);
+        const t = Date.now();
+        last_render = t;
+    }
+
+
+    function render_stacked() {
+      // console.log('render_stacked...');
+      const t = Date.now();
+      if(t - last_render >= 1000 || num_objects_loading() == 0)
+        return render();
     }
 
 
@@ -2183,8 +2206,8 @@
       // console.log('load_nearest_maps do it');
       const order = nearest_maps(cat);
       const n_per_res = [8, 32, 64];
-      const max_n_loading = 4;
-      var n_loading = 0;
+      var n_loading = num_objects_loading();
+      console.log('objects loading:', n_loading);
       const nres = map_objects.image_maps[cat].map_dirs.length;
       for(let i=order.length - 1; i>=0; i--)
       {
@@ -2196,11 +2219,10 @@
       }
       // console.log('n_loading:', n_loading);
 
-      if(n_loading >= max_n_loading)
+      if(n_loading >= max_objects_loading && n_objects_loading[cat] != 0)
         return;
 
-      // for(let i=order.length - 1; i>=0 && n_loading<max_n_loading; i--)
-      for(let i=0; i<order.length && n_loading<max_n_loading; i++)
+      for(let i=0; i<order.length && n_loading<max_objects_loading; i++)
       {
         var dres = 0;
         var x = 0, n = 0, x0 = 0;
@@ -2254,7 +2276,8 @@
             });
             mesh.material = mat;
             mesh.load_state = 2;  // loaded
-            render();
+            n_objects_loading[cat]--;
+            render_stacked();
 
             // maybe load next textures
             load_nearest_maps_cat(cat);
@@ -2266,10 +2289,14 @@
             var mesh = image_maps[cat][mapname];
             console.log('texture ', texname, ' load failed.');
             mesh.load_state = 2;  // loaded (but failed)
+            n_objects_loading[cat]--;
           }
           )
 
           n_loading++;
+          if(n_objects_loading[cat] == null)
+            n_objects_loading[cat] = 0;
+          n_objects_loading[cat]++;
         }
       }
     }
