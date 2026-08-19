@@ -154,7 +154,7 @@
                 color: #d0d0d0;
                 width: 30px;
                 z-index: 10;
-                font-size: 24px;
+                font-size: 32px;
             }
             .media_button:hover {
                 background-color: #a0a0a0d0;
@@ -2044,7 +2044,7 @@
       {
         const alt = map_objects.image_maps[cat].alt_maps;
         var gitem = document.createElement('div');
-        var cat_id = cat.replace(/\b \b/g, '_');
+        const cat_id = cat.replace(/\b \b/g, '_');
         gitem.id = 'map_controls_' + cat_id;
         var label = document.createElement('label');
         var inp = document.createElement('input');
@@ -2088,6 +2088,13 @@
           label.appendChild(alt_sel);
           alt_sel.addEventListener('change', alt_map_selected);
         }
+        var dld = document.createElement('input');
+        dld.type = 'button';
+        dld.id = 'download_' + cat_id;
+        dld.category = cat;
+        // dld.class = 'media_button';
+        dld.value = '⬇️';
+        label.appendChild(dld);
 
         const sep = document.getElementById('categories_sep');
         menu.insertBefore(gitem, sep);
@@ -2098,6 +2105,7 @@
         sl.addEventListener('input', maps_opacity_changed, {capture: true});
         // prevent rotating the scene while using the slider
         sl.addEventListener('mousedown', ignore_event);
+        dld.addEventListener('click', download_map_clicked, {capture: true});
       }
     }
 
@@ -2195,6 +2203,8 @@
     {
       for(const cat in image_maps)
         load_nearest_maps_cat(cat);
+      // console.log('mem:', performance.memory.usedJSHeapSize, '/', performance.memory.jsHeapSizeLimit);
+      // console.log('mes:', performance.measureUserAgentSpecificMemory);
     }
 
 
@@ -2205,9 +2215,9 @@
 
       // console.log('load_nearest_maps do it');
       const order = nearest_maps(cat);
-      const n_per_res = [8, 32, 64];
+      const n_per_res = [4, 16, 64];
       var n_loading = num_objects_loading();
-      console.log('objects loading:', n_loading);
+      // console.log('objects loading:', n_loading);
       const nres = map_objects.image_maps[cat].map_dirs.length;
       for(let i=order.length - 1; i>=0; i--)
       {
@@ -2290,6 +2300,8 @@
             console.log('texture ', texname, ' load failed.');
             mesh.load_state = 2;  // loaded (but failed)
             n_objects_loading[cat]--;
+            // maybe load next textures
+            load_nearest_maps_cat(cat);
           }
           )
 
@@ -2299,6 +2311,95 @@
           n_objects_loading[cat]++;
         }
       }
+    }
+
+
+    function preload_map_images(cat)
+    {
+      const image_map = map_objects.image_maps[cat];
+      var im_loading = image_maps_loading[cat];
+      const alt_map = selected_alt_image_maps[cat];
+      var map_dir;
+      var nl = 0, loading = 0;
+      for(var [fn, fd] of Object.entries(im_loading.files))
+      {
+        if(fd == 0)
+          nl++;
+        else if(fd == 1)
+          loading++;
+      }
+
+      console.log('loaded:', nl, ', loading:', loading);
+      for(var im=image_map.map_dirs.length - 1; im >= 0; im--)
+      {
+        map_dir = image_map.map_dirs[im];
+        if(alt_map != null && alt_map != 'default')
+          map_dir = alt_map + '_map/' + map_dir.replace(/.*\//, '');
+        const files = image_map.maps;
+
+        for(const fn in image_map.maps)
+        {
+          const full_name = map_dir + '/' + fn;
+          const state = im_loading.files[full_name];
+          if(state == null || state == 0)
+          {
+            console.log('load:', full_name);
+            im_loading.files[full_name] = 1;  // loading
+
+            preload_file(cat, full_name);
+
+            loading++;
+            if(loading >= max_objects_loading)
+              return;
+          }
+        }
+      }
+
+      if(loading == 0)
+      {
+        console.log('all loaded.');
+        im_loading.loading_state = false;
+        const cat_id = cat.replace(/\b \b/g, '_');
+        document.getElementById('download_' + cat_id).value = '⬇️';
+      }
+    }
+
+
+    async function preload_file(cat, full_name)
+    {
+      const response = await fetch(full_name);
+      var im_loading = image_maps_loading[cat];
+      im_loading.files[full_name] = 2;  // loaded
+
+      preload_map_images(cat);
+    }
+
+
+    function download_map_clicked(event)
+    {
+      const cat = this.category;
+      console.log('download', cat);
+      var im_loading = image_maps_loading[cat];
+      if(im_loading == null)
+      {
+        im_loading = {'loading_state': false, 'files': {}};
+        image_maps_loading[cat] = im_loading;
+      }
+
+      const cat_id = cat.replace(/\b \b/g, '_');
+
+      if(im_loading.loading_state)
+      {
+        console.log('stopped download.');
+        im_loading.loading_state = false;
+        document.getElementById('download_' + cat_id).value = '⬇️';
+        return;
+      }
+      console.log('start download.');
+      im_loading.loading_state = true;
+      document.getElementById('download_' + cat_id).value = '⟳';
+
+      preload_map_images(cat);
     }
 
 
@@ -2495,6 +2596,8 @@
     var image_maps_visible = {};
     var image_maps = {};
     var selected_alt_image_maps = {};
+    var image_maps_loading = {};
+
     load_image_maps(map_objects);
     // console.log('image_maps:', image_maps);
     if(image_maps.length != 0)
