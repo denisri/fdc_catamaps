@@ -17,6 +17,7 @@ const appShellFiles = [
   my_path + '/map_objects.json',
   my_path + '/jquery.js',
   my_path + '/OrbitControls2.js',
+  my_path + '/catamap.css',
   my_path + '/catamap_icon.png',
   my_path + '/catamap_webmanifest.json',
   my_path + '/screenshots/fdc_13_wide.webp',
@@ -58,17 +59,36 @@ function get_meshes()
 }
 
 
+async function get_cache_name()
+{
+    // console.log('get_cache_name:', cacheName);
+    if(cacheName != null)
+      return cacheName;
+
+    map_objects = await wait_json();
+    // console.log('map_objects res:', map_objects);
+    version = map_objects.version;
+    // console.log('map_objects version:', version);
+    cacheName = mapname + '-' + version;
+    // console.log('[Service Worker] cacheName:', cacheName);
+    return cacheName;
+}
+
+
 function install_callback(e)
 {
     console.log('[Service Worker] Install');
     e.waitUntil((async () => {
 
-      map_objects = await wait_json();
-      // console.log('map_objects res:', map_objects);
-      version = map_objects.version;
-      console.log('map_objects version:', version);
-      cacheName = mapname + '-' + version;
-      console.log('[Service Worker] cacheName:', cacheName);
+      // map_objects = await wait_json();
+      // // console.log('map_objects res:', map_objects);
+      // version = map_objects.version;
+      // console.log('map_objects version:', version);
+      // cacheName = mapname + '-' + version;
+      // console.log('[Service Worker] cacheName:', cacheName);
+      await get_cache_name();
+      // console.log('cacheName:', cacheName);
+      // console.log('map_objects:', map_objects);
 
       const meshFiles = get_meshes();
       // console.log('meshes:', meshFiles);
@@ -147,6 +167,7 @@ function fetch_callback(e)
     }
     // console.log(`[Service Worker] Get: ${e.request.url}`);
     const response = await fetch(e.request);
+    await get_cache_name();
     const cache = await caches.open(cacheName);
     console.log(`[Service Worker] Caching new resource in ${cacheName}: ${e.request.url}`);
     cache.put(e.request, response.clone());
@@ -160,6 +181,7 @@ function activate_callback(e)
   console.log('activate');
   e.waitUntil(
     caches.keys().then((keyList) => {
+      get_cache_name();
       return Promise.all(
         keyList.map((key) => {
           if (key === cacheName) {
@@ -174,7 +196,7 @@ function activate_callback(e)
 
 
 // // Installing Service Worker
-console.log('[Service Worker] Installing'); // , cacheName);
+console.log('[Service Worker] Installing');
 //       console.log('self:', self);
 self.addEventListener('install', install_callback);
 
