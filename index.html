@@ -65,12 +65,12 @@ used.</p>
 <p><strong>Warning:</strong> <a class="reference external" href="https://github.com/ImageMagick/ImageMagick/issues/396">https://github.com/ImageMagick/ImageMagick/issues/396</a>
 ImageMagick cache (disk limit) size is too small.
 Edit /etc/ImageMagick-6/policy.xml and change disk resource limit:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;12GiB&quot;</span><span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;map&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;20GiiB&quot;</span><span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;width&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;50KP&quot;</span><span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;height&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;50KP&quot;</span><span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;area&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;20GiB&quot;</span><span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;disk&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;80GiB&quot;</span><span class="o">/&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"memory"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"12GiB"</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"map"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"20GiiB"</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"width"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"50KP"</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"height"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"50KP"</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"area"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"20GiB"</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">policy</span> <span class="n">domain</span><span class="o">=</span><span class="s2">"resource"</span> <span class="n">name</span><span class="o">=</span><span class="s2">"disk"</span> <span class="n">value</span><span class="o">=</span><span class="s2">"80GiB"</span><span class="o">/&gt;</span>
 </pre></div>
 </div>
 </li>
@@ -109,7 +109,7 @@ can install it via pip.</p></li>
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>set the <code class="docutils literal notranslate"><span class="pre">python</span></code> subdirectory of the project in your <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable. Under Unix sh/bash shells, this would be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">&quot;~/fdc_catamaps/python:$PYTHONPATH&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="s2">"~/fdc_catamaps/python:$PYTHONPATH"</span>
 </pre></div>
 </div>
 <p>(it can be set in a <code class="docutils literal notranslate"><span class="pre">.bash_profile</span></code> or <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> init file)</p>
@@ -148,7 +148,7 @@ of dictionary which specifies color properties, a bit like for SVG elements
 style. The
 default colorset for 3D maps is <code class="docutils literal notranslate"><span class="pre">map_3d</span></code>.
 Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"map_3d"</span><span class="p">:</span> <span class="s2">"#cccccc4c"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
@@ -190,7 +190,7 @@ below for details.</p>
 <dl id="colorsets-prop">
 <dt><strong>colorsets:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>used as a property of the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> layer only, it specifies which
 default colorset is associated with specific map types, for instance:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="s2">&quot;igc&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"private"</span><span class="p">:</span> <span class="s2">"black"</span><span class="p">,</span> <span class="s2">"igc"</span><span class="p">:</span> <span class="s2">"igc"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
@@ -272,7 +272,7 @@ official SVG attribute for some elements (rectangles for instance).</p>
 <dt><strong>label_alt_colors:</strong> JSON dict (<strong>2D and 3D maps</strong>)</dt><dd><p>Like alt_colors, except that the dict has an upper-level which keys are
 object labels. The dict can be applied hierarchically, thus put in a layer.
 Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#cccccc4c&quot;</span><span class="p">}}}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"repetiteur"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"black"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bg"</span><span class="p">:</span> <span class="s2">"#cccccc4c"</span><span class="p">}}}</span>
 </pre></div>
 </div>
 <p>see also: <a class="reference internal" href="#colorsets"><span class="std std-ref">Colorsets</span></a></p>
@@ -299,7 +299,7 @@ later.</p></li>
 <dt><strong>main_clip_rect_id:</strong> JSON dict (<strong>2D maps</strong>)</dt><dd><p>set in the Inkscape metadata layer, it indicates the clip rectangle ID (in
 the XML elements IDs) for each map type. A default (fallback) one can be
 given under the key <code class="docutils literal notranslate"><span class="pre">default</span></code> in the dict. Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_general&quot;</span><span class="p">,</span> <span class="s2">&quot;private&quot;</span><span class="p">:</span> <span class="s2">&quot;clip_all&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"default"</span><span class="p">:</span> <span class="s2">"clip_general"</span><span class="p">,</span> <span class="s2">"private"</span><span class="p">:</span> <span class="s2">"clip_all"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>so that, in this example, the <code class="docutils literal notranslate"><span class="pre">private</span></code> map gets a different field of
@@ -501,12 +501,12 @@ to define new maps types associated with specific filters. Each map type is a
 dictionary which defines the following:</p>
 <p>Ex:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;igcportail&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;igcportail&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;igc_FdC&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;shadows&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-        <span class="s2">&quot;do_pdf&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-        <span class="s2">&quot;do_jpg&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="s2">"igcportail"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"igcportail"</span><span class="p">,</span>
+        <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"igc_FdC"</span><span class="p">],</span>
+        <span class="s2">"shadows"</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">"do_pdf"</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">"do_jpg"</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 </pre></div>
@@ -603,14 +603,14 @@ The result in 2D is (left: original map, right: result):</p>
 <li><p>colorsets used only in 3D may shunt the second level and specify directly a single RGBA color string as colorspec value.</p></li>
 </ul>
 <p>Ex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;map_3d&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">,</span>
- <span class="s2">&quot;igc&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ff0000ff&quot;</span><span class="p">},</span>
- <span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#ffffffff&quot;</span><span class="p">,</span> <span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0606060ff&quot;</span><span class="p">,</span> <span class="s2">&quot;stroke-width&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2&quot;</span><span class="p">}}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"map_3d"</span><span class="p">:</span> <span class="s2">"#c0c0c0ff"</span><span class="p">,</span>
+ <span class="s2">"igc"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bg"</span><span class="p">:</span> <span class="s2">"#ff0000ff"</span><span class="p">},</span>
+ <span class="s2">"black"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"fg"</span><span class="p">:</span> <span class="s2">"#ffffffff"</span><span class="p">,</span> <span class="s2">"bg"</span><span class="p">:</span> <span class="s2">"#c0606060ff"</span><span class="p">,</span> <span class="s2">"stroke-width"</span><span class="p">:</span> <span class="s2">"0.2"</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">label_alt_colors</span></code> property has an additional upper level whick key is the element label, and the primary value is like the <code class="docutils literal notranslate"><span class="pre">alt_colors</span></code> dict:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;repetiteur&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}},</span>
- <span class="s2">&quot;marches&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;black&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;fg&quot;</span><span class="p">:</span> <span class="s2">&quot;#c0c0c0ff&quot;</span><span class="p">}}}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"repetiteur"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"black"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"bg"</span><span class="p">:</span> <span class="s2">"#c0c0c0ff"</span><span class="p">}},</span>
+ <span class="s2">"marches"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"black"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"fg"</span><span class="p">:</span> <span class="s2">"#c0c0c0ff"</span><span class="p">}}}</span>
 </pre></div>
 </div>
 </section>
