@@ -185,6 +185,47 @@
                 z-index: 10;
                 font-size: 40px;
             }
+            .download_circle {
+              height: 40px;
+              width: 40px;
+              border-radius: 50%;
+              background: conic-gradient(#ccc 0deg, #888 0deg);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .download_disk {
+              height: 32px;
+              width: 32px;
+              border-radius: 50%;
+              background-color: #666;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .download_btn {
+              font-size: 24px;
+              height: 32px;
+              width: 32px;
+              padding: 0px;
+              margin: 0px;
+              border-radius: 50%;
+              background-image: url("images/download.png");
+              background-size: 28px 28px;
+            }
+            .download_btn_anim {
+              animation: 1s infinite alternate fadeInOut;
+            }
+            @keyframes fadeInOut {
+              from {
+                opacity: 0;
+              }
+
+              to {
+                opacity: 1;
+              }
+            }
+
             #debug_win {
                 position: absolute;
                 top: 20%;
@@ -223,6 +264,20 @@
               }
               select {
                 font_size: 40px;
+              }
+              .download_circle {
+                height: 50px;
+                width: 50px;
+              }
+              .download_disk {
+                height: 42px;
+                width: 42px;
+              }
+              .download_btn {
+                height: 42px;
+                width: 42px;
+                font-size: 32px;
+                background-size: 36px 36px;
               }
             }
         </style>
@@ -2058,7 +2113,7 @@
 
         var sl = document.createElement('input');
         sl.type = 'range';
-        sl.class = 'media_button';
+        // sl.classList.add('media_button');
         sl.id = 'maps_opacity_' + cat_id;
         sl.min = '0';
         sl.max = '100';
@@ -2088,13 +2143,23 @@
           label.appendChild(alt_sel);
           alt_sel.addEventListener('change', alt_map_selected);
         }
+        var dld_circle = document.createElement('div');
+        dld_circle.classList.add('download_circle');
+        dld_circle.id = 'download_circle_' + cat_id;
+        var dld_disk = document.createElement('div');
+        dld_disk.classList.add('download_disk');
         var dld = document.createElement('input');
         dld.type = 'button';
+        // var dld = document.createElement('button');
         dld.id = 'download_' + cat_id;
         dld.category = cat;
-        // dld.class = 'media_button';
-        dld.value = '⬇️';
-        label.appendChild(dld);
+        dld.classList.add('download_btn');
+        // dld.value = '⬇️';
+
+        dld_disk.appendChild(dld);
+        dld_circle.appendChild(dld_disk);
+        label.appendChild(dld_circle);
+
 
         const sep = document.getElementById('categories_sep');
         menu.insertBefore(gitem, sep);
@@ -2318,18 +2383,46 @@
     {
       const image_map = map_objects.image_maps[cat];
       var im_loading = image_maps_loading[cat];
+      if(!im_loading.loading_state)
+        return;
       const alt_map = selected_alt_image_maps[cat];
       var map_dir;
-      var nl = 0, loading = 0;
+      var nl = 0, loading = 0, ntot = 0;
       for(var [fn, fd] of Object.entries(im_loading.files))
       {
-        if(fd == 0)
-          nl++;
+        if(fd == 2)
+        {
+          var ok = true;
+          if(alt_map != null && alt_map != 'default')
+          {
+            if(!fn.startsWith(alt_map + '_map/'))
+              ok = false;
+          }
+          else
+          {
+            ok = false;
+            for(const im in image_map.map_dirs)
+              if(fn.startsWith(image_map.map_dirs[im]))
+              {
+                ok = true;
+                break;
+              }
+          }
+          if(ok)
+            nl++;
+        }
         else if(fd == 1)
           loading++;
       }
 
-      console.log('loaded:', nl, ', loading:', loading);
+      ntot = Object.keys(image_map.maps).length * image_map.map_dirs.length;
+      const nperc = nl / ntot;
+      console.log('loaded:', nl, ', loading:', loading, ', tot:', ntot);
+
+      const cat_id = cat.replace(/\b \b/g, '_');
+      var circ = document.getElementById('download_circle_' + cat_id);
+      circ.style.background = `conic-gradient(#ccc ${nperc * 360}deg, #000 0deg)`;
+
       for(var im=image_map.map_dirs.length - 1; im >= 0; im--)
       {
         map_dir = image_map.map_dirs[im];
@@ -2355,12 +2448,13 @@
         }
       }
 
+
       if(loading == 0)
       {
         console.log('all loaded.');
         im_loading.loading_state = false;
-        const cat_id = cat.replace(/\b \b/g, '_');
-        document.getElementById('download_' + cat_id).value = '⬇️';
+        // document.getElementById('download_' + cat_id).value = '⬇️';
+        document.getElementById('download_' + cat_id).classList.remove('download_btn_anim');
       }
     }
 
@@ -2392,12 +2486,17 @@
       {
         console.log('stopped download.');
         im_loading.loading_state = false;
-        document.getElementById('download_' + cat_id).value = '⬇️';
+        var dlb = document.getElementById('download_' + cat_id);
+        // dlb.value = '⬇️';
+        dlb.classList.remove('download_btn_anim');
+        dlb = document.getElementById('download_circle_' + cat_id);
+        // dlb.style.background = `conic-gradient(#7d2ae8 360deg, #ededed 0deg)`
         return;
       }
       console.log('start download.');
       im_loading.loading_state = true;
-      document.getElementById('download_' + cat_id).value = '⟳';
+      var dlb = document.getElementById('download_' + cat_id);
+      dlb.classList.add('download_btn_anim');
 
       preload_map_images(cat);
     }

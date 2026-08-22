@@ -11,8 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from __future__ import absolute_import
-import sys, os
+import sys
 from catamap import info
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -29,6 +28,7 @@ try:
     # try napoleon which replaces numpydoc (and googledoc),
     # comes with sphinx 1.2
     import sphinx.ext.napoleon
+
     napoleon = 'sphinx.ext.napoleon'
 except ImportError:
     # not available, fallback to numpydoc

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: UTF-8
 
 '''
 Catacombs maps using SVG source map with codes inside it.
@@ -7675,8 +7674,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             'igc': ['remove_non_printable1_pub',
                     'remove_non_printable2',
                     'remove_background', 'remove_limestone', 'remove_zooms',
-                    'remove_other=["raccords plan 2D", "parcelles", '
-                                   '"raccords gtech 2D"]',
+                    ('remove_other=["raccords plan 2D", "parcelles", '
+                                   '"raccords gtech 2D"]'),
                     'show_all', 'date',
                     # 'recolor="%s"' % igc_colorset,
                     # 'layer_opacity=["planches IGC", "0.44"]',
