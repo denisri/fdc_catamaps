@@ -3212,7 +3212,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s1">'gpu_prefixes:'</span><span class="p">,</span> <span class="n">gpu_prefixes</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
             <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork2</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span>
-                <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpu_nproc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">),</span>
+                <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpu_nproc</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">),</span>
                 <span class="n">spawn_prefixes</span><span class="o">=</span><span class="n">gpu_prefixes</span><span class="p">,</span>
                 <span class="n">fork_mode</span><span class="o">=</span><span class="s1">'spawn'</span><span class="p">,</span>
                 <span class="n">init_child_function</span><span class="o">=</span><span class="n">init_child_function</span><span class="p">)</span>
@@ -4204,7 +4204,7 @@
                                 <span class="s1">'depth_meshes'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_aimsmeshes</span><span class="p">}]</span>
         <span class="n">gpu_prefixes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_gpu_prefix_for_workers</span><span class="p">()</span>
         <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork2</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span>
-            <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpu_nproc</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpu_nproc</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">spawn_prefixes</span><span class="o">=</span><span class="n">gpu_prefixes</span><span class="p">,</span>
             <span class="n">fork_mode</span><span class="o">=</span><span class="s1">'spawn'</span><span class="p">,</span>
             <span class="n">init_child_function</span><span class="o">=</span><span class="n">init_child_function</span><span class="p">)</span>
@@ -4385,7 +4385,7 @@
                 <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">njobs</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">njobs</span>
                 <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span>
-                    <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                    <span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="n">job_index</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">mesh_def</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth_meshes_def</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">mesh</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">mesh_def</span>
@@ -4853,8 +4853,8 @@
         <span class="n">q</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork2</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
-                                           <span class="bp">self</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="n">with_squares</span><span class="p">)</span>
+        <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork2</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">with_squares</span><span class="o">=</span><span class="n">with_squares</span><span class="p">)</span>
         <span class="n">current_id</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">for</span> <span class="n">arrow</span><span class="p">,</span> <span class="n">mesh_l</span> <span class="ow">in</span> <span class="n">meshes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -5906,7 +5906,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">=</span> <span class="n">dirname</span>
 
         <span class="n">workers</span> <span class="o">=</span> <span class="n">mpfork2</span><span class="o">.</span><span class="n">allocate_workers</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nproc</span><span class="p">,</span>
-                                           <span class="n">njobs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+                                           <span class="bp">self</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="n">njobs</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">private</span><span class="p">),</span> <span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">meshes</span><span class="p">)</span> <span class="ow">in</span> <span class="n">gltf_by_layer</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">job</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_index</span><span class="p">,</span> <span class="s1">'_p_save_gltf_mesh'</span><span class="p">,</span>
