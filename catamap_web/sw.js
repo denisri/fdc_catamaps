@@ -179,20 +179,23 @@ function fetch_callback(e)
 function activate_callback(e)
 {
   console.log('activate');
+  // console.log('caches:', await caches.keys());
   e.waitUntil(
     caches.keys().then((keyList) => {
       get_cache_name();
       return Promise.all(
         keyList.map((key) => {
-          if (key === cacheName) {
+          if (key === cacheName || !key.startsWith(mapname + '-')) {
             return;
           }
+          console.log('delete cache:', key, ' from:', cacheName);
           return caches.delete(key);
         }),
       );
     }),
   );
 }
+
 
 
 // // Installing Service Worker
@@ -206,4 +209,3 @@ console.log('fetch listener added');
 
 self.addEventListener("activate", activate_callback);
 console.log('activate listener added');
-

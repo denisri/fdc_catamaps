@@ -382,6 +382,27 @@
     import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
     console.log('IMPORTED.')
 
+    async function requestPersistentStorage()
+    {
+      console.log('navigator.storage.persist:', navigator.storage.persist);
+      if (navigator.storage && navigator.storage.persist)
+      {
+        // Vérifie si le stockage est déjà persistant
+        const isPersisted = await navigator.storage.persisted();
+        console.log(`Stockage persistant déjà actif : ${isPersisted}`);
+
+        if (!isPersisted)
+        {
+          // Demande la persistance au navigateur
+          const granted = await navigator.storage.persist();
+          console.log(`Statut de la demande de persistance : ${granted}`);
+        }
+      }
+    }
+
+    // Appel de la fonction au chargement de l'application
+    requestPersistentStorage();
+
     function sha1 (str) {
       //  discuss at: https://locutus.io/php/sha1/
       // original by: Webtoolkit.info (https://www.webtoolkit.info/)
