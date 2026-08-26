@@ -3147,7 +3147,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
             print('gpu_prefixes:', gpu_prefixes)
             sys.stdout.flush()
             workers = mpfork2.allocate_workers(
-                q, res, self.gpu_nproc, len(levels),
+                q, res, self.gpu_nproc, max_workers=len(levels),
                 spawn_prefixes=gpu_prefixes,
                 fork_mode='spawn',
                 init_child_function=init_child_function)
@@ -4136,7 +4136,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                                 'depth_meshes': self.depth_aimsmeshes}]
         gpu_prefixes = self.select_gpu_prefix_for_workers()
         workers = mpfork2.allocate_workers(
-            q, res, self.gpu_nproc, 0,
+            q, res, self.gpu_nproc, max_workers=0,
             spawn_prefixes=gpu_prefixes,
             fork_mode='spawn',
             init_child_function=init_child_function)
@@ -4317,7 +4317,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
                 res = [None] * njobs
                 keys = [None] * njobs
                 workers = mpfork.allocate_workers(
-                    q, res, self.parallel_nproc, 0, self)
+                    q, res, self.parallel_nproc, self, max_workers=0)
                 job_index = 0
                 for level, mesh_def in self.depth_meshes_def.items():
                     mesh, props = mesh_def
@@ -4779,8 +4779,8 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         q = queue.Queue()
         res = []
         jobs = []
-        workers = mpfork2.allocate_workers(q, res, self.parallel_nproc, 0,
-                                           self, with_squares=with_squares)
+        workers = mpfork2.allocate_workers(q, res, self.parallel_nproc,
+                                           self, max_workers=0, with_squares=with_squares)
         current_id = 0
 
         for arrow, mesh_l in meshes.items():
@@ -5829,7 +5829,7 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         self.dirname = dirname
 
         workers = mpfork2.allocate_workers(q, res, self.parallel_nproc,
-                                           njobs, self)
+                                           self, max_workers=njobs)
 
         for (layer, private), (gltf, meshes) in gltf_by_layer.items():
             job = (current_index, '_p_save_gltf_mesh',
