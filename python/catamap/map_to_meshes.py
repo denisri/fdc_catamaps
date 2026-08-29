@@ -4498,15 +4498,32 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
 
     def merge_markers(self):
         print('merge markers layers when requested.')
+
+        def strip_marker(marker):
+            return marker.replace('"', '').replace("'", '')
+
         to_remove = {}
         for mlayer, markers_keys in self.markers_maps_keys.items():
             smarkers_name = self.markers_layers[mlayer]
             smarkers = self.markers_maps[smarkers_name]
             for mid, (index, merged_marker) in markers_keys.items():
                 if merged_marker is not None:
+                    merged_marker = strip_marker(merged_marker)
                     merge_layer, merge_id = merged_marker.split('/', 1)
-                    dest_mark_set = self.markers_layers[merge_layer]
-                    dest_mark = self.markers_maps_keys[merge_layer][merge_id]
+                    dest_mark_set = self.markers_layers.get(merge_layer)
+                    if dest_mark_set is None:
+                        print('ERROR in merged markers: layer not found:',
+                              merge_layer, 'in:', mid, index, merged_marker)
+                        print('mlayer:', mlayer)
+                        print(smarkers[index])
+                    dest_mark = \
+                        self.markers_maps_keys[merge_layer].get(merge_id)
+                    if dest_mark is None:
+                        print('ERROR in merged markers: marker not found:',
+                              merge_id, 'in:', merge_layer, mid, index,
+                              merged_marker)
+                        print('mlayer:', mlayer)
+                        print(smarkers[index])
                     merge_index = dest_mark[0]
                     markers = self.markers_maps[dest_mark_set]
                     markers[merge_index][1] += smarkers[index][1]
