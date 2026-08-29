@@ -1700,6 +1700,15 @@
 
           if( intersects.length > 0 )
           {
+            var filt_intersects = [];
+            for(const i in intersects)
+            {
+              if(intersects[i].face)
+                filt_intersects.push(intersects[i]);
+            }
+            if(filt_intersects.length != 0)
+              intersects = filt_intersects;
+
             console.log( 'intersects:', intersects );
             console.log( 'point:', intersects[0].point );
             if( check_compass_click( intersects ) )
