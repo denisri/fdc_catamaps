@@ -45,7 +45,7 @@ function OrbitControls( object, camera, domElement ) {
 	this.enableKeys = true;
 
 	// The four arrow keys
-	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
+	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, ESCAPE: 27 };
 
 	// Mouse buttons
 	this.mouseButtons = { DRIVE: THREE.MOUSE.LEFT, ORIENT: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.RIGHT };
@@ -165,22 +165,22 @@ function OrbitControls( object, camera, domElement ) {
 	var panStart = new THREE.Vector2();
 	var panEnd = new THREE.Vector2();
 	var panDelta = new THREE.Vector2();
-        var panTouch2Start = new THREE.Vector2();
-        var panPinchDistance = 0.;
+	var panTouch2Start = new THREE.Vector2();
+	var panPinchDistance = 0.;
 
-        var panZStart = new THREE.Vector2();
-        var panZEnd = new THREE.Vector2();
-        var panZDelta = new THREE.Vector2();
+	var panZStart = new THREE.Vector2();
+	var panZEnd = new THREE.Vector2();
+	var panZDelta = new THREE.Vector2();
 
-        var panMapStart = new THREE.Vector2();
-        var panMapEnd = new THREE.Vector2();
-        var panMapDelta = new THREE.Vector2();
+	var panMapStart = new THREE.Vector2();
+	var panMapEnd = new THREE.Vector2();
+	var panMapDelta = new THREE.Vector2();
 
-        var flyStart = new THREE.Vector2();
-        var flyEnd = new THREE.Vector2();
-        var flyDelta = new THREE.Vector2();
+	var flyStart = new THREE.Vector2();
+	var flyEnd = new THREE.Vector2();
+	var flyDelta = new THREE.Vector2();
 
-        var quaternion = new THREE.Quaternion( 0., 0, 0, 1. );
+	var quaternion = new THREE.Quaternion( 0., 0, 0, 1. );
 
 	function rotateLeft( angle )
         {
@@ -602,7 +602,7 @@ function OrbitControls( object, camera, domElement ) {
 
 	function handleKeyDown( event ) {
 
-		//console.log( 'handleKeyDown' );
+		// console.log( 'handleKeyDown', event.keyCode );
 
 		switch ( event.keyCode ) {
 
@@ -636,11 +636,16 @@ function OrbitControls( object, camera, domElement ) {
 				break;
 
 			case scope.keys.RIGHT:
-                                if( event.ctrlKey == true
-				    || scope.mode_2d == true )
-                                    pan( -scope.keyPanSpeed, 0 );
-                                else
-                                    rotateLeft( scope.keyRotateAngleSpeed );
+				if( event.ctrlKey == true
+					|| scope.mode_2d == true )
+					pan( -scope.keyPanSpeed, 0 );
+				else
+					rotateLeft( scope.keyRotateAngleSpeed );
+				scope.update();
+				break;
+
+			case scope.keys.ESCAPE:
+				scope.close_media();
 				scope.update();
 				break;
 
