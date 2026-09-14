@@ -152,9 +152,15 @@
                 border: 1px;
                 border-color: #80808080;
                 color: #d0d0d0;
-                width: 30px;
+                width: 42px;
+                height: 42px;
                 z-index: 10;
                 font-size: 32px;
+                padding: 0px;
+                margin: 0px;
+                align-items: center;
+                vertical-align: middle;
+                line-height: 1;
             }
             .media_button:hover {
                 background-color: #a0a0a0d0;
@@ -242,6 +248,8 @@
                 font-size: 48px;
               }
               .media_button {
+                width: 58px;
+                height: 58px;
                 font-size: 48px;
               }
               .media_button2 {
@@ -266,8 +274,8 @@
                 font_size: 40px;
               }
               .download_circle {
-                height: 50px;
-                width: 50px;
+                height: 52px;
+                width: 52px;
               }
               .download_disk {
                 height: 42px;
@@ -299,6 +307,7 @@
           <legend>Charger/voir:</legend>
           <div id="mesh_buttons">
             <button id="all" class="mesh_button">Tous</button><br/>
+            <br/>
             <br id="categories_sep" />
             <label class="mesh_checkbox_label">
               <input type="checkbox" id="map_mode"> <!-- class="mesh_checkbox">-->
@@ -790,6 +799,7 @@
     scene.add( light2 );
 
     var controls = new OrbitControls( scene, camera, renderer.domEmlement );
+    controls.close_media = close_media_clicked;  // pass the callback
 //     var controls = new OrbitControls( camera, renderer.domElement );
 
 //     camera.position.x = -450;
@@ -2779,6 +2789,7 @@
             <div class="control_help">
                 Gauche, droite: rotation de l'orientation<br/>
                 Haut, bas: avance / recule (altitude constante)<br/>
+                Esc: ferme l'affichage photo courant<br/>
                 Ctrl + gauche, droite: déplacement en crabe<br/>
                 Ctrl + haut / bas: avance droit (altitude variable)<br/>
                 Shift + gauche, droite: rotation de l'orientation<br/>

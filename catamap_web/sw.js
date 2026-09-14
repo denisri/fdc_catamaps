@@ -10,6 +10,7 @@ console.log('mapname:', mapname);
 var version;
 var cacheName;
 var map_objects;
+var offline_mode = false;
 
 const appShellFiles = [
   my_path + '/help.html',
@@ -71,6 +72,7 @@ async function get_cache_name()
     // console.log('map_objects version:', version);
     cacheName = mapname + '-' + version;
     // console.log('[Service Worker] cacheName:', cacheName);
+    cleanup_caches();
     return cacheName;
 }
 
@@ -105,6 +107,7 @@ function install_callback(e)
       contentToCache.forEach(file => stack.push(
           cache.add(file).catch(_=>console.error(`can't load ${file} to cache`))
       ));
+      cleanup_caches();
       return Promise.all(stack);
 
     })());
@@ -123,77 +126,216 @@ function fetch_callback(e)
 
   e.respondWith((async () => {
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
+    // const non_cached = ['map_objects.json', 'sw.js',
+    //                     'catamap_webmanifest.json'];
     // console.log('cache:', cacheName);
-//     if( e.request.url.substring(e.request.url.length - 16)
-//         == 'map_objects.json')
-//     {
-//       // console.log('get map_objects.json');
-//       // try without cache first, in order to reload after a version change
-//       // console.log('Fetching map_objects.json');
-//       try
-//       {
-//         const r = await caches.match(e.request);
-//         if (r) {
-//           const cache = await caches.open(cacheName);
-//           cache.delete(e.request);
-//         }
-//         const response = await fetch( e.request,
-//                                       {signal: AbortSignal.timeout(3000)} );
-//         const c = response.clone();
-//         const map_objects = await response.json();
-//         // console.log('map_objects:', map_objects);
-//         version = map_objects.version;
-//         // console.log('map_objects version:', version);
-//         cacheName = mapname + '-' + version;
-//         const cache = await caches.open(cacheName);
-//         console.log(`[Service Worker] Caching new version ${cacheName}: ${e.request.url}`);
-//         cache.put(e.request, c.clone());
-//         return c;
-//       }
-//       catch( error )
-//       {
-//         console.log('Fetch failed, probable timeout:', error );
-//         if( r )
-//         {
-//           cache.put(e.request, r);
-//         }
-//       }
-//     }
+    if(e.request.url.endsWith('map_objects.json') )
+    {
+      console.log('get out-of-cache', e.request.url);
+      // try without cache first, in order to reload after a version change
+      // console.log('Fetching map_objects.json');
+      try
+      {
+        // const r = await caches.match(e.request);
+        // if (r) {
+        //   const cache = await caches.open(cacheName);
+        //   // cache.delete(e.request);
+        // }
+        const response = await fetch( e.request,
+                                      {signal: AbortSignal.timeout(3000)} );
+        const c = response.clone();
+        const map_objects = await response.json();
+        // console.log('map_objects:', map_objects);
+        const tmp_version = map_objects.version;
+        console.log('map_objects version:', tmp_version);
+        const tmp_cacheName = mapname + '-' + tmp_version;
+        var reset_old_cahce = false;
+        if(!caches.has(tmp_cacheName))
+        {
+          console.log(`[Service Worker] Caching new version ${tmp_cacheName}: ${e.request.url}`);
+          reset_old_cahce = true;
+        }
+        cacheName = tmp_cacheName;
+        version = tmp_version;
+        const cache = await caches.open(cacheName);
+        cache.put(e.request, c.clone());
 
-    const r = await caches.match(e.request);
-    if (r) {
+        if(reset_old_cahce)
+        {
+          install_callback(e);
+          activate_callback(e);
+        }
+
+        return c;
+      }
+      catch( error )
+      {
+        console.log('Fetch failed, probable timeout:', error );
+        // if( r )
+        // {
+        //   cache.put(e.request, r);
+        // }
+      }
+    }
+
+    // look in the main cache first
+    await get_cache_name();
+    const cache = await caches.open(cacheName);
+    // console.log('look in cache:', cacheName, ':', cache);
+    const r = await cache.match(e.request);
+    // console.log('r:', r);
+    if (r && r.ok)
+    {
       // console.log(`[Service Worker] Cached: ${e.request.url}`);
       return r;
     }
-    // console.log(`[Service Worker] Get: ${e.request.url}`);
-    const response = await fetch(e.request);
-    await get_cache_name();
-    const cache = await caches.open(cacheName);
-    console.log(`[Service Worker] Caching new resource in ${cacheName}: ${e.request.url}`);
-    cache.put(e.request, response.clone());
-    return response;
+    // console.log('not in cache', e.request.url);
+
+    const bck_cache_name = mapname + '-bak';
+    const bck_cache = await caches.open(bck_cache_name);
+
+    if(!offline_mode)
+    {
+      // now try to fetch quickly
+      console.log(`[Service Worker] Get online: ${e.request.url}`);
+      try
+      {
+        const response = await fetch(e.request,
+                                    {signal: AbortSignal.timeout(30)});
+        // console.log('response 2:', response);
+        if(response && response.ok)
+        {
+          if(e.request.method == 'GET')
+          {
+            // OK cache it and return
+            const cache = await caches.open(cacheName);
+            console.log(`[Service Worker] Caching new resource in ${cacheName}: ${e.request.url}`);
+            // console.log('e:', e);
+            cache.add(e.request, response);
+            // cache.put(e.request, response);
+            // del from backup cache now it is in the main one
+            bck_cache.delete(e.request);
+          }
+          return response;
+        }
+      }
+      catch(err)
+      {
+        // console.log('error (timeout?):', err);
+      }
+    }
+
+    // searh in backup caches
+    // console.log('look in backup cache', bck_cache_name, ':', bck_cache);
+    const r2 = await bck_cache.match(e.request);
+
+    if(!r2 && !offline_mode)
+    {
+      // console.log('not in backup cache.');
+      // try harder to fetch from network
+      const r3 = await fetch(e.request);
+      // console.log('r3:', r3);
+      // cache it and return
+      const cache = await caches.open(cacheName);
+      console.log(`[Service Worker] Caching new resource in ${cacheName} after 2nd attempt: ${e.request.url}`);
+      if(e.request.method == 'GET')
+      {
+        cache.add(e.request, r3);
+        // del from backup cache now it is in the main one
+        bck_cache.delete(e.request);
+      }
+      return r3;
+    }
+    // else
+    //   console.log('found in backup cache.');
+
+    // here we assume we are now offline
+    offline_mode = true;
+
+    return r2;
+
   })());
 }
+
+
+async function moveCacheData(oldCacheName, newCacheName, backupCacheName)
+{
+  const oldCache = await caches.open(oldCacheName);
+  const newCache = await caches.open(newCacheName);
+  const backupCache = await caches.open(backupCacheName);
+  console.log('[Service Worker] moving old cache:', oldCacheName,
+              ' to:', backupCacheName);
+
+  // Récupère toutes les requêtes du cache source
+  const requests = await oldCache.keys();
+
+  // Copie chaque paire requête/réponse vers le backup cache cache
+  for (const request of requests)
+  {
+    // but only if it is not in the new cache
+    const response = await newCache.match(request);
+    if (!response)
+    {
+      const response = await oldCache.match(request);
+      if (response)
+      {
+        await backupCache.put(request, response);
+      }
+    }
+  }
+
+  console.log('[Service Worker] delete cache:', oldCacheName, ' for new:',
+              newCacheName);
+  // Supprime l'ancien cache une fois la copie terminée
+  await caches.delete(oldCacheName);
+}
+
+
+async function cleanup_caches()
+{
+  console.log('[Service Worker] cleanup caches');
+  // console.log('caches:', await caches.keys());
+  get_cache_name();
+
+  caches.keys().then((keyList) => {
+    return Promise.all(
+      keyList.map((key) => {
+        if (key === cacheName || key === mapname + '-bak'
+            || !key.startsWith(mapname + '-'))
+        {
+          return;
+        }
+        moveCacheData(key, cacheName, mapname + '-bak');
+        // console.log('[Service Worker] delete cache:', key, ' from:', cacheName);
+        // return caches.delete(key);
+      })
+    );
+  });
+}
+
 
 
 function activate_callback(e)
 {
   console.log('activate');
   // console.log('caches:', await caches.keys());
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      get_cache_name();
-      return Promise.all(
-        keyList.map((key) => {
-          if (key === cacheName || !key.startsWith(mapname + '-')) {
-            return;
-          }
-          console.log('delete cache:', key, ' from:', cacheName);
-          return caches.delete(key);
-        }),
-      );
-    }),
-  );
+  // e.waitUntil(
+  //   caches.keys().then((keyList) => {
+  //     get_cache_name();
+  //     return Promise.all(
+  //       keyList.map((key) => {
+  //         if (key === cacheName || key === mapname + '-bak'
+  //           || !key.startsWith(mapname + '-'))
+  //         {
+  //           return;
+  //         }
+  //         moveCacheData(key, cacheName, mapname + '-bak');
+  //         // console.log('[Service Worker] delete cache:', key, ' from:', cacheName);
+  //         // return caches.delete(key);
+  //       }),
+  //     );
+  //   }),
+  // );
 }
 
 
