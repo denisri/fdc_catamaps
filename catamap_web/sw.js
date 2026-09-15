@@ -116,13 +116,13 @@ function install_callback(e)
 
 function fetch_callback(e)
 {
-    // console.log('fetch:', e.request.url);
-    // Cache http and https only, skip unsupported chrome-extension:// and file://...
-    if (!(
-       e.request.url.startsWith('http:') || e.request.url.startsWith('https:')
-    )) {
-        return;
-    }
+  // console.log('fetch:', e.request.url, e);
+  // Cache http and https only, skip unsupported chrome-extension:// and file://...
+  if (!(
+      e.request.url.startsWith('http:') || e.request.url.startsWith('https:')
+      )) {
+    return;
+  }
 
   e.respondWith((async () => {
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
@@ -131,7 +131,7 @@ function fetch_callback(e)
     // console.log('cache:', cacheName);
     if(e.request.url.endsWith('map_objects.json') )
     {
-      console.log('get out-of-cache', e.request.url);
+      // console.log('get out-of-cache', e.request.url);
       // try without cache first, in order to reload after a version change
       // console.log('Fetching map_objects.json');
       try
@@ -149,32 +149,31 @@ function fetch_callback(e)
         const tmp_version = map_objects.version;
         console.log('map_objects version:', tmp_version);
         const tmp_cacheName = mapname + '-' + tmp_version;
-        var reset_old_cahce = false;
-        if(!caches.has(tmp_cacheName))
+        var reset_old_cache = false;
+        const has_cache = await caches.has(tmp_cacheName);
+        // console.log('has cache', tmp_cacheName, ':', has_cache);
+        if(!has_cache)
         {
           console.log(`[Service Worker] Caching new version ${tmp_cacheName}: ${e.request.url}`);
-          reset_old_cahce = true;
+          reset_old_cache = true;
         }
+        if(reset_old_cache)
+        {
+          await moveCacheData(cacheName, tmp_cacheName, mapname + '-bak');
+          // await install_callback(e);
+          // await activate_callback(e);
+        }
+
         cacheName = tmp_cacheName;
         version = tmp_version;
         const cache = await caches.open(cacheName);
         cache.put(e.request, c.clone());
 
-        if(reset_old_cahce)
-        {
-          install_callback(e);
-          activate_callback(e);
-        }
-
         return c;
       }
       catch( error )
       {
-        console.log('Fetch failed, probable timeout:', error );
-        // if( r )
-        // {
-        //   cache.put(e.request, r);
-        // }
+        // console.log('Fetch failed, probable timeout:', error );
       }
     }
 
@@ -182,7 +181,14 @@ function fetch_callback(e)
     await get_cache_name();
     const cache = await caches.open(cacheName);
     // console.log('look in cache:', cacheName, ':', cache);
-    const r = await cache.match(e.request);
+    var mod_request = e.request;
+    if(e.request.method != 'GET')
+    {
+      //only GET requests get in cache
+      mod_request = new Request(e.request.url);
+    }
+
+    const r = await cache.match(mod_request);
     // console.log('r:', r);
     if (r && r.ok)
     {
@@ -197,11 +203,11 @@ function fetch_callback(e)
     if(!offline_mode)
     {
       // now try to fetch quickly
-      console.log(`[Service Worker] Get online: ${e.request.url}`);
+      // console.log(`[Service Worker] Get online: ${e.request.url}`);
       try
       {
         const response = await fetch(e.request,
-                                    {signal: AbortSignal.timeout(30)});
+                                    {signal: AbortSignal.timeout(3000)});
         // console.log('response 2:', response);
         if(response && response.ok)
         {
@@ -211,7 +217,7 @@ function fetch_callback(e)
             const cache = await caches.open(cacheName);
             console.log(`[Service Worker] Caching new resource in ${cacheName}: ${e.request.url}`);
             // console.log('e:', e);
-            cache.add(e.request, response);
+            cache.add(e.request, response.clone());
             // cache.put(e.request, response);
             // del from backup cache now it is in the main one
             bck_cache.delete(e.request);
@@ -227,7 +233,7 @@ function fetch_callback(e)
 
     // searh in backup caches
     // console.log('look in backup cache', bck_cache_name, ':', bck_cache);
-    const r2 = await bck_cache.match(e.request);
+    const r2 = await bck_cache.match(mod_request);
 
     if(!r2 && !offline_mode)
     {
@@ -240,7 +246,7 @@ function fetch_callback(e)
       console.log(`[Service Worker] Caching new resource in ${cacheName} after 2nd attempt: ${e.request.url}`);
       if(e.request.method == 'GET')
       {
-        cache.add(e.request, r3);
+        cache.add(e.request, r3.clone());
         // del from backup cache now it is in the main one
         bck_cache.delete(e.request);
       }
@@ -250,6 +256,7 @@ function fetch_callback(e)
     //   console.log('found in backup cache.');
 
     // here we assume we are now offline
+    // console.log('We assume we are now offline.');
     offline_mode = true;
 
     return r2;
@@ -305,9 +312,10 @@ async function cleanup_caches()
         {
           return;
         }
+        console.log('move cache', cacheName, 'to:', mapname + '-bak');
         moveCacheData(key, cacheName, mapname + '-bak');
-        // console.log('[Service Worker] delete cache:', key, ' from:', cacheName);
-        // return caches.delete(key);
+        console.log('[Service Worker] delete cache:', key, ' from:', cacheName);
+        return caches.delete(key);
       })
     );
   });
