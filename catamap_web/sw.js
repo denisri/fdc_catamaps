@@ -31,7 +31,19 @@ const appShellFiles = [
 async function wait_json()
 {
   console.log('wait_json');
-  const map_objects = await fetch('map_objects.json').then((response) => response.json());
+
+  try
+  {
+    map_objects = await fetch('map_objects.json').then((response) => response.json());
+    console.log('fetch json OK');
+  }
+  catch( error )
+  {
+    console.log('map_object.json could not be retreived from the web. Trying cache.');
+    const request = new Request('map_objects.json');
+    map_objects = await caches.match(request).then((response) => response.json);
+    console.log('get map_object.json from caches');
+  }
 
   return map_objects;
 }
@@ -116,7 +128,7 @@ function install_callback(e)
 
 function fetch_callback(e)
 {
-  // console.log('fetch:', e.request.url, e);
+  console.log('fetch:', e.request.url, e);
   // Cache http and https only, skip unsupported chrome-extension:// and file://...
   if (!(
       e.request.url.startsWith('http:') || e.request.url.startsWith('https:')
