@@ -34,8 +34,9 @@ async function wait_json()
 
   try
   {
-    map_objects = await fetch('map_objects.json').then((response) => response.json());
+    const map_objects = await fetch('map_objects.json').then((response) => response.json());
     console.log('fetch json OK');
+    return map_objects;
   }
   catch( error )
   {
@@ -43,9 +44,8 @@ async function wait_json()
     const request = new Request('map_objects.json');
     map_objects = await caches.match(request).then((response) => response.json);
     console.log('get map_object.json from caches');
+    return map_objects;
   }
-
-  return map_objects;
 }
 
 
@@ -138,12 +138,13 @@ function fetch_callback(e)
 
   e.respondWith((async () => {
     console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
+
     // const non_cached = ['map_objects.json', 'sw.js',
     //                     'catamap_webmanifest.json'];
-    // console.log('cache:', cacheName);
+    console.log('cache:', cacheName);
     if(e.request.url.endsWith('map_objects.json') )
     {
-      // console.log('get out-of-cache', e.request.url);
+      console.log('get out-of-cache', e.request.url);
       // try without cache first, in order to reload after a version change
       // console.log('Fetching map_objects.json');
       try
@@ -180,6 +181,10 @@ function fetch_callback(e)
         version = tmp_version;
         const cache = await caches.open(cacheName);
         cache.put(e.request, c.clone());
+        const bck_cache_name = mapname + '-bak';
+        const bck_cache = await caches.open(bck_cache_name);
+        // del from backup cache now it is in the main one
+        bck_cache.delete(e.request);
 
         return c;
       }
@@ -192,7 +197,7 @@ function fetch_callback(e)
     // look in the main cache first
     await get_cache_name();
     const cache = await caches.open(cacheName);
-    // console.log('look in cache:', cacheName, ':', cache);
+    console.log('look in cache:', cacheName, ':', e.request.url);
     var mod_request = e.request;
     if(e.request.method != 'GET')
     {
@@ -204,10 +209,10 @@ function fetch_callback(e)
     // console.log('r:', r);
     if (r && r.ok)
     {
-      // console.log(`[Service Worker] Cached: ${e.request.url}`);
+      console.log(`[Service Worker] Cached: ${e.request.url}`);
       return r;
     }
-    // console.log('not in cache', e.request.url);
+    console.log('not in cache', e.request.url, '; offline mode:', offline_mode);
 
     const bck_cache_name = mapname + '-bak';
     const bck_cache = await caches.open(bck_cache_name);
@@ -215,7 +220,7 @@ function fetch_callback(e)
     if(!offline_mode)
     {
       // now try to fetch quickly
-      // console.log(`[Service Worker] Get online: ${e.request.url}`);
+      console.log(`[Service Worker] Get online: ${e.request.url}`);
       try
       {
         const response = await fetch(e.request,
@@ -239,24 +244,24 @@ function fetch_callback(e)
       }
       catch(err)
       {
-        // console.log('error (timeout?):', err);
+        console.log('error (timeout?):', err);
       }
     }
 
     // searh in backup caches
-    // console.log('look in backup cache', bck_cache_name, ':', bck_cache);
+    console.log('look in backup cache', bck_cache_name, ':', bck_cache);
     const r2 = await bck_cache.match(mod_request);
 
     if(!r2 && !offline_mode)
     {
-      // console.log('not in backup cache.');
+      console.log('not in backup cache.');
       // try harder to fetch from network
       const r3 = await fetch(e.request);
       // console.log('r3:', r3);
       // cache it and return
       const cache = await caches.open(cacheName);
       console.log(`[Service Worker] Caching new resource in ${cacheName} after 2nd attempt: ${e.request.url}`);
-      if(e.request.method == 'GET')
+      if(e.request.method == 'GET' && r3.ok)
       {
         cache.add(e.request, r3.clone());
         // del from backup cache now it is in the main one
@@ -264,11 +269,13 @@ function fetch_callback(e)
       }
       return r3;
     }
-    // else
-    //   console.log('found in backup cache.');
+    if( !r2 )
+      return r2;  // FIXME: should raise an error
+
+    console.log('found in backup cache.');
 
     // here we assume we are now offline
-    // console.log('We assume we are now offline.');
+    console.log('We assume we are now offline.');
     offline_mode = true;
 
     return r2;
@@ -298,7 +305,9 @@ async function moveCacheData(oldCacheName, newCacheName, backupCacheName)
       const response = await oldCache.match(request);
       if (response)
       {
+        console.log('->', backupCacheName, ':', request.url);
         await backupCache.put(request, response);
+        oldCache.delete(request);
       }
     }
   }
