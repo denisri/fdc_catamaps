@@ -244,17 +244,17 @@ function fetch_callback(e)
       }
       catch(err)
       {
-        console.log('error (timeout?):', err);
+        console.log('error (timeout?):', err, 'for:', e.request.url);
       }
     }
 
     // searh in backup caches
-    console.log('look in backup cache', bck_cache_name, ':', bck_cache);
+    console.log('look in backup cache', bck_cache_name, ':', bck_cache, ':', e.request.url);
     const r2 = await bck_cache.match(mod_request);
 
     if(!r2 && !offline_mode)
     {
-      console.log('not in backup cache.');
+      console.log('not in backup cache:', e.request.url);
       // try harder to fetch from network
       const r3 = await fetch(e.request);
       // console.log('r3:', r3);
@@ -272,7 +272,7 @@ function fetch_callback(e)
     if( !r2 )
       return r2;  // FIXME: should raise an error
 
-    console.log('found in backup cache.');
+    console.log('found in backup cache:', e.request.url);
 
     // here we assume we are now offline
     console.log('We assume we are now offline.');
@@ -380,3 +380,16 @@ console.log('fetch listener added');
 
 self.addEventListener("activate", activate_callback);
 console.log('activate listener added');
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'SET_STATE')
+  {
+    // Modification de la variable en mémoire
+    if(event.data.key == 'offline_mode')
+    {
+      offline_mode = event.data.value;
+      // etatApplication[event.data.key] = event.data.value;
+      console.log("État mis à jour au démarrage :", event.data.key, ':', event.data.value);
+    }
+  }
+});

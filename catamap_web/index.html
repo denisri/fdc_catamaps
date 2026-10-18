@@ -231,6 +231,10 @@
                 opacity: 1;
               }
             }
+            .photo_cat_selector {
+              z-index: 1000;
+              position: fixed;
+            }
 
             #debug_win {
                 position: absolute;
@@ -302,6 +306,9 @@
         <h3 id="date">2025</h3>
       </div>
 
+      <div id="photos_cat">
+      </div>
+
       <div class="button_bar" id="button_bar">
         <fieldset id="mesh_fields" class="right_col">
           <legend>Charger/voir:</legend>
@@ -362,6 +369,17 @@
         const my_dir = my_path.substring(0, my_path.length - s[s.length - 1].length);
         console.log('service:', my_dir + 'sw.js');
         navigator.serviceWorker.register(my_dir + 'sw.js');
+
+        navigator.serviceWorker.ready.then((registration) => {
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              action: 'SET_STATE',
+              key: 'offline_mode',
+              value: false
+            });
+          }
+        });
+
       }
       else
       {
@@ -960,6 +978,22 @@
     var private_code = map_objects['code'];
     if( private_code == null )
       private_code = '776f707e19f39e6b830856a6cdf3aa605a5a283e'
+
+    if(map_objects.camera)
+    {
+      if(map_objects.camera.far)
+      {
+        camera.far = map_objects.camera.far;
+        camera.updateProjectionMatrix();
+        console.log('set camera.far:', camera.far);
+      }
+      if(map_objects.camera.position)
+      {
+        camera.position.x = -map_objects.camera.position[0];
+        camera.position.y = map_objects.camera.position[1];
+        camera.position.z = map_objects.camera.position[2];
+      }
+    }
 
     console.log('camera light:', map_objects.camera_light);
     if( map_objects.camera_light != "off" )
@@ -1726,7 +1760,7 @@
             else
             {
               check_sounds( intersects );
-              check_photos( intersects );
+              check_photos( intersects, event.clientX, event.clientY );
             }
           }
         }
@@ -1804,7 +1838,7 @@
     }
 
 
-    function check_photos( intersects )
+    function check_photos( intersects, x, y )
     {
       if( ! photos )
         return;
@@ -1852,7 +1886,7 @@
       if( photo_filenames.length != 0 )
       {
         console.log( 'display photos:', x, y, z, photo_filenames, ', radius:', min_dist );
-        display_photos(photo_filenames);
+        display_photos(photo_filenames, x, y);
         move_cursor(sel_photo_pos);
       }
 
@@ -1954,19 +1988,79 @@
     }
 
 
-    function display_photos( photo_filenames )
+    function display_photos( photo_filenames, x, y )
     {
-
-//       var tab = window.open( '', '_blank' );
-//       tab.focus();
-//       var doc = tab.document;
-      var new_html = '<style>body { background-color: black; }</style>';
-      var has_video = 0;
-      var photo_urls = [];
+      console.log('display_photos:', photo_filenames);
+      var mixed_cats = {};
 
       for( i=0; i<photo_filenames.length; i++ )
       {
+        const ps = photo_filenames[i];
+        var cat;
+        var filename;
+        if(Array.isArray(ps))
+        {
+          filename = ps[0];
+          cat = ps[1];
+        }
+        else
+        {
+          filename = ps;
+          cat = 'photos';
+        }
+
+        if(!private_mode && cat.endsWith('_private'))
+          continue;
+        // console.log('photo array:', ps);
+        if(cat in mixed_cats)
+        {
+          var items = mixed_cats[cat];
+          items.push(filename);
+        }
+        else
+        {
+          var items = [filename];
+          mixed_cats[cat] = items;
+        }
+      }
+      console.log('photos cats:', mixed_cats);
+      // if(Object.keys(mixed_cats).length >= 2)
+      // {
+      //   console.log('multiple cats', x, y);
+      //   var popup = document.createElement('select');
+      //   popup.id = 'photos_cat_select';
+      //   popup.name = 'photos categories';
+      //   popup.classList.add('photo_cat_selector');
+      //   popup.style.left = -x;
+      //   popup.style.top = y;
+      //   for(const cat in mixed_cats)
+      //   {
+      //     console.log('cat:', cat);
+      //     // const pcat = mixed_cats[alt_map_i];
+      //     var sel_opt = document.createElement('option');
+      //     sel_opt.value = cat;
+      //     sel_opt.innerHTML = cat;
+      //     popup.appendChild(sel_opt);
+      //   }
+      //   // popup.addEventListener('change', photo_cat_selected);
+      //   var photos_cat = document.getElementById('photos_cat');
+      //   photos_cat.appendChild(popup);
+      //   popup.addEventListener('change', photos_cat_selected);
+      //
+      // }
+
+      photo_filenames = [];
+      for(const k in mixed_cats)
+        photo_filenames.push(...mixed_cats[k]);
+
+      // var new_html = '<style>body { background-color: black; }</style>';
+      // var has_video = 0;
+      var photo_urls = [];
+      for( i=0; i<photo_filenames.length; i++ )
+      {
         var photo_filename = photo_filenames[i];
+        if(Array.isArray(photo_filename))
+          photo_filename = photo_filename[0];
         var ext = photo_filename.lastIndexOf( '/' );
         var basename = photo_filename;
         var photo_url = photo_filename;
@@ -1983,19 +2077,25 @@
           if( fext == 'mp4' || fext == 'mpg' )
           {
             tag = 'video';
-            has_video = 1;
+            // has_video = 1;
           }
         }
-        if( tag == 'video' )
-        {
-          new_html +=  '<a href="' + photo_url + '" target="_blank"><video controls src="' + photo_url + '" height="100%" width="auto"><source src="' + photo_url + '" /></video></a> ';
-        }
-        else
-          new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
+        // if( tag == 'video' )
+        // {
+        //   new_html +=  '<a href="' + photo_url + '" target="_blank"><video controls src="' + photo_url + '" height="100%" width="auto"><source src="' + photo_url + '" /></video></a> ';
+        // }
+        // else
+        //   new_html +=  '<a href="' + photo_url + '" target="_blank"><' + tag + ' src="' + photo_url + '" height="100%" width="auto" /></a> ';
         photo_urls.push( [photo_url, tag] );
       }
 
       open_media( photo_urls );
+    }
+
+
+    function photos_cat_selected(event)
+    {
+      consols.log('photos_cat_selected:', event);
     }
 
 
