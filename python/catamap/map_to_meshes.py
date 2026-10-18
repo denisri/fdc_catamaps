@@ -5801,6 +5801,10 @@ class CataSvgToMesh(svg_to_mesh.SvgToMesh):
         if def_cat is not None:
             def_cat = json.loads(def_cat)
             json_obj['default_categories'] = def_cat
+        camera = metadata.get('camera')
+        if camera is not None:
+            camera = json.loads(camera)
+            json_obj['camera'] = camera
 
         travel_speed = getattr(self, 'travel_speed_projection', None)
         if travel_speed is not None:
@@ -6970,6 +6974,8 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
 
     def replace_symbols(self, xml):
         protos = self.find_protos(self.xml)
+        print('REPLACE SYMBOLS')
+        print('protos:', protos)
         self.replace_elements(xml, protos)
 
     def zoom_areas(self, xml):
@@ -8168,6 +8174,9 @@ The program allows to produce:
         '-f', '--filter', nargs='*', default=[],
         help='use additional filter(s)')
     parser.add_argument(
+        '-pf', '--pre-filter', nargs='*', default=[],
+        help='use additional filter(s) before normal ones')
+    parser.add_argument(
         '--split', action='store_true',
         help='split the SVG file into 4 smaller ones, each containing a '
         'subset of the layers')
@@ -8312,6 +8321,7 @@ The program allows to produce:
         else:
             gpu_nproc = int(gpu_nproc)
     filters = options.filter
+    pre_filters = options.pre_filter
 
     if do_3d:
         svg_mesh = CataSvgToMesh()
@@ -8372,6 +8382,13 @@ The program allows to produce:
             if filters:
                 filt = map_def.setdefault('filters', [])
                 filt += filters
+            if pre_filters:
+                if filters:
+                    filt = pre_filters + filt
+                else:
+                    filt = pre_filters + map_def.setdefault('filters', [])
+                    map_def['filters'] = filt
+            if pre_filters or filters:
                 print('FILTERS:', map_def['filters'])
             if clip_rect:
                 map_def['clip_rect'] = clip_rect
