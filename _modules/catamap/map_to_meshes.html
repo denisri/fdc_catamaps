@@ -5877,6 +5877,10 @@
         <span class="k">if</span> <span class="n">def_cat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">def_cat</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">def_cat</span><span class="p">)</span>
             <span class="n">json_obj</span><span class="p">[</span><span class="s1">'default_categories'</span><span class="p">]</span> <span class="o">=</span> <span class="n">def_cat</span>
+        <span class="n">camera</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'camera'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">camera</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">camera</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">camera</span><span class="p">)</span>
+            <span class="n">json_obj</span><span class="p">[</span><span class="s1">'camera'</span><span class="p">]</span> <span class="o">=</span> <span class="n">camera</span>
 
         <span class="n">travel_speed</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'travel_speed_projection'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">travel_speed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -7056,6 +7060,8 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">replace_symbols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
         <span class="n">protos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_protos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xml</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'REPLACE SYMBOLS'</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'protos:'</span><span class="p">,</span> <span class="n">protos</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">replace_elements</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">protos</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">zoom_areas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
@@ -8261,6 +8267,9 @@
         <span class="s1">'-f'</span><span class="p">,</span> <span class="s1">'--filter'</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">'*'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">'use additional filter(s)'</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'-pf'</span><span class="p">,</span> <span class="s1">'--pre-filter'</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">'*'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'use additional filter(s) before normal ones'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">'--split'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">'split the SVG file into 4 smaller ones, each containing a '</span>
         <span class="s1">'subset of the layers'</span><span class="p">)</span>
@@ -8405,6 +8414,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">gpu_nproc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gpu_nproc</span><span class="p">)</span>
     <span class="n">filters</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">filter</span>
+    <span class="n">pre_filters</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">pre_filter</span>
 
     <span class="k">if</span> <span class="n">do_3d</span><span class="p">:</span>
         <span class="n">svg_mesh</span> <span class="o">=</span> <span class="n">CataSvgToMesh</span><span class="p">()</span>
@@ -8465,6 +8475,13 @@
             <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
                 <span class="n">filt</span> <span class="o">=</span> <span class="n">map_def</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'filters'</span><span class="p">,</span> <span class="p">[])</span>
                 <span class="n">filt</span> <span class="o">+=</span> <span class="n">filters</span>
+            <span class="k">if</span> <span class="n">pre_filters</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
+                    <span class="n">filt</span> <span class="o">=</span> <span class="n">pre_filters</span> <span class="o">+</span> <span class="n">filt</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">filt</span> <span class="o">=</span> <span class="n">pre_filters</span> <span class="o">+</span> <span class="n">map_def</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'filters'</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="n">map_def</span><span class="p">[</span><span class="s1">'filters'</span><span class="p">]</span> <span class="o">=</span> <span class="n">filt</span>
+            <span class="k">if</span> <span class="n">pre_filters</span> <span class="ow">or</span> <span class="n">filters</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">'FILTERS:'</span><span class="p">,</span> <span class="n">map_def</span><span class="p">[</span><span class="s1">'filters'</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">clip_rect</span><span class="p">:</span>
                 <span class="n">map_def</span><span class="p">[</span><span class="s1">'clip_rect'</span><span class="p">]</span> <span class="o">=</span> <span class="n">clip_rect</span>
