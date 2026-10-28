@@ -1,6 +1,7 @@
 import xml.etree.cElementTree as ET
 import json
 import argparse
+from . import svg_to_mesh
 
 
 parser = argparse.ArgumentParser(
@@ -59,11 +60,15 @@ while todo:
             depth += 1
     todo += [[path + [x], depth] for x in elem]
 
+stm = svg_to_mesh.SvgToMesh()
+
 print('found:', len(found), '\n')
 # print(found)
 for i, path in enumerate(found):
     print('match', i, ':')
+    trans = None
     for j, item in enumerate(path[:-1]):
+        trans = stm.get_transform(item, trans, no_3d=True)
         tag = item.tag.rsplit('}', 1)[-1]
         print(f'{"    " * j}tag: {tag}')
         print(f'{"    " * j}id: {item.get("id")}')
@@ -74,3 +79,8 @@ for i, path in enumerate(found):
         v = item.get(k)
         print(f'{"    " * j}{k}: {v}')
     print(f'{"    " * j}text: {item.text}')
+    bbox = stm.boundingbox(item, trans, use_text_xy=True)
+    center = ((bbox[0][0] + bbox[1][0]) / 2,
+              (bbox[0][1] + bbox[1][1]) / 2)
+    print(f'{"    " * j}real_center: {center}')
+    print(f'{"    " * j}real_bbox: {bbox}')
