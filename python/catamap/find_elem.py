@@ -53,7 +53,6 @@ while todo:
                 xfound = False
                 break
     if xfound:
-        print('found', depth)
         if depth == len(props) - 1:
             found.append(path)
         else:
