@@ -6975,7 +6975,7 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
     def replace_symbols(self, xml):
         protos = self.find_protos(self.xml)
         print('REPLACE SYMBOLS')
-        print('protos:', protos)
+        # print('protos:', protos)
         self.replace_elements(xml, protos)
 
     def zoom_areas(self, xml):
@@ -7345,7 +7345,12 @@ class CataMapTo2DMap(svg_to_mesh.SvgToMesh):
             replacements = {'col_filter': col_filter,
                             'colorset': colorset}
             user_map_defs = user_map_defs % replacements
-            user_map_defs = json.loads(user_map_defs)
+            try:
+                user_map_defs = json.loads(user_map_defs)
+            except Exception:
+                print('error decoding JSON in maps_def:')
+                print(user_map_defs)
+                raise
             maps_def.update(user_map_defs)
 
         return maps_def

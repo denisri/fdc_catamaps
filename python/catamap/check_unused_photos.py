@@ -9,8 +9,13 @@ import yaml
 
 
 parser = argparse.ArgumentParser(
-    'checks unused photos in photos directories listed in a map_objects.json '
-    'file')
+    description='Check missing, duplicate, or unused "media" files (generally '
+    'photos, videos, sounds) referenced in a 3D processed SVG map file. '
+    'The program analyses the resulting "map_objects.json" file (see the '
+    '"catamap" program doc) and prints media files which are used there '
+    'but not present on disk in the media directories (photos/, '
+    'sounds/...), or at the contratry, files present in referenced media '
+    'directories but unused in the map.')
 
 parser.add_argument('-i', '--input', default='map_objects.json',
                     help='input map_objects.json file')
