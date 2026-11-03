@@ -368,7 +368,9 @@
         const s = my_path.split('/');
         const my_dir = my_path.substring(0, my_path.length - s[s.length - 1].length);
         console.log('service:', my_dir + 'sw.js');
-        navigator.serviceWorker.register(my_dir + 'sw.js');
+        navigator.serviceWorker.register(my_dir + 'sw.js', {'scope': my_dir})
+          .then(reg => console.log('SW register succeeded:', my_dir))
+          .catch(err => console.error('SW register failed :', err));
 
         navigator.serviceWorker.ready.then((registration) => {
           if (navigator.serviceWorker.controller) {
