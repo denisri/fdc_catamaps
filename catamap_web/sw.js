@@ -83,7 +83,7 @@ async function get_cache_name()
     version = map_objects.version;
     // console.log('map_objects version:', version);
     cacheName = mapname + '-' + version;
-    // console.log('[Service Worker] cacheName:', cacheName);
+    console.log('[Service Worker] cacheName:', cacheName);
     cleanup_caches();
     return cacheName;
 }
@@ -324,6 +324,11 @@ async function cleanup_caches()
   console.log('[Service Worker] cleanup caches');
   // console.log('caches:', await caches.keys());
   get_cache_name();
+  if( !cacheName )
+  {
+    console.log('could not retreive cache name. Not cleaning.');
+    return;
+  }
 
   caches.keys().then((keyList) => {
     return Promise.all(
